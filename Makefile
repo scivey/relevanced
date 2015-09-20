@@ -11,7 +11,7 @@ OBJ=$(addprefix ./src/, \
 		WhitespaceTokenizer.o \
 	)
 
-./src/main.o: $(addprefix ./src/, main.cpp data.h Article.h englishStopwordSet.h WhitespaceTokenizer.h)
+./src/main.o: $(addprefix ./src/, main.cpp data.h Article.h englishStopwordSet.h WhitespaceTokenizer.h Centroid.h CentroidFactory.h)
 
 runner: $(OBJ)
 	$(CXX) $(CXX_FLAGS) -o $@ $(OBJ) $(LINK)

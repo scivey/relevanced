@@ -22,43 +22,60 @@ double vectorMag(const Eigen::VectorXd &vec, size_t count) {
 class Centroid {
 protected:
   Tfidf *tfidf_;
-  Eigen::VectorXd centroid_;
-  double centroidMag_;
+  Eigen::VectorXd center_;
   vector<Article*> articles_;
+  bool centerInitialized_ {false};
   Eigen::VectorXd getSV() {
     size_t size = tfidf_->getCorpusSize();
-    Eigen::VectorXd midVec(size);
-    for(size_t i = 0; i < size; i++) {
-      midVec(i) = 0.0;
+    if (!centerInitialized_) {
+      Eigen::VectorXd midVec(size);
+      for(size_t i = 0; i < size; i++) {
+        midVec(i) = 0.0;
+      }
+      for (auto article: articles_) {
+        auto artVec = tfidf_->tfVecOfArticle(article);
+        midVec += artVec;
+      }
+      midVec = midVec / size;
+      center_ = std::move(midVec);
     }
-    for (auto article: articles_) {
-      auto artVec = tfidf_->tfVecOfArticle(article);
-      midVec += artVec;
-    }
-    midVec = midVec / articles_.size();
-    return midVec;
+    return center_;
   }
 public:
-  Centroid(vector<Article*> articles, Tfidf *tfidf): articles_(articles), tfidf_(tfidf){
-    centroid_ = getSV();
-    centroidMag_ = vectorMag(centroid_, articles.size());
-    LOG(INFO) << "centroidMag_ : " << centroidMag_;
-  }
+  Centroid(vector<Article*> articles, Tfidf *tfidf): articles_(articles), tfidf_(tfidf) {}
   double score(Article *article) {
+    auto support = getSV();
     auto artVec = tfidf_->tfVecOfArticle(article);
     double dotProd = 0.0;
     size_t corpusSize = tfidf_->getCorpusSize();
     for (size_t i = 0; i < corpusSize; i++) {
-      dotProd += (centroid_(i) * artVec(i));
+      dotProd += (support(i) * artVec(i));
     }
-    double artMag = vectorMag(artVec, corpusSize);
-    LOG(INFO) << "artMag: " << artMag;
-    LOG(INFO) << "dotProd: " << dotProd;
-    return dotProd / (centroidMag_ * artMag);
+    double mag1 = vectorMag(support, corpusSize);
+    double mag2 = vectorMag(artVec, corpusSize);
+    return dotProd / (mag1 * mag2);
+  }
+  bool isRelevant(Article *article) {
+    return score(article) > 0.2;
   }
   void evalRelevance(Article *article) {
     double rel = score(article);
-    bool result = (rel > 0.5);
+    bool result = isRelevant(article);
     LOG(INFO) << "relevance: " << article->title_ << "  = " << rel << "  -> " << result;
+  }
+  double test(const vector<Article*> &goodArticles, const vector<Article*> &badArticles) {
+    size_t total = goodArticles.size() + badArticles.size();
+    size_t mistakes = 0;
+    for (auto article: goodArticles) {
+      if (!isRelevant(article)) {
+        mistakes++;
+      }
+    }
+    for(auto article: badArticles) {
+      if (isRelevant(article)) {
+        mistakes++;
+      }
+    }
+    return 1.0 - ((double) mistakes) / ((double) goodArticles.size() + badArticles.size());
   }
 };

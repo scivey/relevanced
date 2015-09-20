@@ -92,6 +92,9 @@ int main() {
     poliCentroid.evalRelevance(elem);
   }
 
+  LOG(INFO) << "poli accuracy: " << poliCentroid.test(poliArts, mathArts);
+  LOG(INFO) << "math accuracy: " << mathCentroid.test(mathArts, poliArts);
+
   // cout << endl << mathCentroid.getSV() << endl;
   // auto elem = data.at(0);
   // processElem(elem);
