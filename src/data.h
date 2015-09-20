@@ -36,6 +36,7 @@ vector<Article> loadData() {
     auto durl = elem["url"];
     auto dtext = elem["text"];
     Article art(
+      folly::convertTo<string>(durl),
       folly::convertTo<string>(dtitle),
       folly::convertTo<string>(durl),
       Article::Subject::MATH,
@@ -48,6 +49,7 @@ vector<Article> loadData() {
     auto durl = elem["url"];
     auto dtext = elem["text"];
     Article art(
+      folly::convertTo<string>(durl),
       folly::convertTo<string>(dtitle),
       folly::convertTo<string>(durl),
       Article::Subject::POLITICS,

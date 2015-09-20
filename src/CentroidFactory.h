@@ -24,9 +24,8 @@ public:
   CentroidFactory(vector<Article*> articles): articles_(articles) {
     tfidf_ = new Tfidf(articles_);
   };
-  Centroid makeCentroid(vector<Article*> articles) {
-    Centroid centroid(articles, tfidf_);
-    return centroid;
+  Centroid* makeCentroid(vector<Article*> articles) {
+    return new Centroid(articles, tfidf_);
   }
   // Eigen::VectorXd getSV() {
   //   size_t size = tfidf_->getCorpusSize();
