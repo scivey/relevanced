@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
-
+#include <boost/algorithm/string/case_conv.hpp>
 #include "englishStopwordSet.h"
 #include "WhitespaceTokenizer.h"
 #include "stringUtil.h"
@@ -25,7 +25,7 @@ vector<string> getNonStopwords(const string &text) {
   for (auto &elem: tokenizer.tokenize(text)) {
     string word = elem;
     if (stringUtil::isOnlyAscii(word)) {
-      word = stringUtil::lowerCase(word);
+      word = boost::algorithm::to_lower_copy(word);
     }
     if (!isJunk(word)) {
       result.push_back(word);
