@@ -37,9 +37,6 @@ vector<Article> loadData() {
     auto dtext = elem["text"];
     Article art(
       folly::convertTo<string>(durl),
-      folly::convertTo<string>(dtitle),
-      folly::convertTo<string>(durl),
-      Article::Subject::MATH,
       folly::convertTo<string>(dtext)
     );
     output.push_back(art);
@@ -50,9 +47,6 @@ vector<Article> loadData() {
     auto dtext = elem["text"];
     Article art(
       folly::convertTo<string>(durl),
-      folly::convertTo<string>(dtitle),
-      folly::convertTo<string>(durl),
-      Article::Subject::POLITICS,
       folly::convertTo<string>(dtext)
     );
     output.push_back(art);

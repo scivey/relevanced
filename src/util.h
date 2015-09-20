@@ -1,10 +1,26 @@
 #pragma once
 #include <map>
+#include <string>
+#include <sstream>
+
+
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+
 namespace {
   using namespace std;
 }
 
 namespace util {
+
+
+string getUuid() {
+  boost::uuids::uuid uuid = boost::uuids::random_generator()();
+  ostringstream oss;
+  oss << uuid;
+  return oss.str();
+}
 
 template<typename T>
 class Counter {

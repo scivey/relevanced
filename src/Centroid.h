@@ -61,7 +61,6 @@ public:
   void evalRelevance(Article *article) {
     double rel = score(article);
     bool result = isRelevant(article);
-    LOG(INFO) << "relevance: " << article->title_ << "  = " << rel << "  -> " << result;
   }
   double test(const vector<Article*> &goodArticles, const vector<Article*> &badArticles) {
     size_t total = goodArticles.size() + badArticles.size();

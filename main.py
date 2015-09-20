@@ -51,18 +51,33 @@ def main():
         for art in load_poli():
             client.addNegativeToCollection('wiki_math', art['url'].encode('utf-8'), art['text'].encode('utf-8'))
         client.recompute('wiki_math')
+
+    if 'wiki_poli' not in colls:
+        client.createCollection('wiki_poli')
+        for art in load_math():
+            client.addNegativeToCollection('wiki_poli', art['url'].encode('utf-8'), art['text'].encode('utf-8'))
+        for art in load_poli():
+            client.addPositiveToCollection('wiki_poli', art['url'].encode('utf-8'), art['text'].encode('utf-8'))
+        client.recompute('wiki_poli')
     # client.recompute()
 
     pprint(client.listCollections())
     # print(client.recompute('wiki_math'))
     # print('math')
     print(client.getCollectionSize('wiki_math'))
-    print('math')
+    print('math v math')
     for art in load_math():
         print(client.getRelevance('wiki_math', art['text'].encode('utf-8')))
-    print('polisci')
+    print('math v polisci')
     for art in load_poli():
         print(client.getRelevance('wiki_math', art['text'].encode('utf-8')))
+
+    print('poli v poli')
+    for art in load_poli():
+        print(client.getRelevance('wiki_poli', art['text'].encode('utf-8')))
+    print('poli v math')
+    for art in load_math():
+        print(client.getRelevance('wiki_poli', art['text'].encode('utf-8')))
 
     # for art in load_math():
     #     # print(client.getRelevance('wiki_math', art['text'].encode('utf-8')))

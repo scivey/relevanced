@@ -13,20 +13,14 @@ namespace {
 class Article {
 protected:
 public:
-  enum class Subject {
-    MATH, POLITICS, UNKNOWN
-  };
   string id_;
-  string title_;
-  string url_;
   string text_;
-  Subject subject_;
   vector<string> nonStopwords_;
   map<string, size_t> wordCounts_;
   map<string, double> normalizedWordCounts_;
 
-  Article(const string &id, const string &title, const string &url, Subject subject, const string &text):
-    id_(id), title_(title), url_(url), subject_(subject), text_(text) {}
+  Article(const string &id, const string &text):
+    id_(id), text_(text) {}
 
   vector<string>& getNonStopwords() {
     if (nonStopwords_.size() == 0) {

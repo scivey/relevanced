@@ -4,3 +4,5 @@ tmp
 a.out
 runner
 gen-py
+*.pyc
+
