@@ -37,66 +37,63 @@ def get_client():
     transport.open()
     return client
 
-def main():
-    client = get_client()
-    # client.createCollection('wiki_math')
-    # client.createCollection('foobar')
+
+def init_documents(client):
+    all_articles = load_math() + load_poli()
+    articles_by_url = { d['url']: d for d in all_articles}
+
+    # load documents
+    existing_docs = set(client.listDocuments())
+    for url, doc in articles_by_url.iteritems():
+        if url not in existing_docs:
+            client.createDocumentWithID(url.encode('utf-8'), doc['text'].encode('utf-8'))
+
+    assert(len(all_articles) == len(client.listDocuments()))
+
+def init_collections(client):
     colls = client.listCollections()
-    pprint(colls)
+
     if 'wiki_math' not in colls:
-        print('initializing')
-        client.createCollection('wiki_math')
-        for art in load_math():
-            client.addPositiveToCollection('wiki_math', art['url'].encode('utf-8'), art['text'].encode('utf-8'))
-        for art in load_poli():
-            client.addNegativeToCollection('wiki_math', art['url'].encode('utf-8'), art['text'].encode('utf-8'))
-        client.recompute('wiki_math')
+        name = 'wiki_math'
+        client.createCollection(name)
+        for doc in load_math():
+            client.addPositiveDocumentToCollection(name, doc['url'].encode('utf-8'))
+        for doc in load_poli():
+            client.addNegativeDocumentToCollection(name, doc['url'].encode('utf-8'))
+        client.recompute(name)
 
     if 'wiki_poli' not in colls:
-        client.createCollection('wiki_poli')
-        for art in load_math():
-            client.addNegativeToCollection('wiki_poli', art['url'].encode('utf-8'), art['text'].encode('utf-8'))
-        for art in load_poli():
-            client.addPositiveToCollection('wiki_poli', art['url'].encode('utf-8'), art['text'].encode('utf-8'))
-        client.recompute('wiki_poli')
-    # client.recompute()
+        name = 'wiki_poli'
+        client.createCollection(name)
+        for doc in load_math():
+            client.addNegativeDocumentToCollection(name, doc['url'].encode('utf-8'))
+        for doc in load_poli():
+            client.addPositiveDocumentToCollection(name, doc['url'].encode('utf-8'))
+        client.recompute(name)
 
-    pprint(client.listCollections())
-    # print(client.recompute('wiki_math'))
-    # print('math')
-    print(client.getCollectionSize('wiki_math'))
+    assert(2 <= len(client.listCollections()))
+
+def main():
+    client = get_client()
+    init_documents(client)
+    init_collections(client)
+
+    print("math documents: %i" % client.getCollectionSize('wiki_math'))
+    print("poli documents: %i" % client.getCollectionSize('wiki_poli'))
+
     print('math v math')
     for art in load_math():
-        print(client.getRelevance('wiki_math', art['text'].encode('utf-8')))
+        print(client.getRelevanceForText('wiki_math', art['text'].encode('utf-8')))
     print('math v polisci')
     for art in load_poli():
-        print(client.getRelevance('wiki_math', art['text'].encode('utf-8')))
+        print(client.getRelevanceForText('wiki_math', art['text'].encode('utf-8')))
 
     print('poli v poli')
     for art in load_poli():
-        print(client.getRelevance('wiki_poli', art['text'].encode('utf-8')))
+        print(client.getRelevanceForText('wiki_poli', art['text'].encode('utf-8')))
     print('poli v math')
     for art in load_math():
-        print(client.getRelevance('wiki_poli', art['text'].encode('utf-8')))
-
-    # for art in load_math():
-    #     # print(client.getRelevance('wiki_math', art['text'].encode('utf-8')))
-    #     client.addPositiveToCollection('wiki_math', art['url'].encode('utf-8'), art['text'].encode('utf-8'))
-    # # print('poli')
-    # for art in load_poli():
-    # #     print(client.getRelevance('wiki_math', art['text'].encode('utf-8')))
-    #     client.addNegativeToCollection('wiki_math', art['url'].encode('utf-8'), art['text'].encode('utf-8'))
-
-    # # print('math scores')
-
-
-    # sock = TSocket.TSocket('localhost', 8097)
-    # transport = TTransport.TBufferedTransport(sock)
-    # protocol = TBinaryProtocol.TBinaryProtocol(transport)
-    # client = Relevance.Client(protocol)
-    # transport.open()
-    # result = client.createCollection("wiki_math")
-    # print(result)
+        print(client.getRelevanceForText('wiki_poli', art['text'].encode('utf-8')))
 
 if __name__ == '__main__':
     main()
