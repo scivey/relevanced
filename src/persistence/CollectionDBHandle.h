@@ -97,6 +97,18 @@ public:
     sqlDb_->exec<int>(collQuery);
     return true;
   }
+  vector<string> listCollectionDocs(const string &collectionId) {
+    vector<string> output;
+    if (!doesCollectionExist(collectionId)) {
+      return output;
+    }
+    string docQuery = folly::sformat("select document_id from collection_docs where collection_name='{}' order by document_id;", collectionId);
+    auto res = sqlDb_->exec<string>(docQuery);
+    for (auto &row: res) {
+      output.push_back(std::get<0>(row));
+    }
+    return output;
+  }
 };
 
 } // persistence

@@ -3,8 +3,6 @@
 #include <folly/Format.h>
 #include <cmath>
 #include <vector>
-#include <eigen3/Eigen/Dense>
-
 #include "Article.h"
 #include "ProcessedArticle.h"
 
@@ -19,8 +17,6 @@ namespace {
 class CentroidFactory {
 protected:
   vector<ProcessedArticle*> articles_;
-  bool centerInitialized_ {false};
-  Eigen::VectorXd center_;
   Tfidf *tfidf_;
 public:
   CentroidFactory(vector<ProcessedArticle*> articles): articles_(articles) {

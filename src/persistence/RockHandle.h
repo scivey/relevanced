@@ -62,25 +62,6 @@ public:
     handler(txn);
     delete txn;
   }
-  void attemptTxn() {
-    runTxn([this](OptimisticTransaction* txn) {
-      assert(put("abc", "xyz"));
-      string expected = "xyz";
-      assert(expected == get("abc"));
-      assert(put("abc", "FOOBAR"));
-      string expected2 = "FOOBAR";
-      assert(expected2 == get("abc"));
-      txn->Put("abc", "NEW_VALUE");
-      string expected3 = "FOOBAR";
-      assert(expected3 == get("abc"));
-      LOG(INFO) << "abc: " << get("abc");
-      string gotten;
-      status_ = txn->Get(readOptions_, "abc", &gotten);
-      assert(status_.ok());
-      txn->Commit();
-      LOG(INFO) << "gotten: " << gotten;
-    });
-  }
 };
 
 } // persistence
