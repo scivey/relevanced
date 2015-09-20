@@ -1,0 +1,6 @@
+*.o
+tmp
+*.log
+a.out
+runner
+
