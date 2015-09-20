@@ -1,6 +1,6 @@
 CXX=clang++-3.5
 CXX_FLAGS=--std=c++14 -stdlib=libstdc++ -I./src
-LINK=-lthriftcpp2 -lthrift -lwangle -lfolly -lglog -ldouble-conversion -latomic -pthread
+LINK=-lthriftcpp2 -lthrift -lwangle -lfolly -lrocksdb -lglog -lsqlite3 -lz -lsnappy -llz4 -lbz2 -ldouble-conversion -latomic -pthread
 
 %.o:%.cpp
 	$(CXX) $(CXX_FLAGS) -o $@ -c $<
@@ -20,7 +20,14 @@ THRIFT_OBJ = $(addprefix ./src/gen-cpp2/, \
 		TextRelevance_types.o \
 	)
 
-./src/main.o: $(addprefix ./src/, main.cpp data.h Article.h englishStopwordSet.h WhitespaceTokenizer.h Centroid.h CentroidFactory.h RelevanceServer.h RelevanceWorker.h)
+./src/main.o: $(addprefix ./src/, \
+		main.cpp data.h Article.h \
+		englishStopwordSet.h WhitespaceTokenizer.h \
+		Centroid.h CentroidFactory.h RelevanceServer.h \
+		RelevanceWorker.h persistence/SqlDb.h persistence/DocumentDBHandle.h \
+		persistence/RockHandle.h persistence/CollectionDBHandle.h \
+		ProcessedDocument.h \
+	)
 
 runner: $(OBJ) $(THRIFT_OBJ)
 	$(CXX) $(CXX_FLAGS) -o $@ $(OBJ) $(THRIFT_OBJ) $(LINK)

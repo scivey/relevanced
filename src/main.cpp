@@ -24,6 +24,7 @@
 #include "RelevanceServer.h"
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 #include <thrift/lib/cpp2/async/AsyncProcessor.h>
+#include "persistence/RockHandle.h"
 
 using tokenizer::WhitespaceTokenizer;
 using namespace std;

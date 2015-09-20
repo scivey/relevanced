@@ -6,6 +6,7 @@
 #include <eigen3/Eigen/Dense>
 #include "Tfidf.h"
 #include "Article.h"
+#include "ProcessedArticle.h"
 
 namespace {
   using namespace std;
@@ -23,7 +24,7 @@ class Centroid {
 protected:
   Tfidf *tfidf_;
   Eigen::VectorXd center_;
-  vector<Article*> articles_;
+  vector<ProcessedArticle*> articles_;
   bool centerInitialized_ {false};
   Eigen::VectorXd getSV() {
     size_t size = tfidf_->getCorpusSize();
@@ -42,8 +43,8 @@ protected:
     return center_;
   }
 public:
-  Centroid(vector<Article*> articles, Tfidf *tfidf): articles_(articles), tfidf_(tfidf) {}
-  double score(Article *article) {
+  Centroid(vector<ProcessedArticle*> articles, Tfidf *tfidf): articles_(articles), tfidf_(tfidf) {}
+  double score(ProcessedArticle *article) {
     auto support = getSV();
     auto artVec = tfidf_->tfVecOfArticle(article);
     double dotProd = 0.0;
@@ -55,14 +56,18 @@ public:
     double mag2 = vectorMag(artVec, corpusSize);
     return dotProd / (mag1 * mag2);
   }
-  bool isRelevant(Article *article) {
+  double score(Article *article) {
+    ProcessedArticle processed = article->toProcessedArticle();
+    return score(&processed);
+  }
+  bool isRelevant(ProcessedArticle *article) {
     return score(article) > 0.2;
   }
-  void evalRelevance(Article *article) {
+  void evalRelevance(ProcessedArticle *article) {
     double rel = score(article);
     bool result = isRelevant(article);
   }
-  double test(const vector<Article*> &goodArticles, const vector<Article*> &badArticles) {
+  double test(const vector<ProcessedArticle*> &goodArticles, const vector<ProcessedArticle*> &badArticles) {
     size_t total = goodArticles.size() + badArticles.size();
     size_t mistakes = 0;
     for (auto article: goodArticles) {

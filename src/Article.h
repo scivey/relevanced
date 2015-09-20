@@ -5,6 +5,7 @@
 #include <memory>
 #include "stopwords.h"
 #include "util.h"
+#include "ProcessedArticle.h"
 
 namespace {
   using namespace std;
@@ -67,5 +68,12 @@ public:
       return 0.0;
     }
     return wordCounts[word];
+  }
+  ProcessedArticle* toNewProcessedArticle() {
+    return new ProcessedArticle(id_, getNormalizedWordCounts());
+  }
+  ProcessedArticle toProcessedArticle() {
+    ProcessedArticle art(id_, getNormalizedWordCounts());
+    return art;
   }
 };

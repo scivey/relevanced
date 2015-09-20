@@ -8,6 +8,7 @@
 
 #include "util.h"
 #include "Article.h"
+#include "ProcessedArticle.h"
 #include "CentroidFactory.h"
 
 namespace {
@@ -26,43 +27,33 @@ vector<T> vecOfSet(const set<T> &t) {
 class RelevanceCollection {
 protected:
   string id_;
-  map<string, Article*> articleIndex_;
+  map<string, ProcessedArticle*> articleIndex_;
   set<string> goodArticles_;
   set<string> badArticles_;
   set<string> allArticles_;
 
   CentroidFactory *cFactory_ {nullptr};
   Centroid *centroid_ {nullptr};
-  Article* makeArt(string text) {
-    auto id = util::getUuid();
-    return makeArt(id, text);
-  }
-  Article* makeArt(string docId, string text) {
-    auto art = new Article(
-      docId, text
-    );
-    return art;
-  }
 public:
   RelevanceCollection(string id): id_(id) {}
-  bool addPositiveDocument(Article *art) {
-    LOG(INFO) << "adding good article: " << art->text_.substr(0, 50);
-    if (articleIndex_.find(art->id_) != articleIndex_.end()) {
+  bool addPositiveDocument(ProcessedArticle *art) {
+    LOG(INFO) << "adding good article: " << art->id;
+    if (articleIndex_.find(art->id) != articleIndex_.end()) {
       return false;
     }
-    articleIndex_[art->id_] = art;
-    goodArticles_.insert(art->id_);
-    allArticles_.insert(art->id_);
+    articleIndex_[art->id] = art;
+    goodArticles_.insert(art->id);
+    allArticles_.insert(art->id);
     return true;
   }
-  bool addNegativeDocument(Article *art) {
-    LOG(INFO) << "adding bad article: " << art->text_.substr(0, 50);
-    if (articleIndex_.find(art->id_) != articleIndex_.end()) {
+  bool addNegativeDocument(ProcessedArticle *art) {
+    LOG(INFO) << "adding bad article: " << art->id;
+    if (articleIndex_.find(art->id) != articleIndex_.end()) {
       return false;
     }
-    articleIndex_[art->id_] = art;
-    badArticles_.insert(art->id_);
-    allArticles_.insert(art->id_);
+    articleIndex_[art->id] = art;
+    badArticles_.insert(art->id);
+    allArticles_.insert(art->id);
     return true;
   }
   bool removeDocument(string id) {
@@ -91,11 +82,11 @@ public:
     if (centroid_ != nullptr) {
       delete centroid_;
     }
-    vector<Article*> goodVec;
+    vector<ProcessedArticle*> goodVec;
     for (auto &elem: goodArticles_) {
       goodVec.push_back(articleIndex_[elem]);
     }
-    vector<Article*> allVec;
+    vector<ProcessedArticle*> allVec;
     for (auto &elem: allArticles_) {
       allVec.push_back(articleIndex_[elem]);
     }
@@ -103,7 +94,7 @@ public:
     centroid_ = cFactory_->makeCentroid(goodVec);
     LOG(INFO) << "creating new centroid";
   }
-  double getRelevance(Article *article) {
+  double getRelevance(ProcessedArticle *article) {
     if (centroid_ == nullptr) {
       LOG(INFO) << "no centroid; returning default 0.0";
       return 0.0;
@@ -112,7 +103,8 @@ public:
   }
   double getRelevance(string text) {
     Article article("no-id", text);
-    return getRelevance(&article);
+    ProcessedArticle processed = article.toProcessedArticle();
+    return getRelevance(&processed);
   }
   int64_t getSize() {
     return allArticles_.size();
@@ -125,7 +117,7 @@ public:
 class RelevanceCollectionManager {
 protected:
   map<string, RelevanceCollection*> collections_;
-  map<string, Article*> documents_;
+  map<string, ProcessedArticle*> documents_;
 public:
   RelevanceCollectionManager(){}
   double getRelevanceForDoc(string collId, string docId) {
@@ -201,16 +193,18 @@ public:
     return true;
   }
   string createDocument(string text) {
-    auto art = new Article(util::getUuid(), text);
-    documents_[art->id_] = art;
-    return art->id_;
+    Article art(util::getUuid(), text);
+    auto processed = art.toNewProcessedArticle();
+    documents_[processed->id] = processed;
+    return processed->id;
   }
   bool createDocumentWithId(string id, string text) {
     if (documents_.find(id) != documents_.end()) {
       return false;
     }
-    auto art = new Article(id, text);
-    documents_[id] = art;
+    Article art(id, text);
+    auto processed = art.toNewProcessedArticle();
+    documents_[id] = processed;
     return true;
   }
   string addNewNegativeDocumentToCollection(string collectionId, string text) {
@@ -236,7 +230,7 @@ public:
     if (documents_.find(docId) == documents_.end()) {
       return "";
     }
-    return documents_[docId]->text_;
+    return docId;
   }
   bool recompute(string collectionId) {
     if (collections_.find(collectionId) == collections_.end()) {
