@@ -1,6 +1,7 @@
 from __future__ import print_function
 import sys
 import json
+import time
 from functools import wraps
 sys.path.append('./gen-py')
 from pprint import pprint
@@ -42,7 +43,6 @@ def init_documents(client):
     all_articles = load_math() + load_poli()
     articles_by_url = { d['url']: d for d in all_articles}
 
-    # load documents
     existing_docs = set(client.listDocuments())
     for url, doc in articles_by_url.iteritems():
         if url not in existing_docs:
@@ -95,5 +95,24 @@ def main():
     for art in load_math():
         print(client.getRelevanceForText('wiki_poli', art['text'].encode('utf-8')))
 
+def bench(secs):
+    client = get_client()
+    init_documents(client)
+    init_collections(client)
+    doc = load_math()[0]['text'].encode('utf-8')
+    start = time.time()
+    count = 0
+    while True:
+        client.getRelevanceForText('wiki_math', doc)
+        count += 1
+        if time.time() - start >= secs:
+            break
+    return count
+
 if __name__ == '__main__':
-    main()
+    if len(sys.argv) >= 2 and sys.argv[1] == 'bench':
+        interval = 5.0
+        count = bench(interval)
+        print("%i relevance calls in %f secs" % (count, interval))
+    else:
+        main()
