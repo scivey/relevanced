@@ -4,7 +4,8 @@
 #include <algorithm>
 #include <eigen3/Eigen/Dense>
 #include "Article.h"
-#include "ProcessedArticle.h"
+#include "ProcessedDocument.h"
+#include "ProcessedTfidf.h"
 
 #include "util.h"
 
@@ -14,12 +15,12 @@ namespace {
 
 class Tfidf {
 protected:
-  vector<ProcessedArticle*> articles_;
+  vector<ProcessedDocument*> articles_;
   map<string, size_t> documentCounts_;
   map<string, size_t> keyIndices_;
   vector<string> sortedKeys_;
 public:
-  Tfidf(vector<ProcessedArticle*> articles): articles_(articles){}
+  Tfidf(vector<ProcessedDocument*> articles): articles_(articles){}
   size_t getCorpusSize() {
     getDocumentCounts();
     return sortedKeys_.size();
@@ -44,10 +45,10 @@ public:
     }
     return documentCounts_;
   }
-  map<string, double> getNormalizedDocCounts(ProcessedArticle *article) {
+  map<string, double> getNormalizedDocCounts(ProcessedDocument *article) {
     return article->getTfidfWordCounts(getDocumentCounts());
   }
-  Eigen::VectorXd tfVecOfArticle(ProcessedArticle *article) {
+  Eigen::VectorXd tfVecOfArticle(ProcessedDocument *article) {
     getDocumentCounts();
     size_t size = sortedKeys_.size();
     Eigen::VectorXd vec(size);
@@ -61,21 +62,29 @@ public:
     }
     return vec;
   }
-  Eigen::VectorXd tfidfVecOfArticle(ProcessedArticle *article) {
+  Eigen::VectorXd tfidfVecOfArticle(ProcessedDocument *article) {
     getDocumentCounts();
     size_t size = sortedKeys_.size();
     Eigen::VectorXd vec(size);
     for (size_t i = 0; i < size; i++) {
       vec(i) = 0.0;
     }
-    // for (auto &elem: article->getNormalizedWordCounts()) {
-    //   if (keyIndices_.find(elem.first) != keyIndices_.end()) {
-    //     vec(keyIndices_[elem.first]) = elem.second;
-    //   }
-    // }
     for (auto &elem: getNormalizedDocCounts(article)) {
       vec(keyIndices_[elem.first]) = elem.second;
     }
     return vec;
+  }
+  ProcessedTfidf toProcessedTfidf() {
+    ProcessedTfidf processed(
+      getDocumentCounts(),
+      keyIndices_,
+      sortedKeys_
+    );
+    return processed;
+  }
+  ProcessedTfidf* toNewProcessedTfidf() {
+    return new ProcessedTfidf(
+      getDocumentCounts(), keyIndices_, sortedKeys_
+    );
   }
 };

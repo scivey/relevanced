@@ -4,7 +4,7 @@
 #include <cmath>
 #include <vector>
 #include "Article.h"
-#include "ProcessedArticle.h"
+#include "ProcessedDocument.h"
 
 #include "Tfidf.h"
 #include "Centroid.h"
@@ -16,13 +16,13 @@ namespace {
 
 class CentroidFactory {
 protected:
-  vector<ProcessedArticle*> articles_;
+  vector<ProcessedDocument*> articles_;
   Tfidf *tfidf_;
 public:
-  CentroidFactory(vector<ProcessedArticle*> articles): articles_(articles) {
+  CentroidFactory(vector<ProcessedDocument*> articles): articles_(articles) {
     tfidf_ = new Tfidf(articles_);
   };
-  Centroid* makeCentroid(vector<ProcessedArticle*> articles) {
+  Centroid* makeCentroid(vector<ProcessedDocument*> articles) {
     return new Centroid(articles, tfidf_);
   }
 };

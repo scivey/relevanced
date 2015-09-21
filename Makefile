@@ -44,4 +44,5 @@ thrift:
 	python -m thrift_compiler.main --gen cpp2 -o src src/TextRelevance.thrift
 
 thrift-py:
-	thrift1 --gen py -o . src/TextRelevance.thrift
+	thrift1 --gen py -o ./clients/python/relevanced_client src/TextRelevance.thrift
+	mv ./clients/python/relevanced_client/gen-py ./clients/python/relevanced_client/gen_py

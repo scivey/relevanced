@@ -6,6 +6,7 @@
 #include "RelevanceWorker.h"
 #include "RelevanceCollectionManager.h"
 
+
 namespace {
   using namespace std;
   using namespace folly;
@@ -17,6 +18,7 @@ class RelevanceServer: public services::RelevanceSvIf {
 public:
   RelevanceServer(RelevanceCollectionManager *manager): manager_(manager) {
     worker_ = new RelevanceWorker(manager_);
+
   }
   void ping() {}
   Future<double> future_getRelevanceForDoc(unique_ptr<string> collId, unique_ptr<string> docId) {
@@ -91,7 +93,7 @@ public:
       return std::move(std::make_unique<vector<string>>(res));
     });
   }
-  Future<int64_t> future_getCollectionSize(unique_ptr<string> collId) override {
+  Future<int> future_getCollectionSize(unique_ptr<string> collId) override {
     return worker_->getCollectionSize(*collId);
   }
 };

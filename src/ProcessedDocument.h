@@ -14,51 +14,19 @@ namespace {
 
 class ProcessedDocument {
 public:
-  map<string, double> wordCounts;
+  map<string, double> normalizedWordCounts;
   string id;
   ProcessedDocument(const string& id): id(id){}
-  ProcessedDocument(const string& id, map<string, double> counts): id(id), wordCounts(counts){}
+  ProcessedDocument(const string& id, map<string, double> counts): id(id), normalizedWordCounts(counts){}
 
   void addCount(string word, double count) {
-    wordCounts[word] = count;
+    normalizedWordCounts[word] = count;
   }
-  dynamic asDynamic_() {
-    dynamic counts = dynamic::object;
-    for(auto &elem: wordCounts) {
-      dynamic key = folly::toDynamic(elem.first);
-      dynamic val = folly::toDynamic(elem.second);
-      counts[key] = val;
-    }
-    dynamic self = dynamic::object;
-    dynamic ident = folly::toDynamic(id);
-    self["id"] = ident;
-    self["wordCounts"] = counts;
-    return self;
-  }
-  string toJson() {
-    fbstring js = folly::toJson(asDynamic_());
-    return js.toStdString();
-  }
-  static ProcessedDocument fromDynamic(dynamic &d) {
-    string id = folly::convertTo<string>(d["id"]);
-    map<string, double> wordCounts;
-    auto counts = d["wordCounts"];
-    for (auto &k: counts.keys()) {
-      string key = folly::convertTo<string>(k);
-      double val = folly::convertTo<double>(counts[k]);
-      wordCounts[key] = val;
-    }
-    ProcessedDocument doc(id);
-    doc.wordCounts = wordCounts;
-    return doc;
-  }
-  static ProcessedDocument fromJson(const string &js) {
-    auto dyn = folly::parseJson(js);
-    return fromDynamic(dyn);
-  }
+
   bool hasWord(const string &word) {
     return getNormalizedWordCount(word) != 0;
   }
+
   map<string, double> getTfidfWordCounts(const map<string, size_t> &docCounts) {
     map<string, double> output;
     for (auto &elem: normalizedWordCounts) {
@@ -76,5 +44,62 @@ public:
     }
     return normalizedWordCounts[word];
   }
+
+  dynamic asDynamic_() {
+    dynamic counts = dynamic::object;
+    for(auto &elem: normalizedWordCounts) {
+      dynamic key = folly::toDynamic(elem.first);
+      dynamic val = folly::toDynamic(elem.second);
+      counts[key] = val;
+    }
+    dynamic self = dynamic::object;
+    dynamic ident = folly::toDynamic(id);
+    self["id"] = ident;
+    self["normalizedWordCounts"] = counts;
+    return self;
+  }
+
+  string toJson() {
+    fbstring js = folly::toJson(asDynamic_());
+    return js.toStdString();
+  }
+
+  static ProcessedDocument fromDynamic(dynamic &d) {
+    string id = folly::convertTo<string>(d["id"]);
+    map<string, double> normalizedWordCounts;
+    auto counts = d["normalizedWordCounts"];
+    for (auto &k: counts.keys()) {
+      string key = folly::convertTo<string>(k);
+      double val = folly::convertTo<double>(counts[k]);
+      normalizedWordCounts[key] = val;
+    }
+    ProcessedDocument doc(id);
+    doc.normalizedWordCounts = normalizedWordCounts;
+    return doc;
+  }
+
+  static ProcessedDocument* newFromDynamic(dynamic &d) {
+    string id = folly::convertTo<string>(d["id"]);
+    map<string, double> normalizedWordCounts;
+    auto counts = d["normalizedWordCounts"];
+    for (auto &k: counts.keys()) {
+      string key = folly::convertTo<string>(k);
+      double val = folly::convertTo<double>(counts[k]);
+      normalizedWordCounts[key] = val;
+    }
+    auto doc = new ProcessedDocument(id);
+    doc->normalizedWordCounts = normalizedWordCounts;
+    return doc;
+  }
+  static ProcessedDocument fromJson(const string &js) {
+    auto dyn = folly::parseJson(js);
+    return fromDynamic(dyn);
+  }
+
+  static ProcessedDocument* newFromJson(const string &js) {
+    auto dyn = folly::parseJson(js);
+    return newFromDynamic(dyn);
+  }
+
 };
 

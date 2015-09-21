@@ -20,5 +20,5 @@ service Relevance {
     list<string> listCollections(),
     list<string> listDocuments(),
     list<string> listUnassociatedDocuments(),
-    i64 getCollectionSize(1: string collectionId)
+    i32 getCollectionSize(1: string collectionId)
 }

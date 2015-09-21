@@ -56,6 +56,13 @@ public:
     status_ = db_->Get(readOptions_, key, &val);
     return !status_.IsNotFound();
   }
+  bool del(const string &key) {
+    if (!exists(key)) {
+      return false;
+    }
+    status_ = db_->Delete(writeOptions_, key);
+    return true;
+  }
   void runTxn(function<void (OptimisticTransaction*)> handler) {
     OptimisticTransactionOptions txnOptions_;
     OptimisticTransaction *txn = txnDb_->BeginTransaction(writeOptions_);

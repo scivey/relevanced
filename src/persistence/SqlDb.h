@@ -110,6 +110,9 @@ public:
     const char *unusedPtr;
     sqlite3_stmt *prepared;
     int rc = sqlite3_prepare_v2(db_, sql, strlen(sql), &prepared, &unusedPtr);
+    if (rc != SQLITE_OK) {
+      LOG(INFO) << "bad rc on sql: " << sql;
+    }
     assert(rc == SQLITE_OK);
     auto result = getSqlRows<Types...>(prepared);
     sqlite3_finalize(prepared);

@@ -33,10 +33,13 @@ public:
     return true;
   }
 
-  ProcessedDocument loadDocument(const string &docId) {
+  bool deleteDocument(const string &docId) {
+    return rockHandle_->del(docId);
+  }
+
+  ProcessedDocument* loadDocument(const string &docId) {
     auto serialized = rockHandle_->get(docId);
-    ProcessedDocument doc = ProcessedDocument::fromJson(serialized);
-    return doc;
+    return ProcessedDocument::newFromJson(serialized);
   }
 
 };

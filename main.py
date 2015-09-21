@@ -42,13 +42,13 @@ def get_client():
 def init_documents(client):
     all_articles = load_math() + load_poli()
     articles_by_url = { d['url']: d for d in all_articles}
-
+    pprint(client.listDocuments())
     existing_docs = set(client.listDocuments())
     for url, doc in articles_by_url.iteritems():
         if url not in existing_docs:
             client.createDocumentWithID(url.encode('utf-8'), doc['text'].encode('utf-8'))
 
-    assert(len(all_articles) == len(client.listDocuments()))
+    pprint(client.listDocuments())
 
 def init_collections(client):
     colls = client.listCollections()

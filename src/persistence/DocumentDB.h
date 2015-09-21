@@ -26,7 +26,7 @@ protected:
   FutureExecutor<CPUThreadPoolExecutor> threadPool_ {1};
   DocumentDB(){
     threadPool_.addFuture([this](){
-      auto rock = std::make_unique<RocHandle>("data/documents");
+      auto rock = std::make_unique<RockHandle>("data/documents");
       dbHandle_ = new DocumentDBHandle(std::move(rock));
     });
   }
@@ -45,13 +45,19 @@ public:
     });
   }
 
+  Future<bool> deleteDocument(const string &docId) {
+    return threadPool_.addFuture([this, docId](){
+      return dbHandle_->deleteDocument(docId);
+    });
+  }
+
   Future<bool> saveDocument(ProcessedDocument *doc) {
     return threadPool_.addFuture([this, doc](){
       return dbHandle_->saveDocument(doc);
     });
   }
 
-  Future<ProcessedDocument> loadDocument(const string &docId) {
+  Future<ProcessedDocument*> loadDocument(const string &docId) {
     return threadPool_.addFuture([this, docId](){
       return dbHandle_->loadDocument(docId);
     });

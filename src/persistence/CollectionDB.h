@@ -52,11 +52,6 @@ public:
       return dbHandle_->doesCollectionHaveDoc(collectionId, docId);
     });
   }
-  Future<bool> addDocToCollection(const string &collectionId, const string &docId) {
-    return threadPool_.addFuture([this, collectionId, docId](){
-      return dbHandle_->addDocToCollection(collectionId, docId);
-    });
-  }
   Future<bool> addPositiveDocToCollection(const string &collectionId, const string &docId) {
     return threadPool_.addFuture([this, collectionId, docId](){
       return dbHandle_->addPositiveDocToCollection(collectionId, docId);
@@ -77,9 +72,34 @@ public:
       return dbHandle_->deleteCollection(collectionId);
     });
   }
+  Future<vector<string>> listCollections() {
+    return threadPool_.addFuture([this](){
+      return dbHandle_->listCollections();
+    });
+  }
+  Future<int> getCollectionDocCount(const string &collectionId) {
+    return threadPool_.addFuture([this, collectionId](){
+      return dbHandle_->getCollectionDocCount(collectionId);
+    });
+  }
   Future<vector<string>> listCollectionDocs(const string &collectionId) {
     return threadPool_.addFuture([this, collectionId](){
       return dbHandle_->listCollectionDocs(collectionId);
+    });
+  }
+  Future<vector<string>> listPositiveCollectionDocs(const string &collectionId) {
+    return threadPool_.addFuture([this, collectionId](){
+      return dbHandle_->listPositiveCollectionDocs(collectionId);
+    });
+  }
+  Future<vector<string>> listNegativeCollectionDocs(const string &collectionId) {
+    return threadPool_.addFuture([this, collectionId](){
+      return dbHandle_->listPositiveCollectionDocs(collectionId);
+    });
+  }
+  Future<vector<string>> listKnownDocuments() {
+    return threadPool_.addFuture([this](){
+      return dbHandle_->listKnownDocuments();
     });
   }
 };
