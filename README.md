@@ -56,15 +56,13 @@ client = Client('localhost', 8097)
 client.create_collection('math')
 
 for url in MATH_URLS:
-    if client.get_document(url) != url:
-        content = Goose().extract(url=url).cleaned_text
-        client.create_document_with_id(url, content)
+    content = Goose().extract(url=url).cleaned_text
+    client.create_document_with_id(url, content)
     client.add_positive_document_to_collection('math', url)
 
 for url in IRRELEVANT_URLS:
-    if client.get_document(url) != url:
-        content = Goose().extract(url=url).cleaned_text
-        client.create_document_with_id(url, content)
+    content = Goose().extract(url=url).cleaned_text
+    client.create_document_with_id(url, content)
     client.add_negative_document_to_collection('math', url)
 
 client.recompute('math')
