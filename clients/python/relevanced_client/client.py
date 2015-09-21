@@ -52,6 +52,9 @@ class Client(object):
     def create_document(self, doc_text):
         return self.thrift_client.createDocument(doc_text.encode('utf-8'))
 
+    def get_document(self, doc_id):
+        return self.thrift_client.getDocument(doc_id)
+
     def delete_document(self, doc_id):
         return self.thrift_client.deleteDocument(doc_id)
 
