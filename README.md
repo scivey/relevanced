@@ -8,7 +8,7 @@ Documents are stored on disk in a preprocessed form, and streamed into memory du
 
 Centroids are recalculated in batches with a standard offline algorithm.  This allows for relatively up-to-date models while avoiding the memory overhead and complexity of online variants.
 
-*relevanced*'s interface is specified as a Thrift service.  Clients can be easily generated in many languages.
+**relevanced**'s interface is specified as a Thrift service.  Clients can be easily generated in many languages.
 
 ## Python example
 Using the following list of URLs, and using [python-goose](https://github.com/grangier/python-goose) for content extraction:
