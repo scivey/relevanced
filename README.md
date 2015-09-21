@@ -1,6 +1,6 @@
 # relevanced
 
-*relevanced* provides persistent, named binary document classifiers.
+**relevanced** provides persistent, named binary document classifiers.
 
 It maintains an in-memory centroid for each collection, enabling rapid classification with low memory requirements.
 
