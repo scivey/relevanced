@@ -1,4 +1,6 @@
 CXX=clang++-3.5
+CC=clang-3.5
+CFLAGS=-I./src --std=c99
 CXX_FLAGS=--std=c++14 -stdlib=libstdc++ -I./src
 LINK=-lthriftcpp2 -lthrift -lwangle -lfolly -lrocksdb -lglog -lsqlite3 -lz -lsnappy -llz4 -lbz2 -ldouble-conversion -latomic -pthread
 
@@ -29,8 +31,13 @@ THRIFT_OBJ = $(addprefix ./src/gen-cpp2/, \
 		ProcessedDocument.h \
 	)
 
-runner: $(OBJ) $(THRIFT_OBJ)
-	$(CXX) $(CXX_FLAGS) -o $@ $(OBJ) $(THRIFT_OBJ) $(LINK)
+C_OBJ = $(addprefix ./src/, stemmer/porter_stemmer.o)
+gross_c_obj:
+	$(CC) $(CFLAGS) -o ./src/stemmer/porter_stemmer.o -c ./src/stemmer/porter_stemmer.c
+
+.PHONY: gross_c_obj
+runner: $(OBJ) $(THRIFT_OBJ) gross_c_obj
+	$(CXX) $(CXX_FLAGS) -o $@ $(OBJ) $(C_OBJ) $(THRIFT_OBJ) $(LINK)
 
 run: runner
 	./runner
