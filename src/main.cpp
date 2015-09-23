@@ -26,6 +26,7 @@
 
 using namespace std;
 using namespace folly;
+using namespace persistence;
 using stemmer::StemmerIf;
 using stemmer::PorterStemmer;
 using stopwords::StopwordFilter;
@@ -44,20 +45,20 @@ shared_ptr<PersistenceServiceIf> getPersistence() {
     (RockHandleIf*) new RockHandle("data/centroids")
   );
   UniquePointer<CentroidDBHandleIf> centroidDbHandle(
-    (*CentroidDBHandleIf) new CentroidDBHandle(std::move(centroidRock))
+    (CentroidDBHandleIf*) new CentroidDBHandle(std::move(centroidRock))
   );
   shared_ptr<CentroidDBIf> centroidDb(
     (CentroidDBIf*) new CentroidDB(
-      std::move(centroidDbHandle)
+      std::move(centroidDbHandle),
       make_shared<FutureExecutor<CPUThreadPoolExecutor>>(1)
     )
   );
 
   UniquePointer<RockHandleIf> docRock(
-    (*RockHandleIf) new RockHandle("data/documents")
+    (RockHandleIf*) new RockHandle("data/documents")
   );
   UniquePointer<DocumentDBHandleIf> docDbHandle(
-    (*DocumentDBHandleIf) new DocumentDBHandle(std::move(docRock))
+    (DocumentDBHandleIf*) new DocumentDBHandle(std::move(docRock))
   );
   shared_ptr<DocumentDBIf> docDb(
     (DocumentDBIf*) new DocumentDB(
@@ -66,14 +67,14 @@ shared_ptr<PersistenceServiceIf> getPersistence() {
     )
   );
 
-  UniquePointer<SqlDbIf> sqlDb(
-    (*SqlDbIf) new SqlDb("data/collections.sqlite")
+  UniquePointer<SqlDb> sqlDb(
+    new SqlDb("data/collections.sqlite")
   );
   UniquePointer<CollectionDBHandleIf> collDbHandle(
-    (*CollectionDBHandleIf) new CollectionDBHandle(std::move(sqlDb))
+    (CollectionDBHandleIf*) new CollectionDBHandle(std::move(sqlDb))
   );
   shared_ptr<CollectionDBIf> collDb(
-    (*CollectionDBIf) new CollectionDB(
+    (CollectionDBIf*) new CollectionDB(
       std::move(collDbHandle),
       make_shared<FutureExecutor<CPUThreadPoolExecutor>>(1)
     )

@@ -24,7 +24,7 @@ protected:
   std::map<std::string, ProcessedCentroid*> centroids_;
 public:
   RelevanceCollectionManager(
-    std::shared_ptr<persistence::PersistenceService>,
+    std::shared_ptr<persistence::PersistenceServiceIf>,
     std::shared_ptr<CentroidManager>,
     std::shared_ptr<DocumentProcessor>
   );

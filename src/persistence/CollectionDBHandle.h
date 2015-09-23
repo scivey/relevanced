@@ -32,10 +32,10 @@ public:
 
 class CollectionDBHandle: public CollectionDBHandleIf {
 protected:
-  util::UniquePointer<SqlDbIf> sqlDb_;
+  util::UniquePointer<SqlDb> sqlDb_;
   bool addDocToCollection(const std::string&, const std::string&, bool isPositive);
 public:
-  CollectionDBHandle(util::UniquePointer<SqlDbIf> sqlDb);
+  CollectionDBHandle(util::UniquePointer<SqlDb> sqlDb);
   bool ensureTables() override;
   bool doesCollectionExist(const std::string&) override;
   bool createCollection(const std::string&) override;

@@ -13,33 +13,18 @@
 
 namespace persistence {
 
-
-class SqlDbIf {
-public:
-
-  virtual bool tableExists(const char*) = 0;
-  virtual bool tableExists(const string&) = 0;
-
-  template<typename ...Types>
-  virtual std::vector<std::tuple<Types...>> exec(const char *sql) = 0;
-
-  template<typename ...Types>
-  virtual std::vector<std::tuple<Types...>> exec(const std::string &sql) = 0;
-
-};
-
-class SqlDb: public SqlDbIf {
+class SqlDb {
 protected:
   const std::string fileName_;
   sqlite3 *db_ {nullptr};
 public:
   SqlDb(std::string fileName);
-  bool tableExists(const char *name) override;
-  bool tableExists(const std::string &name) override;
+  bool tableExists(const char *name);
+  bool tableExists(const std::string &name);
   ~SqlDb();
 
   template<typename ...Types>
-  std::vector<std::tuple<Types...>> exec(const char *sql) override {
+  std::vector<std::tuple<Types...>> exec(const char *sql) {
     const char *unusedPtr;
     sqlite3_stmt *prepared;
     int rc = sqlite3_prepare_v2(db_, sql, strlen(sql), &prepared, &unusedPtr);
@@ -53,7 +38,7 @@ public:
   }
 
   template<typename ...Types>
-  std::vector<std::tuple<Types...>> exec(const std::string &sql) override {
+  std::vector<std::tuple<Types...>> exec(const std::string &sql) {
     return exec<Types...>(sql.c_str());
   }
 

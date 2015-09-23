@@ -16,7 +16,7 @@ using util::UniquePointer;
 
 namespace persistence {
 
-CollectionDBHandle::CollectionDBHandle(UniquePointer<SqlDbIf> sqlDb)
+CollectionDBHandle::CollectionDBHandle(UniquePointer<SqlDb> sqlDb)
   : sqlDb_(std::move(sqlDb)) {}
 
 bool CollectionDBHandle::ensureTables() {

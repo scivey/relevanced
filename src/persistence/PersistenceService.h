@@ -23,7 +23,7 @@ public:
   PersistenceService(
     std::shared_ptr<CentroidDBIf>,
     std::shared_ptr<DocumentDBIf>,
-    std::shared_ptr<CollectionDBIf>,
+    std::shared_ptr<CollectionDBIf>
   );
   std::weak_ptr<CentroidDBIf> getCentroidDb() override;
   std::weak_ptr<DocumentDBIf> getDocumentDb() override;

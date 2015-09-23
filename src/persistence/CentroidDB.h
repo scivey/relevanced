@@ -35,8 +35,7 @@ public:
   CentroidDB(
     util::UniquePointer<CentroidDBHandleIf> dbHandle,
     std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>> threadPool
-  ) : dbHandle_(dbHandle), threadPool_(threadPool_) {}
-
+  );
 
   folly::Future<bool> doesCentroidExist(const std::string &id) override;
   folly::Future<bool> deleteCentroid(const std::string &id) override;
