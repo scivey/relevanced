@@ -73,6 +73,7 @@ shared_ptr<PersistenceServiceIf> getPersistence() {
   UniquePointer<CollectionDBHandleIf> collDbHandle(
     (CollectionDBHandleIf*) new CollectionDBHandle(std::move(sqlDb))
   );
+  collDbHandle->ensureTables();
   shared_ptr<CollectionDBIf> collDb(
     (CollectionDBIf*) new CollectionDB(
       std::move(collDbHandle),
