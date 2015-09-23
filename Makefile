@@ -9,8 +9,11 @@ LINK=-lthriftcpp2 -lthrift -lwangle -lfolly -lrocksdb -lglog -lsqlite3 -lz -lsna
 
 OBJ=$(addprefix ./src/, \
 		main.o \
-		englishStopwordSet.o \
-		WhitespaceTokenizer.o \
+		DocumentProcessor.o \
+		tokenizer/Tokenizer.o \
+		stemmer/PorterStemmer.o \
+		stopwords/StopwordFilter.o \
+		stopwords/english_stopwords.o \
 	)
 
 THRIFT_OBJ = $(addprefix ./src/gen-cpp2/, \
@@ -20,15 +23,6 @@ THRIFT_OBJ = $(addprefix ./src/gen-cpp2/, \
 		Relevance_processmap_compact.o \
 		TextRelevance_constants.o \
 		TextRelevance_types.o \
-	)
-
-./src/main.o: $(addprefix ./src/, \
-		main.cpp data.h Article.h \
-		englishStopwordSet.h WhitespaceTokenizer.h \
-		Centroid.h CentroidFactory.h RelevanceServer.h \
-		RelevanceWorker.h persistence/SqlDb.h persistence/DocumentDBHandle.h \
-		persistence/RockHandle.h persistence/CollectionDBHandle.h \
-		ProcessedDocument.h \
 	)
 
 C_OBJ = $(addprefix ./src/, stemmer/porter_stemmer.o)

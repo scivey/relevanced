@@ -8,9 +8,6 @@
 #include <folly/Conv.h>
 #include <folly/json.h>
 
-
-
-#include "Article.h"
 #include "ProcessedDocument.h"
 #include "util.h"
 

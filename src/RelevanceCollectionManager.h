@@ -7,14 +7,14 @@
 #include <glog/logging.h>
 
 #include "util.h"
-#include "Article.h"
+#include "Document.h"
+#include "DocumentProcessor.h"
 #include "ProcessedDocument.h"
 #include "ProcessedCentroid.h"
 #include "CentroidFactory.h"
 #include "persistence/CollectionDB.h"
 #include "persistence/DocumentDB.h"
 #include "persistence/CentroidDB.h"
-#include "RelevanceCollection.h"
 #include "CentroidManager.h"
 
 namespace {
@@ -28,8 +28,10 @@ protected:
   persistence::CentroidDB* centroidDb_;
   CentroidManager* centroidManager_;
   map<string, ProcessedCentroid*> centroids_;
+  shared_ptr<DocumentProcessor> documentProcessor_;
 public:
-  RelevanceCollectionManager(){
+  RelevanceCollectionManager(shared_ptr<DocumentProcessor> documentProcessor)
+    : documentProcessor_(documentProcessor) {
     centroidManager_ = CentroidManager::getInstance();
     collectionDb_ = persistence::CollectionDB::getInstance();
     documentDb_ = persistence::DocumentDB::getInstance();
@@ -67,7 +69,9 @@ public:
       auto centroid = centroidManager_->getCentroid(collectionId).get();
       centroids_[collectionId] = centroid;
     }
-    return centroids_[collectionId]->score(text);
+    Document doc("no-id", text);
+    auto processed = documentProcessor_->process(doc);
+    return centroids_[collectionId]->score(&processed);
   }
   bool createCollection(string id) {
     if (centroids_.find(id) != centroids_.end()) {
@@ -86,20 +90,11 @@ public:
     return true;
   }
   bool deleteDocument(string id) {
-    // for (auto &collPair: collections_) {
-    //   auto coll = collPair.second;
-    //   if (coll->containsDocument(id)) {
-    //     coll->removeDocument(id);
-    //   }
-    // }
-    // delete documents_[id];
-    // documents_.erase(id);
-    // documentDb_->deleteDocument(id);
     return true;
   }
   string createDocument(string text) {
-    Article art(util::getUuid(), text);
-    auto processed = art.toNewProcessedDocument();
+    Document doc(util::getUuid(), text);
+    auto processed = documentProcessor_->processNew(doc);
     documentDb_->saveDocument(processed).get();
     return processed->id;
   }
@@ -107,21 +102,15 @@ public:
     if (documentDb_->doesDocumentExist(id).get()) {
       return false;
     }
-    Article art(id, text);
-    auto processed = art.toNewProcessedDocument();
+    Document doc(id, text);
+    auto processed = documentProcessor_->processNew(doc);
     documentDb_->saveDocument(processed).get();
     return true;
   }
   string addNewNegativeDocumentToCollection(string collectionId, string text) {
-    // auto artId = createDocument(text);
-    // addNegativeDocumentToCollection(collectionId, artId);
-    // return artId;
     return "";
   }
   string addNewPositiveDocumentToCollection(string collectionId, string text) {
-    // auto artId = createDocument(text);
-    // addPositiveDocumentToCollection(collectionId, artId);
-    // return artId;
     return "";
   }
   bool reloadCentroid(string id) {

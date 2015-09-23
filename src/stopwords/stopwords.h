@@ -3,7 +3,7 @@
 #include <vector>
 #include <boost/algorithm/string/case_conv.hpp>
 #include "englishStopwordSet.h"
-#include "WhitespaceTokenizer.h"
+#include "tokenizer/WhitespaceTokenizer.h"
 #include "stringUtil.h"
 
 namespace {

@@ -3,13 +3,13 @@
 #include <sstream>
 
 #include <mitie/conll_tokenizer.h>
-#include "WhitespaceTokenizer.h"
+#include "Tokenizer.h"
 
 using namespace std;
 
 namespace tokenizer {
 
-vector<string> WhitespaceTokenizer::tokenize(const string &text) {
+vector<string> Tokenizer::tokenize(const string &text) {
     istringstream textStream(text);
     mitie::conll_tokenizer tokenStream(textStream);
     vector<string> tokens;
@@ -20,7 +20,7 @@ vector<string> WhitespaceTokenizer::tokenize(const string &text) {
     return tokens;
 }
 
-size_t WhitespaceTokenizer::getTokenCount(const string &text) {
+size_t Tokenizer::getTokenCount(const string &text) {
     size_t count = 0;
     istringstream textStream(text);
     mitie::conll_tokenizer tokenStream(textStream);

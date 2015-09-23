@@ -1,40 +1,43 @@
-#include <iostream>
-#include <vector>
-#include <map>
-#include <fstream>
-#include <sstream>
-#include <algorithm>
 #include <string>
-
+#include <memory>
 #include <glog/logging.h>
-#include <folly/Format.h>
-#include <folly/Format.h>
-#include <folly/json.h>
-#include <folly/dynamic.h>
-#include <eigen3/Eigen/Dense>
-#include "data.h"
-#include "WhitespaceTokenizer.h"
-#include "stopwords.h"
-#include "stringUtil.h"
-#include "util.h"
-#include "Centroid.h"
-#include "Tfidf.h"
-#include "CentroidFactory.h"
 #include "RelevanceCollectionManager.h"
+#include "stopwords/StopwordFilter.h"
+#include "tokenizer/Tokenizer.h"
+#include "stemmer/StemmerIf.h"
+#include "stemmer/PorterStemmer.h"
+#include "DocumentProcessor.h"
 #include "RelevanceServer.h"
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 #include <thrift/lib/cpp2/async/AsyncProcessor.h>
-#include "persistence/RockHandle.h"
 
-using tokenizer::WhitespaceTokenizer;
+using stemmer::StemmerIf;
+using stemmer::PorterStemmer;
+using stopwords::StopwordFilter;
+using stopwords::StopwordFilterIf;
+using tokenizer::TokenizerIf;
+using tokenizer::Tokenizer;
 using namespace std;
 using namespace folly;
-using namespace Eigen;
 
 int main() {
   LOG(INFO) << "start";
   thread t1([](){
-    auto manager = new RelevanceCollectionManager;
+    shared_ptr<TokenizerIf> tokenizer(
+      (TokenizerIf*) new Tokenizer
+    );
+    shared_ptr<StemmerIf> stemmer(
+      (StemmerIf*) new PorterStemmer
+    );
+    shared_ptr<StopwordFilterIf> stopwordFilter(
+      (StopwordFilterIf*) new StopwordFilter
+    );
+    auto documentProcessor = make_shared<DocumentProcessor>(
+      stemmer,
+      tokenizer,
+      stopwordFilter
+    );
+    auto manager = new RelevanceCollectionManager(documentProcessor);
     auto service = make_shared<RelevanceServer>(manager);
     bool allowInsecureLoopback = true;
     string saslPolicy = "";

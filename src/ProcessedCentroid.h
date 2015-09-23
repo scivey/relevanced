@@ -3,7 +3,6 @@
 #include <eigen3/Eigen/Dense>
 #include "ProcessedTfidf.h"
 #include "ProcessedDocument.h"
-#include "Article.h"
 
 #include <folly/dynamic.h>
 #include <folly/json.h>
@@ -22,12 +21,6 @@ protected:
 public:
   ProcessedCentroid(Eigen::VectorXd center, ProcessedTfidf* tfidf)
     : center_(center), tfidf_(tfidf) {}
-
-  double score(const string &text) {
-    Article article("no-id", text);
-    auto processed = article.toProcessedDocument();
-    return score(&processed);
-  }
 
   double score(ProcessedDocument *article) {
     auto artVec = tfidf_->tfVecOfArticle(article);

@@ -323,7 +323,7 @@ void step5(char *b, int *k, int *k0, int *j)
    file.
 */
 
-int stem(char * p, int i, int j)
+int porter_stem(char * p, int i, int j)
 {
     int k0 = i, k = j;
     int realJ = 0;

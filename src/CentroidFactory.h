@@ -3,7 +3,6 @@
 #include <folly/Format.h>
 #include <cmath>
 #include <vector>
-#include "Article.h"
 #include "ProcessedDocument.h"
 
 #include "Tfidf.h"

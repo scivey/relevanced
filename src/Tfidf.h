@@ -3,7 +3,6 @@
 #include <map>
 #include <algorithm>
 #include <eigen3/Eigen/Dense>
-#include "Article.h"
 #include "ProcessedDocument.h"
 #include "ProcessedTfidf.h"
 

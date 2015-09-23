@@ -4,7 +4,7 @@
   extern "C" {
 #endif
 
-int stem(char *p, int i, int j);
+int porter_stem(char *p, int i, int j);
 
 #ifdef __cplusplus
   }

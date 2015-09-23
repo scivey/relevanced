@@ -5,7 +5,6 @@
 #include <glog/logging.h>
 #include <eigen3/Eigen/Dense>
 #include "Tfidf.h"
-#include "Article.h"
 #include "ProcessedDocument.h"
 #include "ProcessedCentroid.h"
 #include "util.h"
@@ -50,10 +49,6 @@ public:
     double mag2 = util::vectorMag(artVec, corpusSize);
     return dotProd / (mag1 * mag2);
   }
-  double score(Article *article) {
-    ProcessedDocument processed = article->toProcessedDocument();
-    return score(&processed);
-  }
   bool isRelevant(ProcessedDocument *article) {
     return score(article) > 0.2;
   }
@@ -75,11 +70,6 @@ public:
       }
     }
     return 1.0 - ((double) mistakes) / ((double) goodArticles.size() + badArticles.size());
-  }
-
-  ProcessedCentroid toProcsesedCentroid() {
-    ProcessedCentroid result(getSV(), tfidf_->toNewProcessedTfidf());
-    return result;
   }
 
   ProcessedCentroid* toNewProcessedCentroid() {
