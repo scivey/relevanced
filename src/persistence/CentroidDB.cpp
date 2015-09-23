@@ -14,28 +14,28 @@ namespace persistence {
 CentroidDB::CentroidDB(
   util::UniquePointer<CentroidDBHandleIf> dbHandle,
   shared_ptr<FutureExecutor<CPUThreadPoolExecutor>> threadPool
-) : dbHandle_(std::move(dbHandle)), threadPool_(threadPool_) {}
+) : dbHandle_(std::move(dbHandle)), threadPool_(threadPool) {}
 
-Future<bool> CentroidDB::doesCentroidExist(const string &id); {
-  return threadPool_.addFuture([this, id](){
+Future<bool> CentroidDB::doesCentroidExist(const string &id) {
+  return threadPool_->addFuture([this, id](){
     return dbHandle_->doesCentroidExist(id);
   });
 }
 
 Future<bool> CentroidDB::deleteCentroid(const string &id) {
-  return threadPool_.addFuture([this, id](){
+  return threadPool_->addFuture([this, id](){
     return dbHandle_->deleteCentroid(id);
   });
 }
 
 Future<bool> CentroidDB::saveCentroid(const string &id, ProcessedCentroid *centroid) {
-  return threadPool_.addFuture([this, id, centroid](){
+  return threadPool_->addFuture([this, id, centroid](){
     return dbHandle_->saveCentroid(id, centroid);
   });
 }
 
 Future<ProcessedCentroid*> CentroidDB::loadCentroid(const string &id) {
-  return threadPool_.addFuture([this, id](){
+  return threadPool_->addFuture([this, id](){
     return dbHandle_->loadCentroid(id);
   });
 }

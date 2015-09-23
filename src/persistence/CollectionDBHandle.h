@@ -28,6 +28,7 @@ public:
   virtual std::vector<std::string> listPositiveCollectionDocs(const std::string &collectionId) = 0;
   virtual std::vector<std::string> listNegativeCollectionDocs(const std::string &collectionId) = 0;
   virtual std::vector<std::string> listKnownDocuments() = 0;
+  virtual ~CollectionDBHandleIf() = default;
 };
 
 class CollectionDBHandle: public CollectionDBHandleIf {

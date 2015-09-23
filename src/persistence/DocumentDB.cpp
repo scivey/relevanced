@@ -1,5 +1,3 @@
-#pragma once
-
 #include <string>
 #include <memory>
 #include <vector>
@@ -12,7 +10,7 @@
 #include "DocumentDBHandle.h"
 #include "RockHandle.h"
 #include "ProcessedDocument.h"
-#include "util"
+#include "util.h"
 using namespace std;
 using namespace folly;
 using namespace wangle;
@@ -23,25 +21,25 @@ DocumentDB::DocumentDB(UniquePointer<DocumentDBHandleIf> dbHandle, shared_ptr<Fu
   : dbHandle_(std::move(dbHandle)), threadPool_(threadPool){}
 
 Future<bool> DocumentDB::doesDocumentExist(const string &docId) {
-  return threadPool_.addFuture([this, docId](){
+  return threadPool_->addFuture([this, docId](){
     return dbHandle_->doesDocumentExist(docId);
   });
 }
 
 Future<bool> DocumentDB::deleteDocument(const string &docId) {
-  return threadPool_.addFuture([this, docId](){
+  return threadPool_->addFuture([this, docId](){
     return dbHandle_->deleteDocument(docId);
   });
 }
 
 Future<bool> DocumentDB::saveDocument(ProcessedDocument *doc) {
-  return threadPool_.addFuture([this, doc](){
+  return threadPool_->addFuture([this, doc](){
     return dbHandle_->saveDocument(doc);
   });
 }
 
 Future<ProcessedDocument*> DocumentDB::loadDocument(const string &docId) {
-  return threadPool_.addFuture([this, docId](){
+  return threadPool_->addFuture([this, docId](){
     return dbHandle_->loadDocument(docId);
   });
 }

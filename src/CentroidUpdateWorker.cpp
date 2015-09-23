@@ -1,4 +1,3 @@
-#pragma once
 #include <map>
 #include <set>
 #include <vector>
@@ -9,15 +8,16 @@
 #include "ProcessedDocument.h"
 #include "ProcessedCentroid.h"
 #include "CentroidFactory.h"
+#include "CentroidUpdateWorker.h"
 #include "persistence/PersistenceService.h"
 
 using namespace persistence;
 using namespace std;
 
 CentroidUpdateWorker::CentroidUpdateWorker(
-  shared_ptr<persistence::PersistenceService> persistence,
+  shared_ptr<persistence::PersistenceServiceIf> persistence,
   string collectionId
-): persistence_(std::move(persistence)), collectionId_(collectionId) {}
+): persistence_(persistence), collectionId_(collectionId) {}
 
 bool CentroidUpdateWorker::run() {
   auto collectionDb = persistence_->getCollectionDb().lock();

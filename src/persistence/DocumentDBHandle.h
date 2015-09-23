@@ -18,6 +18,7 @@ public:
   virtual bool saveDocument(ProcessedDocument *doc) = 0;
   virtual bool deleteDocument(const std::string &docId) = 0;
   virtual ProcessedDocument* loadDocument(const std::string &docId) = 0;
+  virtual ~DocumentDBHandleIf() = default;
 };
 
 class DocumentDBHandle: public DocumentDBHandleIf {

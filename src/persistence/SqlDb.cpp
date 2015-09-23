@@ -8,7 +8,7 @@
 #include <folly/Format.h>
 #include <glog/logging.h>
 
-#include "sqlDb.h"
+#include "SqlDb.h"
 #include "sqlUtil.h"
 
 using namespace std;
@@ -39,8 +39,6 @@ SqlDb::~SqlDb() {
     sqlite3_close(db_);
   }
 }
-
-};
 
 } // persistence
 

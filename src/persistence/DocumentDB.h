@@ -21,6 +21,7 @@ public:
   virtual folly::Future<bool> deleteDocument(const std::string &docId) = 0;
   virtual folly::Future<bool> saveDocument(ProcessedDocument *doc) = 0;
   virtual folly::Future<ProcessedDocument*> loadDocument(const std::string &docId) = 0;
+  virtual ~DocumentDBIf() = default;
 };
 
 class DocumentDB: public DocumentDBIf {

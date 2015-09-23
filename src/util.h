@@ -5,6 +5,8 @@
 #include <sstream>
 #include <algorithm>
 #include <set>
+#include <functional>
+
 #include <vector>
 #include <memory>
 #include <eigen3/Eigen/Dense>
@@ -15,14 +17,12 @@ namespace {
 
 namespace util {
 
-
 template<typename T>
-struct DefaultDeleter {
-    void operator()(T* t) const {
-        delete t;
-    }
-};
+void defaultDelete(T *t) {
+    delete t;
+}
 
+// a type-erased version of unique_ptr
 template<typename T>
 struct UniquePointer {
     unique_ptr<T, function<void (T*)>> ptr;
@@ -30,9 +30,12 @@ struct UniquePointer {
         unique_ptr<T, function<void (T*)>> temp(t, deleteFunc);
         ptr = std::move(temp);
     }
-    UniquePointer(T *t)
-        : UniquePointer(t, DefaultDeleter<T>::operator())
-        {}
+    UniquePointer(T *t) {
+      unique_ptr<T, function<void (T*)>> temp(
+          t, defaultDelete<T>
+      );
+      ptr = std::move(temp);
+    }
 
     UniquePointer(const UniquePointer<T> &other) = delete;
 

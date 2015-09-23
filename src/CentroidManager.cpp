@@ -1,5 +1,3 @@
-#pragma once
-
 #include <string>
 #include <memory>
 #include <vector>
@@ -24,7 +22,7 @@ Future<ProcessedCentroid*> CentroidManager::getCentroid(const string &id) {
     if (doesExist) {
       return persistence_->getCentroidDb().lock()->loadCentroid(id);
     } else {
-      return updater_.update(id).then([this, id](bool updated) {
+      return updater_->update(id).then([this, id](bool updated) {
         return persistence_->getCentroidDb().lock()->loadCentroid(id);
       });
     }

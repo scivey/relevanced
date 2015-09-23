@@ -51,6 +51,8 @@ public:
 
   virtual folly::Future<std::vector<std::string>>
     listKnownDocuments() = 0;
+
+  virtual ~CollectionDBIf() = default;
 };
 
 class CollectionDB: public CollectionDBIf {

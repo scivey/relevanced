@@ -27,6 +27,7 @@ public:
   virtual std::string get(const std::string &key) = 0;
   virtual bool exists(const std::string &key) = 0;
   virtual bool del(const std::string &key) = 0;
+  virtual ~RockHandleIf() = default;
 };
 
 class RockHandle: public RockHandleIf {

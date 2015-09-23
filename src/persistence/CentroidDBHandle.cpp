@@ -14,7 +14,7 @@
 #include "util.h"
 namespace persistence {
 
-CentroidDBHandle::CentroidDBHandle(UniquePointer<RockHandleIf> rockHandle)
+CentroidDBHandle::CentroidDBHandle(util::UniquePointer<RockHandleIf> rockHandle)
   : rockHandle_(std::move(rockHandle)) {}
 
 bool CentroidDBHandle::doesCentroidExist(const string &id) {

@@ -21,7 +21,7 @@ CentroidUpdater::CentroidUpdater(
 ): persistence_(persistence), threadPool_(threadPool) {}
 
 Future<bool> CentroidUpdater::update(const string &collectionId) {
-  return threadPool_.addFuture([this, collectionId](){
+  return threadPool_->addFuture([this, collectionId](){
     CentroidUpdateWorker worker(persistence_, collectionId);
     return worker.run();
   });

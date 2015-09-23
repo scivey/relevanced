@@ -6,31 +6,24 @@
 
 namespace persistence {
 
-class PersistenceService: public PersistenceServiceIf {
-protected:
-  std::shared_ptr<CentroidDBIf> centroidDb_;
-  std::shared_ptr<DocumentDBIf> documentDb_;
-  std::shared_ptr<CollectionDBIf> collectionDb_;
-public:
-  PersistenceService::PersistenceService(
-    std::shared_ptr<CentroidDBIf> centroidDb,
-    std::shared_ptr<DocumentDBIf> documentDb,
-    std::shared_ptr<CollectionDBIf> collectionDb,
-  ): centroidDb_(centroidDb), documentDb_(documentDb), collectionDb_(collectionDb) {}
+PersistenceService::PersistenceService(
+  std::shared_ptr<CentroidDBIf> centroidDb,
+  std::shared_ptr<DocumentDBIf> documentDb,
+  std::shared_ptr<CollectionDBIf> collectionDb
+): centroidDb_(centroidDb), documentDb_(documentDb), collectionDb_(collectionDb) {}
 
-  std::weak_ptr<CentroidDBIf> PersistenceService::getCentroidDb() {
-    weak_ptr<CentroidDBIf> res = centroidDb_;
-    return std::move(res);
-  }
-  std::weak_ptr<DocumentDBIf> PersistenceService::getDocumentDb() {
-    weak_ptr<DocumentDBIf> res = documentDb_;
-    return std::move(res);
-  }
-  std::weak_ptr<CollectionDBIf> PersistenceService::getCollectionDb() {
-    weak_ptr<CollectionDBIf> res = collectionDb_;
-    return std::move(res);
-  }
-};
+std::weak_ptr<CentroidDBIf> PersistenceService::getCentroidDb() {
+  weak_ptr<CentroidDBIf> res = centroidDb_;
+  return std::move(res);
+}
+std::weak_ptr<DocumentDBIf> PersistenceService::getDocumentDb() {
+  weak_ptr<DocumentDBIf> res = documentDb_;
+  return std::move(res);
+}
+std::weak_ptr<CollectionDBIf> PersistenceService::getCollectionDb() {
+  weak_ptr<CollectionDBIf> res = collectionDb_;
+  return std::move(res);
+}
 
 } // persistence
 

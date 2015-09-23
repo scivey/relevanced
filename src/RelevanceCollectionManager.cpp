@@ -73,7 +73,7 @@ bool RelevanceCollectionManager::createCollection(string id) {
   if (centroids_.find(id) != centroids_.end()) {
     return false;
   }
-  auto collectionDb = persistence_->getDocumentDb().lock();
+  auto collectionDb = persistence_->getCollectionDb().lock();
   collectionDb->createCollection(id);
   return true;
 }
@@ -84,7 +84,7 @@ bool RelevanceCollectionManager::deleteCollection(string id) {
   }
   delete centroids_[id];
   centroids_.erase(id);
-  auto collectionDb = persistence_->getDocumentDb().lock();
+  auto collectionDb = persistence_->getCollectionDb().lock();
   collectionDb->deleteCollection(id);
   return true;
 }

@@ -13,11 +13,11 @@
 
 class CentroidUpdateWorker {
 protected:
-  std::shared_ptr<persistence::PersistenceService> persistence_;
+  std::shared_ptr<persistence::PersistenceServiceIf> persistence_;
   string collectionId_;
 public:
   CentroidUpdateWorker(
-    std::shared_ptr<persistence::PersistenceService>,
+    std::shared_ptr<persistence::PersistenceServiceIf>,
     std::string collectionId
   );
   bool run();

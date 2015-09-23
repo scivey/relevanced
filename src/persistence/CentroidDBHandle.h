@@ -19,6 +19,7 @@ public:
   virtual bool saveCentroid(const std::string &id, ProcessedCentroid *centroid) = 0;
   virtual bool deleteCentroid(const std::string &id) = 0;
   virtual ProcessedCentroid* loadCentroid(const std::string &id);
+  virtual ~CentroidDBHandleIf() = default;
 };
 
 class CentroidDBHandle: public CentroidDBHandleIf {

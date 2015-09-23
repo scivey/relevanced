@@ -14,8 +14,10 @@ OBJ=$(addprefix ./src/, \
 		Centroid.o \
 		CentroidManager.o \
 		CentroidUpdateWorker.o \
+		CentroidUpdater.o \
 		tokenizer/Tokenizer.o \
 		stemmer/PorterStemmer.o \
+		RelevanceCollectionManager.o \
 		stopwords/StopwordFilter.o \
 		stopwords/english_stopwords.o \
 		persistence/PersistenceService.o \

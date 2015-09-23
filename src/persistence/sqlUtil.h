@@ -52,17 +52,17 @@ T getSqlColumn(sqlite3_stmt *stmt, int n) {
 
 template<typename T>
 std::tuple<T> getSqlRow(sqlite3_stmt *stmt) {
-  return make_tuple(getSqlColumn<T>(stmt, 0));
+  return std::make_tuple(getSqlColumn<T>(stmt, 0));
 }
 
 template<typename T, typename T2>
 std::tuple<T, T2> getSqlRow(sqlite3_stmt *stmt) {
-  return make_tuple(getSqlColumn<T>(stmt, 0), getSqlColumn<T2>(stmt, 1));
+  return std::make_tuple(getSqlColumn<T>(stmt, 0), getSqlColumn<T2>(stmt, 1));
 }
 
 template<typename T, typename T2, typename T3>
 std::tuple<T, T2, T3> getSqlRow(sqlite3_stmt *stmt) {
-  return make_tuple(
+  return std::make_tuple(
     getSqlColumn<T>(stmt, 0),
     getSqlColumn<T2>(stmt, 1),
     getSqlColumn<T3>(stmt, 2)
@@ -71,7 +71,7 @@ std::tuple<T, T2, T3> getSqlRow(sqlite3_stmt *stmt) {
 
 template<typename T, typename T2, typename T3, typename T4>
 std::tuple<T, T2, T3, T4> getSqlRow(sqlite3_stmt *stmt) {
-  return make_tuple(
+  return std::make_tuple(
     getSqlColumn<T>(stmt, 0),
     getSqlColumn<T2>(stmt, 1),
     getSqlColumn<T3>(stmt, 2),
