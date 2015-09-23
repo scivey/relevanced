@@ -9,39 +9,26 @@
 #include <glog/logging.h>
 #include "RockHandle.h"
 #include "ProcessedDocument.h"
-
-namespace {
-  using namespace std;
-  using namespace folly;
-}
+#include "util.h"
 namespace persistence {
 
-class DocumentDBHandle {
-protected:
-  unique_ptr<RockHandle> rockHandle_;
+class DocumentDBHandleIf {
 public:
-  DocumentDBHandle(unique_ptr<RockHandle> rockHandle)
-    : rockHandle_(std::move(rockHandle)) {}
+  virtual bool doesDocumentExist(const std::string &docId) = 0;
+  virtual bool saveDocument(ProcessedDocument *doc) = 0;
+  virtual bool deleteDocument(const std::string &docId) = 0;
+  virtual ProcessedDocument* loadDocument(const std::string &docId) = 0;
+};
 
-  bool doesDocumentExist(const string &docId) {
-    return rockHandle_->exists(docId);
-  }
-
-  bool saveDocument(ProcessedDocument *doc) {
-    auto val = doc->toJson();
-    rockHandle_->put(doc->id, val);
-    return true;
-  }
-
-  bool deleteDocument(const string &docId) {
-    return rockHandle_->del(docId);
-  }
-
-  ProcessedDocument* loadDocument(const string &docId) {
-    auto serialized = rockHandle_->get(docId);
-    return ProcessedDocument::newFromJson(serialized);
-  }
-
+class DocumentDBHandle: public DocumentDBHandleIf {
+protected:
+  util::UniquePointer<RockHandleIf> rockHandle_;
+public:
+  DocumentDBHandle(util::UniquePointer<RockHandleIf> rockHandle);
+  bool doesDocumentExist(const std::string &docId) override;
+  bool saveDocument(ProcessedDocument *doc) override;
+  bool deleteDocument(const std::string &docId) override;
+  ProcessedDocument* loadDocument(const std::string &docId) override;
 };
 
 } // persistence

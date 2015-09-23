@@ -9,39 +9,27 @@
 #include <glog/logging.h>
 #include "RockHandle.h"
 #include "ProcessedCentroid.h"
+#include "util.h"
 
-namespace {
-  using namespace std;
-  using namespace folly;
-}
 namespace persistence {
 
-class CentroidDBHandle {
-protected:
-  unique_ptr<RockHandle> rockHandle_;
+class CentroidDBHandleIf {
 public:
-  CentroidDBHandle(unique_ptr<RockHandle> rockHandle)
-    : rockHandle_(std::move(rockHandle)) {}
+  virtual bool doesCentroidExist(const std::string &id) = 0;
+  virtual bool saveCentroid(const std::string &id, ProcessedCentroid *centroid) = 0;
+  virtual bool deleteCentroid(const std::string &id) = 0;
+  virtual ProcessedCentroid* loadCentroid(const std::string &id);
+};
 
-  bool doesCentroidExist(const string &id) {
-    return rockHandle_->exists(id);
-  }
-
-  bool saveCentroid(const string &id, ProcessedCentroid *centroid) {
-    auto val = centroid->toJson();
-    rockHandle_->put(id, val);
-    return true;
-  }
-
-  bool deleteCentroid(const string &id) {
-    return rockHandle_->del(id);
-  }
-
-  ProcessedCentroid* loadCentroid(const string &id) {
-    auto serialized = rockHandle_->get(id);
-    return ProcessedCentroid::newFromJson(serialized);
-  }
-
+class CentroidDBHandle: public CentroidDBHandleIf {
+protected:
+  util::UniquePointer<RockHandleIf> rockHandle_;
+public:
+  CentroidDBHandle(util::UniquePointer<RockHandleIf> rockHandle);
+  bool doesCentroidExist(const std::string &id);
+  bool saveCentroid(const std::string &id, ProcessedCentroid *centroid);
+  bool deleteCentroid(const std::string &id);
+  ProcessedCentroid* loadCentroid(const std::string &id);
 };
 
 } // persistence

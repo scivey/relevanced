@@ -12,10 +12,21 @@ OBJ=$(addprefix ./src/, \
 		DocumentProcessor.o \
 		ProcessedDocument.o \
 		Centroid.o \
+		CentroidManager.o \
+		CentroidUpdateWorker.o \
 		tokenizer/Tokenizer.o \
 		stemmer/PorterStemmer.o \
 		stopwords/StopwordFilter.o \
 		stopwords/english_stopwords.o \
+		persistence/PersistenceService.o \
+		persistence/CentroidDB.o \
+		persistence/CentroidDBHandle.o \
+		persistence/DocumentDB.o \
+		persistence/DocumentDBHandle.o \
+		persistence/CollectionDB.o \
+		persistence/CollectionDBHandle.o \
+		persistence/RockHandle.o \
+		persistence/SqlDb.o \
 		util.o \
 	)
 

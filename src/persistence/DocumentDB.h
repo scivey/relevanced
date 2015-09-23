@@ -11,58 +11,33 @@
 #include "DocumentDBHandle.h"
 #include "RockHandle.h"
 #include "ProcessedDocument.h"
-
-namespace {
-  using namespace std;
-  using namespace folly;
-  using namespace wangle;
-}
+#include "util.h"
 
 namespace persistence {
 
-class DocumentDB {
+class DocumentDBIf {
+public:
+  virtual folly::Future<bool> doesDocumentExist(const std::string &docId) = 0;
+  virtual folly::Future<bool> deleteDocument(const std::string &docId) = 0;
+  virtual folly::Future<bool> saveDocument(ProcessedDocument *doc) = 0;
+  virtual folly::Future<ProcessedDocument*> loadDocument(const std::string &docId) = 0;
+};
+
+class DocumentDB: public DocumentDBIf {
 protected:
-  DocumentDBHandle *dbHandle_ {nullptr};
-  FutureExecutor<CPUThreadPoolExecutor> threadPool_ {1};
-  DocumentDB(){
-    threadPool_.addFuture([this](){
-      auto rock = std::make_unique<RockHandle>("data/documents");
-      dbHandle_ = new DocumentDBHandle(std::move(rock));
-    });
-  }
+  util::UniquePointer<DocumentDBHandleIf> dbHandle_;
+  std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>> threadPool_ ;
   DocumentDB(DocumentDB const&) = delete;
   void operator=(DocumentDB const&) = delete;
 public:
-
-  static DocumentDB* getInstance() {
-    static DocumentDB instance;
-    return &instance;
-  }
-
-  Future<bool> doesDocumentExist(const string &docId) {
-    return threadPool_.addFuture([this, docId](){
-      return dbHandle_->doesDocumentExist(docId);
-    });
-  }
-
-  Future<bool> deleteDocument(const string &docId) {
-    return threadPool_.addFuture([this, docId](){
-      return dbHandle_->deleteDocument(docId);
-    });
-  }
-
-  Future<bool> saveDocument(ProcessedDocument *doc) {
-    return threadPool_.addFuture([this, doc](){
-      return dbHandle_->saveDocument(doc);
-    });
-  }
-
-  Future<ProcessedDocument*> loadDocument(const string &docId) {
-    return threadPool_.addFuture([this, docId](){
-      return dbHandle_->loadDocument(docId);
-    });
-  }
-
+  DocumentDB(
+    util::UniquePointer<DocumentDBHandleIf>,
+    std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>>
+  );
+  folly::Future<bool> doesDocumentExist(const std::string &docId) override;
+  folly::Future<bool> deleteDocument(const std::string &docId) override;
+  folly::Future<bool> saveDocument(ProcessedDocument *doc) override;
+  folly::Future<ProcessedDocument*> loadDocument(const std::string &docId) override;
 };
 
 } // persistence

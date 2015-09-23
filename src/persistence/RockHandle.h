@@ -21,54 +21,29 @@ namespace {
 
 namespace persistence {
 
-class RockHandle {
+class RockHandleIf {
+public:
+  virtual bool put(std::string key, std::string val) = 0;
+  virtual std::string get(const std::string &key) = 0;
+  virtual bool exists(const std::string &key) = 0;
+  virtual bool del(const std::string &key) = 0;
+};
+
+class RockHandle: public RockHandleIf {
 protected:
   rocksdb::Options options_;
   rocksdb::ReadOptions readOptions_;
   rocksdb::WriteOptions writeOptions_;
-  const string dbPath_;
-  unique_ptr<rocksdb::OptimisticTransactionDB> txnDb_;
+  const std::string dbPath_;
+  std::unique_ptr<rocksdb::OptimisticTransactionDB> txnDb_;
   rocksdb::DB *db_;
   rocksdb::Status status_;
 public:
-  RockHandle(string dbPath): dbPath_(dbPath){
-    options_.IncreaseParallelism();
-    options_.OptimizeLevelStyleCompaction();
-    options_.create_if_missing = true;
-    rocksdb::OptimisticTransactionDB *txnDbPtr = nullptr;
-    status_ = rocksdb::OptimisticTransactionDB::Open(options_, dbPath_.c_str(), &txnDbPtr);
-    assert(status_.ok());
-    assert(txnDbPtr != nullptr);
-    txnDb_.reset(txnDbPtr);
-    db_ = txnDb_->GetBaseDB();
-  }
-  bool put(string key, string val) {
-    status_ = db_->Put(writeOptions_, key, val);
-    return status_.ok();
-  }
-  string get(const string &key) {
-    string val;
-    status_ = db_->Get(readOptions_, key, &val);
-    return val;
-  }
-  bool exists(const string &key) {
-    string val;
-    status_ = db_->Get(readOptions_, key, &val);
-    return !status_.IsNotFound();
-  }
-  bool del(const string &key) {
-    if (!exists(key)) {
-      return false;
-    }
-    status_ = db_->Delete(writeOptions_, key);
-    return true;
-  }
-  void runTxn(function<void (OptimisticTransaction*)> handler) {
-    OptimisticTransactionOptions txnOptions_;
-    OptimisticTransaction *txn = txnDb_->BeginTransaction(writeOptions_);
-    handler(txn);
-    delete txn;
-  }
+  RockHandle(std::string dbPath);
+  bool put(std::string key, std::string val) override;
+  std::string get(const std::string &key) override;
+  bool exists(const std::string &key) override;
+  bool del(const std::string &key) override;
 };
 
 } // persistence

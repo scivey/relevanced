@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <set>
 #include <vector>
+#include <memory>
 #include <eigen3/Eigen/Dense>
 
 namespace {
@@ -15,6 +16,36 @@ namespace {
 namespace util {
 
 
+template<typename T>
+struct DefaultDeleter {
+    void operator()(T* t) const {
+        delete t;
+    }
+};
+
+template<typename T>
+struct UniquePointer {
+    unique_ptr<T, function<void (T*)>> ptr;
+    UniquePointer(T *t, function<void (T*)> deleteFunc) {
+        unique_ptr<T, function<void (T*)>> temp(t, deleteFunc);
+        ptr = std::move(temp);
+    }
+    UniquePointer(T *t)
+        : UniquePointer(t, DefaultDeleter<T>::operator())
+        {}
+
+    UniquePointer(const UniquePointer<T> &other) = delete;
+
+    UniquePointer(unique_ptr<T, function<void (T*)>> &&otherPtr)
+        : ptr(std::move(otherPtr)){}
+
+    UniquePointer(UniquePointer<T>&& other) noexcept:
+        UniquePointer(std::move(other.ptr)) {}
+
+    T* operator->() {
+        return ptr.get();
+    }
+};
 
 template<typename T>
 class Counter {
@@ -31,8 +62,6 @@ public:
     incrBy(key, 1);
   }
 };
-
-std::string getUuid();
 
 
 template<typename T1, typename T2>
@@ -54,6 +83,7 @@ vector<T> vecOfSet(const set<T> &t) {
   return output;
 }
 
+std::string getUuid();
 double vectorMag(const Eigen::VectorXd &vec, size_t count);
 
 } // util

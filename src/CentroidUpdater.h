@@ -9,23 +9,17 @@
 #include <folly/futures/Future.h>
 
 #include "CentroidUpdateWorker.h"
-
-namespace {
-  using namespace std;
-  using namespace folly;
-  using namespace wangle;
-}
+#include "persistence/PersistenceService.h"
 
 class CentroidUpdater {
 protected:
-  FutureExecutor<CPUThreadPoolExecutor> threadPool_ {2};
+  std::shared_ptr<PersistenceServiceIf> persistence_;
+  std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>> threadPool_;
 public:
-  CentroidUpdater(){}
-  Future<bool> update(const string &collectionId) {
-    return threadPool_.addFuture([this, collectionId](){
-      CentroidUpdateWorker worker(collectionId);
-      return worker.run();
-    });
-  }
+  CentroidUpdater(
+    std::shared_ptr<PersistenceServiceIf>,
+    std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>>
+  );
+  folly::Future<bool> update(const std::string &collectionId);
 };
 

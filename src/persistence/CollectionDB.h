@@ -7,101 +7,76 @@
 #include <wangle/concurrent/CPUThreadPoolExecutor.h>
 #include <wangle/concurrent/FutureExecutor.h>
 #include <folly/futures/Future.h>
-
 #include "CollectionDBHandle.h"
-#include "SqlDb.h"
-
-namespace {
-  using namespace std;
-  using namespace folly;
-  using namespace wangle;
-}
+#include "util.h"
 
 namespace persistence {
 
-class CollectionDB {
+class CollectionDBIf {
+public:
+  virtual folly::Future<bool>
+    doesCollectionExist(const std::string&) = 0;
+  virtual folly::Future<bool>
+    createCollection(const std::string&) = 0;
+
+  virtual folly::Future<bool>
+    doesCollectionHaveDoc(const std::string&, const std::string&) = 0;
+
+  virtual folly::Future<bool>
+    addPositiveDocToCollection(const std::string&, const std::string&) = 0;
+
+  virtual folly::Future<bool>
+    addNegativeDocToCollection(const std::string&, const std::string&) = 0;
+
+  virtual folly::Future<bool>
+    removeDocFromCollection(const std::string&, const std::string&) = 0;
+
+  virtual folly::Future<bool>
+    deleteCollection(const std::string&) = 0;
+
+  virtual folly::Future<std::vector<std::string>>
+    listCollections() = 0;
+
+  virtual folly::Future<int>
+    getCollectionDocCount(const std::string &) = 0;
+
+  virtual folly::Future<std::vector<std::string>>
+    listCollectionDocs(const string &collectionId) = 0;
+
+  virtual folly::Future<std::vector<std::string>>
+    listPositiveCollectionDocs(const string &collectionId) = 0;
+
+  virtual folly::Future<std::vector<std::string>>
+    listNegativeCollectionDocs(const string &collectionId) = 0;
+
+  virtual folly::Future<std::vector<std::string>>
+    listKnownDocuments() = 0;
+};
+
+class CollectionDB: public CollectionDBIf {
 protected:
-  CollectionDBHandle *dbHandle_ {nullptr};
-  FutureExecutor<CPUThreadPoolExecutor> threadPool_ {1};
-  CollectionDB(){
-    threadPool_.addFuture([this](){
-      auto sqlDb = std::make_unique<SqlDb>("data/collections.sqlite");
-      dbHandle_ = new CollectionDBHandle(std::move(sqlDb));
-      dbHandle_->ensureTables();
-    });
-  }
+  util::UniquePointer<CollectionDBHandleIf> dbHandle_;
+  std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>> threadPool_;
   CollectionDB(CollectionDB const&) = delete;
   void operator=(CollectionDB const&) = delete;
 public:
-  static CollectionDB* getInstance() {
-    static CollectionDB instance;
-    return &instance;
-  }
-  Future<bool> doesCollectionExist(const string &collectionId) {
-    return threadPool_.addFuture([this, collectionId](){
-      return dbHandle_->doesCollectionExist(collectionId);
-    });
-  }
-  Future<bool> createCollection(const string &collectionId) {
-    return threadPool_.addFuture([this, collectionId](){
-      return dbHandle_->createCollection(collectionId);
-    });
-  }
-  Future<bool> doesCollectionHaveDoc(const string &collectionId, const string &docId) {
-    return threadPool_.addFuture([this, collectionId, docId](){
-      return dbHandle_->doesCollectionHaveDoc(collectionId, docId);
-    });
-  }
-  Future<bool> addPositiveDocToCollection(const string &collectionId, const string &docId) {
-    return threadPool_.addFuture([this, collectionId, docId](){
-      return dbHandle_->addPositiveDocToCollection(collectionId, docId);
-    });
-  }
-  Future<bool> addNegativeDocToCollection(const string &collectionId, const string &docId) {
-    return threadPool_.addFuture([this, collectionId, docId](){
-      return dbHandle_->addNegativeDocToCollection(collectionId, docId);
-    });
-  }
-  Future<bool> removeDocFromCollection(const string &collectionId, const string &docId) {
-    return threadPool_.addFuture([this, collectionId, docId](){
-      return dbHandle_->removeDocFromCollection(collectionId, docId);
-    });
-  }
-  Future<bool> deleteCollection(const string &collectionId) {
-    return threadPool_.addFuture([this, collectionId](){
-      return dbHandle_->deleteCollection(collectionId);
-    });
-  }
-  Future<vector<string>> listCollections() {
-    return threadPool_.addFuture([this](){
-      return dbHandle_->listCollections();
-    });
-  }
-  Future<int> getCollectionDocCount(const string &collectionId) {
-    return threadPool_.addFuture([this, collectionId](){
-      return dbHandle_->getCollectionDocCount(collectionId);
-    });
-  }
-  Future<vector<string>> listCollectionDocs(const string &collectionId) {
-    return threadPool_.addFuture([this, collectionId](){
-      return dbHandle_->listCollectionDocs(collectionId);
-    });
-  }
-  Future<vector<string>> listPositiveCollectionDocs(const string &collectionId) {
-    return threadPool_.addFuture([this, collectionId](){
-      return dbHandle_->listPositiveCollectionDocs(collectionId);
-    });
-  }
-  Future<vector<string>> listNegativeCollectionDocs(const string &collectionId) {
-    return threadPool_.addFuture([this, collectionId](){
-      return dbHandle_->listPositiveCollectionDocs(collectionId);
-    });
-  }
-  Future<vector<string>> listKnownDocuments() {
-    return threadPool_.addFuture([this](){
-      return dbHandle_->listKnownDocuments();
-    });
-  }
+  CollectionDB(
+    util::UniquePointer<CollectionDBHandleIf> dbHandle,
+    std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>> threadPool
+  );
+  folly::Future<bool> doesCollectionExist(const std::string &collectionId);
+  folly::Future<bool> createCollection(const std::string &collectionId);
+  folly::Future<bool> doesCollectionHaveDoc(const std::string &collectionId, const std::string &docId);
+  folly::Future<bool> addPositiveDocToCollection(const std::string &collectionId, const std::string &docId);
+  folly::Future<bool> addNegativeDocToCollection(const std::string &collectionId, const std::string &docId);
+  folly::Future<bool> removeDocFromCollection(const std::string &collectionId, const std::string &docId);
+  folly::Future<bool> deleteCollection(const std::string &collectionId);
+  folly::Future<std::vector<std::string>> listCollections();
+  folly::Future<int> getCollectionDocCount(const std::string &collectionId);
+  folly::Future<std::vector<std::string>> listCollectionDocs(const std::string &collectionId);
+  folly::Future<std::vector<std::string>> listPositiveCollectionDocs(const std::string &collectionId);
+  folly::Future<std::vector<std::string>> listNegativeCollectionDocs(const std::string &collectionId);
+  folly::Future<std::vector<std::string>> listKnownDocuments();
 };
 
 } // persistence

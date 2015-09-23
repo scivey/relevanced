@@ -13,22 +13,23 @@
 namespace {
   using namespace wangle;
   using namespace folly;
+  using namespace std;
 }
 class RelevanceWorker {
 protected:
-  CentroidManager *centroidManager_;
-  FutureExecutor<CPUThreadPoolExecutor> threadPool_ {1};
+  std::shared_ptr<persistence::PersistenceServiceIf> persistence_;
+  std::shared_ptr<CentroidManager> centroidManager_;
   RelevanceCollectionManager *relevanceManager_;
-  persistence::DocumentDB *documentDb_;
-  persistence::CollectionDB *collectionDb_;
-  persistence::CentroidDB *centroidDb_;
+  FutureExecutor<CPUThreadPoolExecutor> threadPool_ {1};
 public:
-  RelevanceWorker(RelevanceCollectionManager *manager): relevanceManager_(manager) {
-    documentDb_ = persistence::DocumentDB::getInstance();
-    collectionDb_ = persistence::CollectionDB::getInstance();
-    centroidDb_ = persistence::CentroidDB::getInstance();
-    centroidManager_ = CentroidManager::getInstance();
-  }
+  RelevanceWorker(
+    shared_ptr<persistence::PersistenceServiceIf> persistence,
+    shared_ptr<CentroidManager> centroidManager,
+    RelevanceCollectionManager *manager
+  ): persistence_(persistence),
+     centroidManager_(centroidManager),
+     relevanceManager_(manager){}
+
   Future<double> getRelevanceForDoc(string collectionId, string docId) {
     return threadPool_.addFuture([this, collectionId, docId](){
       return this->relevanceManager_->getRelevanceForDoc(collectionId, docId);
@@ -55,7 +56,8 @@ public:
     });
   }
   Future<string> getDocument(string docId) {
-    return documentDb_->doesDocumentExist(docId).then([this, docId] (bool doesExist) -> string {
+    auto docDb = persistence_->getDocumentDb().lock();
+    return docDb->doesDocumentExist(docId).then([this, docId] (bool doesExist) -> string {
       if (!doesExist) {
         return "";
       }
@@ -63,34 +65,42 @@ public:
     });
   }
   Future<bool> createCollection(string collectionId) {
-    return collectionDb_->createCollection(collectionId);
+    auto collDb = persistence_->getCollectionDb().lock();
+    return collDb->createCollection(collectionId);
   }
   Future<bool> deleteCollection(string collectionId) {
-    return collectionDb_->deleteCollection(collectionId);
+    auto collDb = persistence_->getCollectionDb().lock();
+    return collDb->deleteCollection(collectionId);
   }
   Future<vector<string>> listCollectionDocuments(string collId) {
-    return collectionDb_->listCollectionDocs(collId);
+    auto collDb = persistence_->getCollectionDb().lock();
+    return collDb->listCollectionDocs(collId);
   }
   Future<bool> addPositiveDocumentToCollection(string cId, string artId) {
-    return documentDb_->doesDocumentExist(artId).then([this, cId, artId] (bool doesExist) -> bool {
+    auto docDb = persistence_->getDocumentDb().lock();
+    return docDb->doesDocumentExist(artId).then([this, cId, artId] (bool doesExist) -> bool {
       if (!doesExist) {
         LOG(INFO) << "document does not exist: " << artId;
         return false;
       }
-      return collectionDb_->addPositiveDocToCollection(cId, artId).get();
+      auto collDb = persistence_->getCollectionDb().lock();
+      return collDb->addPositiveDocToCollection(cId, artId).get();
     });
   }
   Future<bool> addNegativeDocumentToCollection(string cId, string artId) {
-    return documentDb_->doesDocumentExist(artId).then([this, cId, artId] (bool doesExist) -> bool {
+    auto docDb = persistence_->getDocumentDb().lock();
+    return docDb->doesDocumentExist(artId).then([this, cId, artId] (bool doesExist) -> bool {
       if (!doesExist) {
         LOG(INFO) << "document does not exist: " << artId;
         return false;
       }
-      return collectionDb_->addNegativeDocToCollection(cId, artId).get();
+      auto collDb = persistence_->getCollectionDb().lock();
+      return collDb->addNegativeDocToCollection(cId, artId).get();
     });
   }
   Future<bool> removeDocumentFromCollection(string cId, string artId) {
-    return collectionDb_->removeDocFromCollection(cId, artId);
+    auto collDb = persistence_->getCollectionDb().lock();
+    return collDb->removeDocFromCollection(cId, artId);
   }
   Future<string> addNewPositiveDocumentToCollection(string cId, string text) {
     return threadPool_.addFuture([this, cId, text](){
@@ -111,10 +121,12 @@ public:
     });
   }
   Future<vector<string>> listCollections() {
-    return collectionDb_->listCollections();
+    auto collDb = persistence_->getCollectionDb().lock();
+    return collDb->listCollections();
   }
   Future<vector<string>> listDocuments() {
-    return collectionDb_->listKnownDocuments();
+    auto collDb = persistence_->getCollectionDb().lock();
+    return collDb->listKnownDocuments();
   }
   Future<vector<string>> listUnassociatedDocuments() {
     return threadPool_.addFuture([this](){
@@ -123,6 +135,7 @@ public:
     });
   }
   Future<int> getCollectionSize(string collectionId) {
-    return collectionDb_->getCollectionDocCount(collectionId);
+    auto collDb = persistence_->getCollectionDb().lock();
+    return collDb->getCollectionDocCount(collectionId);
   }
 };

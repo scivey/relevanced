@@ -8,17 +8,97 @@
 #include "stemmer/PorterStemmer.h"
 #include "DocumentProcessor.h"
 #include "RelevanceServer.h"
+#include "persistence/PersistenceService.h"
+#include "persistence/SqlDb.h"
+#include "persistence/RockHandle.h"
+#include "persistence/CollectionDB.h"
+#include "persistence/CollectionDBHandle.h"
+#include "persistence/DocumentDB.h"
+#include "persistence/DocumentDBHandle.h"
+#include "persistence/CentroidDB.h"
+#include "persistence/CentroidDBHandle.h"
+#include "util.h"
+#include <wangle/concurrent/CPUThreadPoolExecutor.h>
+#include <wangle/concurrent/FutureExecutor.h>
+#include <folly/futures/Future.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 #include <thrift/lib/cpp2/async/AsyncProcessor.h>
 
+using namespace std;
+using namespace folly;
 using stemmer::StemmerIf;
 using stemmer::PorterStemmer;
 using stopwords::StopwordFilter;
 using stopwords::StopwordFilterIf;
 using tokenizer::TokenizerIf;
 using tokenizer::Tokenizer;
-using namespace std;
-using namespace folly;
+using wangle::CPUThreadPoolExecutor;
+using wangle::FutureExecutor;
+using util::UniquePointer;
+
+shared_ptr<PersistenceServiceIf> getPersistence() {
+
+  auto threadPool = std::make_shared<FutureExecutor<CPUThreadPoolExecutor>>(4);
+
+  UniquePointer<RockHandleIf> centroidRock(
+    (RockHandleIf*) new RockHandle("data/centroids")
+  );
+  UniquePointer<CentroidDBHandleIf> centroidDbHandle(
+    (*CentroidDBHandleIf) new CentroidDBHandle(std::move(centroidRock))
+  );
+  shared_ptr<CentroidDBIf> centroidDb(
+    (CentroidDBIf*) new CentroidDB(
+      std::move(centroidDbHandle)
+      make_shared<FutureExecutor<CPUThreadPoolExecutor>>(1)
+    )
+  );
+
+  UniquePointer<RockHandleIf> docRock(
+    (*RockHandleIf) new RockHandle("data/documents")
+  );
+  UniquePointer<DocumentDBHandleIf> docDbHandle(
+    (*DocumentDBHandleIf) new DocumentDBHandle(std::move(docRock))
+  );
+  shared_ptr<DocumentDBIf> docDb(
+    (DocumentDBIf*) new DocumentDB(
+      std::move(docDbHandle),
+      make_shared<FutureExecutor<CPUThreadPoolExecutor>>(1)
+    )
+  );
+
+  UniquePointer<SqlDbIf> sqlDb(
+    (*SqlDbIf) new SqlDb("data/collections.sqlite")
+  );
+  UniquePointer<CollectionDBHandleIf> collDbHandle(
+    (*CollectionDBHandleIf) new CollectionDBHandle(std::move(sqlDb))
+  );
+  shared_ptr<CollectionDBIf> collDb(
+    (*CollectionDBIf) new CollectionDB(
+      std::move(collDbHandle),
+      make_shared<FutureExecutor<CPUThreadPoolExecutor>>(1)
+    )
+  );
+
+  shared_ptr<PersistenceServiceIf> persistence(
+    (PersistenceServiceIf*) new PersistenceService(
+      centroidDb, docDb, collDb
+    )
+  );
+  return std::move(persistence);
+}
+
+shared_ptr<CentroidManager> getCentroidManager(shared_ptr<PersistenceServiceIf> persistence) {
+  auto threadPool = make_shared<FutureExecutor<CPUThreadPoolExecutor>>(2);
+  UniquePointer<CentroidUpdater> updater(
+    new CentroidUpdater(
+      persistence,
+      threadPool
+    )
+  );
+  return make_shared<CentroidManager>(
+    std::move(updater), persistence
+  );
+}
 
 int main() {
   LOG(INFO) << "start";
@@ -37,8 +117,25 @@ int main() {
       tokenizer,
       stopwordFilter
     );
-    auto manager = new RelevanceCollectionManager(documentProcessor);
-    auto service = make_shared<RelevanceServer>(manager);
+    auto persistence = getPersistence();
+    auto centroidManager = getCentroidManager(persistence);
+
+    auto manager = new RelevanceCollectionManager(
+      persistence,
+      centroidManager,
+      documentProcessor
+    );
+
+    auto worker = new RelevanceWorker(
+      persistence,
+      centroidManager,
+      manager
+    );
+
+    auto service = make_shared<RelevanceServer>(
+      manager, worker
+    );
+
     bool allowInsecureLoopback = true;
     string saslPolicy = "";
     auto server = new apache::thrift::ThriftServer(

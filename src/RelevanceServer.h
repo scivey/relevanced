@@ -16,10 +16,10 @@ class RelevanceServer: public services::RelevanceSvIf {
   RelevanceCollectionManager *manager_;
   RelevanceWorker *worker_;
 public:
-  RelevanceServer(RelevanceCollectionManager *manager): manager_(manager) {
-    worker_ = new RelevanceWorker(manager_);
-
-  }
+  RelevanceServer(
+    RelevanceCollectionManager *manager,
+    RelevanceWorker *worker
+  ): manager_(manager), worker_(worker) {}
   void ping() {}
   Future<double> future_getRelevanceForDoc(unique_ptr<string> collId, unique_ptr<string> docId) {
     return worker_->getRelevanceForDoc(*collId, *docId);

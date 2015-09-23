@@ -11,60 +11,37 @@
 #include "CentroidDBHandle.h"
 #include "RockHandle.h"
 #include "ProcessedCentroid.h"
-
-
-namespace {
-  using namespace std;
-  using namespace folly;
-  using namespace wangle;
-}
+#include "util.h"
 
 namespace persistence {
 
-class CentroidDB {
+class CentroidDBIf {
+public:
+  virtual folly::Future<bool> doesCentroidExist(const std::string&) = 0;
+  virtual folly::Future<bool> deleteCentroid(const std::string&) = 0;
+  virtual folly::Future<bool> saveCentroid(const std::string&, ProcessedCentroid*) = 0;
+  virtual folly::Future<ProcessedCentroid*> loadCentroid(const std::string&) = 0;
+};
+
+class CentroidDB: public CentroidDBIf {
 protected:
-  CentroidDBHandle *dbHandle_ {nullptr};
-  FutureExecutor<CPUThreadPoolExecutor> threadPool_ {1};
-  CentroidDB () {
-    threadPool_.addFuture([this](){
-      auto rock = std::make_unique<RockHandle>("data/centroids");
-      dbHandle_ = new CentroidDBHandle(std::move(rock));
-    });
-  }
+  util::UniquePointer<CentroidDBHandleIf> dbHandle_;
+  std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>> threadPool_;
+
   CentroidDB(CentroidDB const&) = delete;
   void operator=(CentroidDB const&) = delete;
 
 public:
+  CentroidDB(
+    util::UniquePointer<CentroidDBHandleIf> dbHandle,
+    std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>> threadPool
+  ) : dbHandle_(dbHandle), threadPool_(threadPool_) {}
 
-  static CentroidDB* getInstance() {
-    static CentroidDB instance;
-    return &instance;
-  }
 
-  Future<bool> doesCentroidExist(const string &id) {
-    return threadPool_.addFuture([this, id](){
-      return dbHandle_->doesCentroidExist(id);
-    });
-  }
-
-  Future<bool> deleteCentroid(const string &id) {
-    return threadPool_.addFuture([this, id](){
-      return dbHandle_->deleteCentroid(id);
-    });
-  }
-
-  Future<bool> saveCentroid(const string &id, ProcessedCentroid *centroid) {
-    return threadPool_.addFuture([this, id, centroid](){
-      return dbHandle_->saveCentroid(id, centroid);
-    });
-  }
-
-  Future<ProcessedCentroid*> loadCentroid(const string &id) {
-    return threadPool_.addFuture([this, id](){
-      return dbHandle_->loadCentroid(id);
-    });
-  }
-
+  folly::Future<bool> doesCentroidExist(const std::string &id) override;
+  folly::Future<bool> deleteCentroid(const std::string &id) override;
+  folly::Future<bool> saveCentroid(const std::string &id, ProcessedCentroid *centroid) override;
+  folly::Future<ProcessedCentroid*> loadCentroid(const std::string &id) override;
 };
 
 } // persistence

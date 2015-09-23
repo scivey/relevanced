@@ -2,60 +2,23 @@
 
 #include <string>
 #include <memory>
-#include <vector>
-
-#include <wangle/concurrent/CPUThreadPoolExecutor.h>
-#include <wangle/concurrent/FutureExecutor.h>
 #include <folly/futures/Future.h>
-#include <folly/futures/Promise.h>
-
-#include "persistence/CentroidDB.h"
-#include "persistence/CollectionDB.h"
-#include "persistence/DocumentDB.h"
+#include "persistence/PersistenceService.h"
 #include "CentroidUpdater.h"
-
-namespace {
-  using namespace std;
-  using namespace folly;
-  using namespace wangle;
-}
+#include "util.h"
 
 class CentroidManager {
 protected:
-  persistence::CentroidDB *centroidDb_;
-  persistence::CollectionDB *collectionDb_;
-  persistence::DocumentDB *documentDb_;
-  CentroidUpdater updater_;
-
-  CentroidManager () {
-    centroidDb_ = persistence::CentroidDB::getInstance();
-    collectionDb_ = persistence::CollectionDB::getInstance();
-    documentDb_ = persistence::DocumentDB::getInstance();
-  }
+  std::shared_ptr<persistence::PersistenceServiceIf> persistence_;
+  util::UniquePointer<CentroidUpdater> updater_;
   CentroidManager(CentroidManager const&) = delete;
   void operator=(CentroidManager const&) = delete;
-
 public:
-  static CentroidManager* getInstance() {
-    static CentroidManager instance;
-    return &instance;
-  }
-
-  Future<ProcessedCentroid*> getCentroid(const string &id) {
-    return centroidDb_->doesCentroidExist(id).then([this, id] (bool doesExist) {
-      if (doesExist) {
-        return centroidDb_->loadCentroid(id);
-      } else {
-        return updater_.update(id).then([this, id](bool updated) {
-          return centroidDb_->loadCentroid(id);
-        });
-      }
-    });
-  }
-
-  Future<bool> update(const string &id) {
-    return updater_.update(id);
-  }
-
+  CentroidManager(
+    util::UniquePointer<CentroidUpdater>,
+    std::shared_ptr<persistence::PersistenceServiceIf>
+  );
+  folly::Future<ProcessedCentroid*> getCentroid(const std::string &id);
+  folly::Future<bool> update(const std::string &id);
 };
 
