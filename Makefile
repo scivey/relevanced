@@ -10,10 +10,13 @@ LINK=-lthriftcpp2 -lthrift -lwangle -lfolly -lrocksdb -lglog -lsqlite3 -lz -lsna
 OBJ=$(addprefix ./src/, \
 		main.o \
 		DocumentProcessor.o \
+		ProcessedDocument.o \
+		Centroid.o \
 		tokenizer/Tokenizer.o \
 		stemmer/PorterStemmer.o \
 		stopwords/StopwordFilter.o \
 		stopwords/english_stopwords.o \
+		util.o \
 	)
 
 THRIFT_OBJ = $(addprefix ./src/gen-cpp2/, \
@@ -37,7 +40,7 @@ run: runner
 	./runner
 
 clean:
-	rm -f runner src/*.o
+	rm -f runner src/*.o src/persistence/*.o src/stemmer/*.o src/stopwords/*.o src/tokenizer/*.o
 
 .PHONY: run clean thrift thrift-py
 

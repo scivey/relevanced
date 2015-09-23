@@ -1,3 +1,4 @@
+#pragma once
 #include <memory>
 #include "stemmer/StemmerIf.h"
 #include "stopwords/StopwordFilter.h"

@@ -4,7 +4,7 @@
 #include "DocumentProcessor.h"
 #include "ProcessedDocument.h"
 #include "Document.h"
-
+using namespace std;
 
 void DocumentProcessor::process_(const Document &doc, ProcessedDocument *result) {
   map<string, double> wordCounts;

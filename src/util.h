@@ -1,17 +1,12 @@
 #pragma once
+
 #include <map>
 #include <string>
 #include <sstream>
 #include <algorithm>
 #include <set>
 #include <vector>
-
-#include <cmath>
-
 #include <eigen3/Eigen/Dense>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
 
 namespace {
   using namespace std;
@@ -20,12 +15,6 @@ namespace {
 namespace util {
 
 
-string getUuid() {
-  boost::uuids::uuid uuid = boost::uuids::random_generator()();
-  ostringstream oss;
-  oss << uuid;
-  return oss.str();
-}
 
 template<typename T>
 class Counter {
@@ -43,13 +32,8 @@ public:
   }
 };
 
-map<string, size_t> countWords(const vector<string> &words) {
-  Counter<string> counter;
-  for (auto &elem: words) {
-    counter.incr(elem);
-  }
-  return std::move(counter.counts);
-}
+std::string getUuid();
+
 
 template<typename T1, typename T2>
 vector<T1> getSortedKeys(const map<T1, T2> &aMap) {
@@ -70,12 +54,6 @@ vector<T> vecOfSet(const set<T> &t) {
   return output;
 }
 
-double vectorMag(const Eigen::VectorXd &vec, size_t count) {
-  double accum = 0.0;
-  for (size_t i = 0; i < count; i++) {
-    accum += pow(vec(i), 2);
-  }
-  return sqrt(accum);
-}
+double vectorMag(const Eigen::VectorXd &vec, size_t count);
 
 } // util
