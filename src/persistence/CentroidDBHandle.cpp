@@ -14,6 +14,7 @@
 #include "util.h"
 namespace persistence {
 
+
 CentroidDBHandle::CentroidDBHandle(util::UniquePointer<RockHandleIf> rockHandle)
   : rockHandle_(std::move(rockHandle)) {}
 
@@ -35,5 +36,6 @@ ProcessedCentroid* CentroidDBHandle::loadCentroid(const string &id) {
   auto serialized = rockHandle_->get(id);
   return ProcessedCentroid::newFromJson(serialized);
 }
+
 
 } // persistence

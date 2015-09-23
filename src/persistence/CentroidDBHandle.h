@@ -18,7 +18,7 @@ public:
   virtual bool doesCentroidExist(const std::string &id) = 0;
   virtual bool saveCentroid(const std::string &id, ProcessedCentroid *centroid) = 0;
   virtual bool deleteCentroid(const std::string &id) = 0;
-  virtual ProcessedCentroid* loadCentroid(const std::string &id);
+  virtual ProcessedCentroid* loadCentroid(const std::string &id) = 0;
   virtual ~CentroidDBHandleIf() = default;
 };
 
@@ -27,10 +27,10 @@ protected:
   util::UniquePointer<RockHandleIf> rockHandle_;
 public:
   CentroidDBHandle(util::UniquePointer<RockHandleIf> rockHandle);
-  bool doesCentroidExist(const std::string &id);
-  bool saveCentroid(const std::string &id, ProcessedCentroid *centroid);
-  bool deleteCentroid(const std::string &id);
-  ProcessedCentroid* loadCentroid(const std::string &id);
+  bool doesCentroidExist(const std::string &id) override;
+  bool saveCentroid(const std::string &id, ProcessedCentroid *centroid) override;
+  bool deleteCentroid(const std::string &id) override;
+  ProcessedCentroid* loadCentroid(const std::string &id) override;
 };
 
 } // persistence
