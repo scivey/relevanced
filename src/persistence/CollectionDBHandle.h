@@ -46,9 +46,6 @@ protected:
   sqlite3_stmt *listCollectionDocsOfTypeStmt_ {nullptr};
   sqlite3_stmt *listKnownDocumentsStmt_ {nullptr};
 
-
-
-
 public:
   CollectionDBHandle(util::UniquePointer<SqlDb> sqlDb);
   bool ensureTables() override;

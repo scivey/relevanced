@@ -5,6 +5,7 @@
 #include <wangle/concurrent/CPUThreadPoolExecutor.h>
 #include <wangle/concurrent/FutureExecutor.h>
 #include <folly/futures/Future.h>
+#include <folly/futures/helpers.h>
 
 #include "CollectionDB.h"
 #include "CollectionDBHandle.h"
@@ -26,9 +27,10 @@ Future<bool> CollectionDB::doesCollectionExist(const string &collectionId) {
 }
 
 Future<bool> CollectionDB::createCollection(const string &collectionId) {
-  return threadPool_->addFuture([this, collectionId](){
+  threadPool_->addFuture([this, collectionId](){
     return dbHandle_->createCollection(collectionId);
   });
+  return makeFuture(true);
 }
 
 Future<bool> CollectionDB::doesCollectionHaveDoc(const string &collectionId, const string &docId) {
@@ -38,27 +40,31 @@ Future<bool> CollectionDB::doesCollectionHaveDoc(const string &collectionId, con
 }
 
 Future<bool> CollectionDB::addPositiveDocToCollection(const string &collectionId, const string &docId) {
-  return threadPool_->addFuture([this, collectionId, docId](){
+  threadPool_->addFuture([this, collectionId, docId](){
     return dbHandle_->addPositiveDocToCollection(collectionId, docId);
   });
+  return makeFuture(true);
 }
 
 Future<bool> CollectionDB::addNegativeDocToCollection(const string &collectionId, const string &docId) {
-  return threadPool_->addFuture([this, collectionId, docId](){
+  threadPool_->addFuture([this, collectionId, docId](){
     return dbHandle_->addNegativeDocToCollection(collectionId, docId);
   });
+  return makeFuture(true);
 }
 
 Future<bool> CollectionDB::removeDocFromCollection(const string &collectionId, const string &docId) {
-  return threadPool_->addFuture([this, collectionId, docId](){
+  threadPool_->addFuture([this, collectionId, docId](){
     return dbHandle_->removeDocFromCollection(collectionId, docId);
   });
+  return makeFuture(true);
 }
 
 Future<bool> CollectionDB::deleteCollection(const string &collectionId) {
-  return threadPool_->addFuture([this, collectionId](){
+  threadPool_->addFuture([this, collectionId](){
     return dbHandle_->deleteCollection(collectionId);
   });
+  return makeFuture(true);
 }
 
 Future<vector<string>> CollectionDB::listCollections() {

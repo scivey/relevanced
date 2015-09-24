@@ -24,34 +24,33 @@ def init_collections(client):
         name = 'wiki_math'
         client.create_collection(name)
         for doc in load_math():
-            client.add_positive_document_to_collection(
+            print(client.add_positive_document_to_collection(
                 name, doc['url']
-            )
+            ))
         for doc in load_poli():
-            client.add_negative_document_to_collection(
+            print(client.add_negative_document_to_collection(
                 name, doc['url']
-            )
-        client.recompute(name)
+            ))
 
     if 'wiki_poli' not in colls:
         name = 'wiki_poli'
         client.create_collection(name)
         for doc in load_math():
-            client.add_negative_document_to_collection(
+            print(client.add_negative_document_to_collection(
                 name, doc['url']
-            )
+            ))
         for doc in load_poli():
-            client.add_positive_document_to_collection(
+            print(client.add_positive_document_to_collection(
                 name, doc['url']
-            )
-        client.recompute(name)
+            ))
 
-    assert(2 <= len(client.list_collections()))
 
 def main():
     client = Client('localhost', 8097)
     init_documents(client)
     init_collections(client)
+    client.recompute('wiki_math')
+    client.recompute('wiki_poli')
 
     print("math documents: %i" % client.get_collection_size('wiki_math'))
     print("poli documents: %i" % client.get_collection_size('wiki_poli'))

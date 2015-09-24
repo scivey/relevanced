@@ -1,5 +1,7 @@
 #include <string>
 #include <memory>
+#include <chrono>
+
 #include <glog/logging.h>
 #include "stopwords/StopwordFilter.h"
 #include "tokenizer/Tokenizer.h"
@@ -136,6 +138,7 @@ int main() {
       saslPolicy, allowInsecureLoopback
     );
     server->setInterface(service);
+    server->setTaskExpireTime(chrono::milliseconds(60000));
     auto port = 8097;
     server->setPort(port);
     LOG(INFO) << "listening on: " << port;

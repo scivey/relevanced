@@ -15,6 +15,7 @@ OBJ=$(addprefix ./src/, \
 		CentroidManager.o \
 		CentroidUpdateWorker.o \
 		CentroidUpdater.o \
+		RelevanceScoreWorker.o \
 		tokenizer/Tokenizer.o \
 		stemmer/PorterStemmer.o \
 		stopwords/StopwordFilter.o \
