@@ -4,11 +4,14 @@
 #include <tuple>
 #include <string>
 #include <sstream>
+#include <sqlite3.h>
 #include <folly/Format.h>
 #include <glog/logging.h>
 
 #include "CollectionDBHandle.h"
 #include "SqlDb.h"
+#include "sqlUtil.h"
+
 #include "util.h"
 using namespace std;
 using namespace folly;
@@ -37,8 +40,14 @@ bool CollectionDBHandle::ensureTables() {
 }
 
 bool CollectionDBHandle::doesCollectionExist(const string &collectionId) {
-  string query = sformat("select count(*) from collections where name='{}';", collectionId);
-  auto res = sqlDb_->exec<int>(query);
+  if (collectionCountByNameStmt_ == nullptr) {
+    collectionCountByNameStmt_ = sqlDb_->prepare(
+      "select count(*) from collections where name=@N;"
+    );
+  }
+  auto collId = (char*) collectionId.c_str();
+  sqlUtil::Binding binding(collectionCountByNameStmt_, collId);
+  auto res = sqlDb_->execPrepared<int>(binding.stmt);
   assert(1 == res.size());
   return std::get<0>(res.at(0)) != 0;
 }
@@ -47,14 +56,27 @@ bool CollectionDBHandle::createCollection(const string &collectionId) {
   if (doesCollectionExist(collectionId)) {
     return false;
   }
-  string query = sformat("insert into collections (name) values('{}');", collectionId);
-  sqlDb_->exec<int>(query);
+  if (createCollectionStmt_ == nullptr) {
+    createCollectionStmt_ = sqlDb_->prepare(
+      "insert into collections (name) values (@N);"
+    );
+  }
+  auto collId = (char*) collectionId.c_str();
+  sqlUtil::Binding binding(createCollectionStmt_, collId);
+  sqlDb_->execPrepared<int>(binding.stmt);
   return true;
 }
 
 bool CollectionDBHandle::doesCollectionHaveDoc(const string &collectionId, const string &docId) {
-  string query = sformat("select count(*) from collection_docs where collection_name='{}' and document_id='{}';", collectionId, docId);
-  auto res = sqlDb_->exec<int>(query);
+  if (doesCollectionHaveDocStmt_ == nullptr) {
+    doesCollectionHaveDocStmt_ = sqlDb_->prepare(
+      "select count(*) from collection_docs where collection_name=@N and document_id=@D;"
+    );
+  }
+  auto collId = (char*) collectionId.c_str();
+  auto docI = (char*) docId.c_str();
+  sqlUtil::Binding binding(doesCollectionHaveDocStmt_, collId, docI);
+  auto res = sqlDb_->execPrepared<int>(binding.stmt);
   assert(1 == res.size());
   return std::get<0>(res.at(0)) != 0;
 }
@@ -63,14 +85,19 @@ bool CollectionDBHandle::addDocToCollection(const string &collectionId, const st
   if (doesCollectionHaveDoc(collectionId, docId)) {
     return false;
   }
+  if (addDocumentToCollectionStmt_ == nullptr) {
+    addDocumentToCollectionStmt_ = sqlDb_->prepare(
+      "insert into collection_docs(collection_name, document_id, is_positive) values(@C, @D, @P)"
+    );
+  }
   int posInt = 0;
   if (isPositive) {
     posInt = 1;
   }
-  string q1 = "insert into collection_docs(collection_name, document_id, is_positive) ";
-  string q2 = sformat("values ('{}', '{}', {})", collectionId, docId, posInt);
-  string query = q1 + q2;
-  sqlDb_->exec<int>(query);
+  auto collId = (char*) collectionId.c_str();
+  auto docI = (char*) docId.c_str();
+  sqlUtil::Binding binding(addDocumentToCollectionStmt_, collId, docI, posInt);
+  sqlDb_->execPrepared<int>(binding.stmt);
   return true;
 }
 
@@ -106,7 +133,10 @@ bool CollectionDBHandle::deleteCollection(const string &collectionId) {
 
 vector<string> CollectionDBHandle::listCollections() {
   vector<string> output;
-  auto res = sqlDb_->exec<string>("select name from collections;");
+  if (listCollectionsStmt_ == nullptr) {
+    listCollectionsStmt_ = sqlDb_->prepare("select name from collections;");
+  }
+  auto res = sqlDb_->execPrepared<string>(listCollectionsStmt_);
   for (auto &row: res) {
     output.push_back(std::get<0>(row));
   }
@@ -117,8 +147,14 @@ int CollectionDBHandle::getCollectionDocCount(const string &collectionId) {
   if (!doesCollectionExist(collectionId)) {
     return 0;
   }
-  string query = folly::sformat("select count(*) from collection_docs where collection_name='{}';", collectionId);
-  auto res = sqlDb_->exec<int>(query);
+  if (getCollectionDocCountStmt_ == nullptr) {
+    getCollectionDocCountStmt_ = sqlDb_->prepare(
+      "select count(*) from collection_docs where collection_name=@N;"
+    );
+  }
+  auto collId = (char*) collectionId.c_str();
+  sqlUtil::Binding binding(getCollectionDocCountStmt_, collId);
+  auto res = sqlDb_->execPrepared<int>(binding.stmt);
   assert(1 == res.size());
   return std::get<0>(res.at(0));
 }
@@ -128,8 +164,14 @@ vector<string> CollectionDBHandle::listCollectionDocs(const string &collectionId
   if (!doesCollectionExist(collectionId)) {
     return output;
   }
-  string docQuery = folly::sformat("select document_id from collection_docs where collection_name='{}' order by document_id;", collectionId);
-  auto res = sqlDb_->exec<string>(docQuery);
+  if (listCollectionDocsStmt_ == nullptr) {
+    listCollectionDocsStmt_ = sqlDb_->prepare(
+      "select document_id from collection_docs where collection_name=@N;"
+    );
+  }
+  auto collId = (char*) collectionId.c_str();
+  sqlUtil::Binding binding(listCollectionDocsStmt_, collId);
+  auto res = sqlDb_->execPrepared<string>(binding.stmt);
   for (auto &row: res) {
     output.push_back(std::get<0>(row));
   }
@@ -141,8 +183,14 @@ vector<string> CollectionDBHandle::listPositiveCollectionDocs(const string &coll
   if (!doesCollectionExist(collectionId)) {
     return output;
   }
-  string docQuery = folly::sformat("select document_id from collection_docs where collection_name='{}' and is_positive=1 order by document_id;", collectionId);
-  auto res = sqlDb_->exec<string>(docQuery);
+  if (listCollectionDocsOfTypeStmt_ == nullptr) {
+    listCollectionDocsOfTypeStmt_ = sqlDb_->prepare(
+      "select document_id from collection_docs where collection_name=@N and is_positive=@P order by document_id;"
+    );
+  }
+  auto collId = (char*) collectionId.c_str();
+  sqlUtil::Binding binding(listCollectionDocsOfTypeStmt_, collId, 1);
+  auto res = sqlDb_->execPrepared<string>(binding.stmt);
   for (auto &row: res) {
     output.push_back(std::get<0>(row));
   }
@@ -154,8 +202,14 @@ vector<string> CollectionDBHandle::listNegativeCollectionDocs(const string &coll
   if (!doesCollectionExist(collectionId)) {
     return output;
   }
-  string docQuery = folly::sformat("select document_id from collection_docs where collection_name='{}' and is_positive=0 order by document_id;", collectionId);
-  auto res = sqlDb_->exec<string>(docQuery);
+  if (listCollectionDocsOfTypeStmt_ == nullptr) {
+    listCollectionDocsOfTypeStmt_ = sqlDb_->prepare(
+      "select document_id from collection_docs where collection_name=@N and is_positive=@P order by document_id;"
+    );
+  }
+  auto collId = (char*) collectionId.c_str();
+  sqlUtil::Binding binding(listCollectionDocsOfTypeStmt_, collId, 0);
+  auto res = sqlDb_->execPrepared<string>(binding.stmt);
   for (auto &row: res) {
     output.push_back(std::get<0>(row));
   }
@@ -164,8 +218,12 @@ vector<string> CollectionDBHandle::listNegativeCollectionDocs(const string &coll
 
 vector<string> CollectionDBHandle::listKnownDocuments() {
   vector<string> output;
-  string query = "select distinct document_id from collection_docs order by document_id;";
-  auto res = sqlDb_->exec<string>(query);
+  if (listKnownDocumentsStmt_ == nullptr) {
+    listKnownDocumentsStmt_ = sqlDb_->prepare(
+      "select distinct document_id from collection_docs order by document_id;"
+    );
+  }
+  auto res = sqlDb_->execPrepared<string>(listKnownDocumentsStmt_);
   for (auto &row: res) {
     output.push_back(std::get<0>(row));
   }

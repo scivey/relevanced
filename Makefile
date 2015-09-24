@@ -2,7 +2,7 @@ CXX=clang++-3.5
 CC=clang-3.5
 CFLAGS=-I./src --std=c99
 CXX_FLAGS=--std=c++14 -stdlib=libstdc++ -I./src
-LINK=-lthriftcpp2 -lthrift -lwangle -lfolly -lrocksdb -lglog -lsqlite3 -lz -lsnappy -llz4 -lbz2 -ldouble-conversion -latomic -pthread
+LINK=-lthriftcpp2 -lthrift -lwangle -lfolly -lrocksdb -lglog -lsqlite3 -lz -lsnappy -llz4 -lbz2 -ldouble-conversion -lboost_thread -lboost_system -latomic -pthread
 
 %.o:%.cpp
 	$(CXX) $(CXX_FLAGS) -o $@ -c $<
@@ -17,7 +17,6 @@ OBJ=$(addprefix ./src/, \
 		CentroidUpdater.o \
 		tokenizer/Tokenizer.o \
 		stemmer/PorterStemmer.o \
-		RelevanceCollectionManager.o \
 		stopwords/StopwordFilter.o \
 		stopwords/english_stopwords.o \
 		persistence/PersistenceService.o \
@@ -62,4 +61,5 @@ thrift:
 
 thrift-py:
 	thrift1 --gen py -o ./clients/python/relevanced_client src/TextRelevance.thrift
+	rm -rf ./clients/python/relevanced_client/gen_py
 	mv ./clients/python/relevanced_client/gen-py ./clients/python/relevanced_client/gen_py

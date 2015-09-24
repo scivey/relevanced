@@ -15,6 +15,7 @@ public:
   ProcessedDocument(const std::string& id, std::map<std::string, double> counts): id(id), normalizedWordCounts(counts){}
   void addCount(std::string word, double count);
   bool hasWord(const std::string &word);
+  void addTfidfWordCounts(const std::map<std::string, size_t> &docCounts, std::map<std::string, double> &target);
   std::map<std::string, double> getTfidfWordCounts(const std::map<std::string, size_t> &docCounts);
   double getNormalizedWordCount(const std::string &word);
   folly::dynamic asDynamic_();

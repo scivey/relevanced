@@ -5,7 +5,7 @@ service Relevance {
     double getRelevanceForDoc(1: string collectionId, 2: string docId),
     double getRelevanceForText(1: string collectionId, 2: string text),
     string createDocument(1: string text),
-    bool createDocumentWithID(1: string id, 2: string text),
+    string createDocumentWithID(1: string id, 2: string text),
     bool deleteDocument(1: string id),
     string getDocument(1: string id),
     bool createCollection(1: string collectionId),

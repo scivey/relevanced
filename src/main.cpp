@@ -1,7 +1,6 @@
 #include <string>
 #include <memory>
 #include <glog/logging.h>
-#include "RelevanceCollectionManager.h"
 #include "stopwords/StopwordFilter.h"
 #include "tokenizer/Tokenizer.h"
 #include "stemmer/StemmerIf.h"
@@ -18,6 +17,7 @@
 #include "persistence/CentroidDB.h"
 #include "persistence/CentroidDBHandle.h"
 #include "util.h"
+#include "RelevanceScoreWorker.h"
 #include <wangle/concurrent/CPUThreadPoolExecutor.h>
 #include <wangle/concurrent/FutureExecutor.h>
 #include <folly/futures/Future.h>
@@ -122,20 +122,12 @@ int main() {
     auto persistence = getPersistence();
     auto centroidManager = getCentroidManager(persistence);
 
-    auto manager = new RelevanceCollectionManager(
-      persistence,
-      centroidManager,
-      documentProcessor
+    auto relevanceWorker = make_shared<RelevanceScoreWorker>(
+      persistence, centroidManager, documentProcessor
     );
-
-    auto worker = new RelevanceWorker(
-      persistence,
-      centroidManager,
-      manager
-    );
-
+    relevanceWorker->initialize();
     auto service = make_shared<RelevanceServer>(
-      manager, worker
+      relevanceWorker, documentProcessor, persistence
     );
 
     bool allowInsecureLoopback = true;

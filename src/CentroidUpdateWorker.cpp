@@ -10,7 +10,6 @@
 #include "CentroidFactory.h"
 #include "CentroidUpdateWorker.h"
 #include "persistence/PersistenceService.h"
-
 using namespace persistence;
 using namespace std;
 

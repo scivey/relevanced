@@ -18,14 +18,18 @@ bool ProcessedDocument::hasWord(const string &word) {
   return getNormalizedWordCount(word) != 0;
 }
 
-map<string, double> ProcessedDocument::getTfidfWordCounts(const map<string, size_t> &docCounts) {
-  map<string, double> output;
+void ProcessedDocument::addTfidfWordCounts(const map<string, size_t> &docCounts, map<string, double> &output) {
   for (auto &elem: normalizedWordCounts) {
     if (docCounts.find(elem.first) != docCounts.end()) {
       double dCount = (double) docCounts.at(elem.first);
       output[elem.first] = elem.second / dCount;
     }
   }
+}
+
+map<string, double> ProcessedDocument::getTfidfWordCounts(const map<string, size_t> &docCounts) {
+  map<string, double> output;
+  addTfidfWordCounts(docCounts, output);
   return output;
 }
 

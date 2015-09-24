@@ -34,6 +34,24 @@ bool SqlDb::tableExists(const string &name) {
   return tableExists(name.c_str());
 }
 
+bool SqlDb::beginTransaction() {
+  if (!inTransaction_) {
+    exec("BEGIN TRANSACTION;");
+    inTransaction_ = true;
+    return true;
+  }
+  return false;
+}
+
+bool SqlDb::endTransaction() {
+  if (!inTransaction_) {
+    return false;
+  }
+  exec("END TRANSACTION;");
+  inTransaction_ = false;
+  return true;
+}
+
 SqlDb::~SqlDb() {
   if (db_ != nullptr) {
     sqlite3_close(db_);
