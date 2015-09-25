@@ -27,6 +27,7 @@ OBJ=$(addprefix ./src/, \
 		persistence/DocumentDBHandle.o \
 		persistence/CollectionDB.o \
 		persistence/CollectionDBHandle.o \
+		persistence/CollectionDBCache.o \
 		persistence/RockHandle.o \
 		persistence/SqlDb.o \
 		util.o \

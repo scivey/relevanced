@@ -8,6 +8,8 @@
 #include <wangle/concurrent/FutureExecutor.h>
 #include <folly/futures/Future.h>
 #include "CollectionDBHandle.h"
+#include "CollectionDBCache.h"
+
 #include "util.h"
 
 namespace persistence {
@@ -58,6 +60,7 @@ public:
 class CollectionDB: public CollectionDBIf {
 protected:
   util::UniquePointer<CollectionDBHandleIf> dbHandle_;
+  std::shared_ptr<CollectionDBCache> dbCache_;
   std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>> threadPool_;
   CollectionDB(CollectionDB const&) = delete;
   void operator=(CollectionDB const&) = delete;
