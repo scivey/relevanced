@@ -82,6 +82,7 @@ shared_ptr<PersistenceServiceIf> getPersistence() {
       make_shared<FutureExecutor<CPUThreadPoolExecutor>>(1)
     )
   );
+  collDb->initialize();
 
   shared_ptr<PersistenceServiceIf> persistence(
     (PersistenceServiceIf*) new PersistenceService(

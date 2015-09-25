@@ -104,9 +104,48 @@ def init_documents_large(client):
             print('created : %s' % res)
 
 
+def init_collections_large(client):
+    existing_collections = set(client.list_collections())
+    for coll in ('wiki_math', 'wiki_poli'):
+        if coll not in existing_collections:
+            client.create_collection(coll)
+
+    for url in load_large_math().keys():
+        client.add_positive_document_to_collection(
+            'wiki_math', url
+        )
+        client.add_negative_document_to_collection(
+            'wiki_poli', url
+        )
+
+    for url in load_large_poli().keys():
+        client.add_negative_document_to_collection(
+            'wiki_math', url
+        )
+        client.add_positive_document_to_collection(
+            'wiki_poli', url
+        )
+
+    for url in load_large_irrelevant().keys():
+        for coll in ('wiki_math', 'wiki_poli'):
+            client.add_negative_document_to_collection(coll, url)
+
 def main_large():
     client = get_client()
-    init_documents_large(client)
+    # init_documents_large(client)
+    # init_collections_large(client)
+    # client.recompute('wiki_math')
+    # client.recompute('wiki_poli')
+    print('math -> math')
+    for doc in load_large_math().values()[:10]:
+        print(doc['title'])
+        print(client.get_relevance_for_text('wiki_math', doc['text']))
+
+    print('poli -> math')
+    for doc in load_large_math().values()[:10]:
+        print(doc['title'])
+        print(client.get_relevance_for_text('wiki_poli', doc['text']))
+
 
 def bench(secs):
     client = get_client()

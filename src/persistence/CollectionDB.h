@@ -16,6 +16,9 @@ namespace persistence {
 
 class CollectionDBIf {
 public:
+
+  virtual void initialize() = 0;
+
   virtual folly::Future<bool>
     doesCollectionExist(const std::string&) = 0;
   virtual folly::Future<bool>
@@ -69,6 +72,7 @@ public:
     util::UniquePointer<CollectionDBHandleIf> dbHandle,
     std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>> threadPool
   );
+  void initialize() override;
   folly::Future<bool> doesCollectionExist(const std::string &collectionId);
   folly::Future<bool> createCollection(const std::string &collectionId);
   folly::Future<bool> doesCollectionHaveDoc(const std::string &collectionId, const std::string &docId);

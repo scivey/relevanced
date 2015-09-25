@@ -6,7 +6,7 @@
 #include <wangle/concurrent/FutureExecutor.h>
 #include <folly/futures/Future.h>
 #include <folly/futures/helpers.h>
-
+#include <glog/logging.h>
 #include "CollectionDB.h"
 #include "CollectionDBHandle.h"
 #include "CollectionDBCache.h"
@@ -23,6 +23,33 @@ CollectionDB::CollectionDB(UniquePointer<CollectionDBHandleIf> dbHandle, shared_
   : dbHandle_(std::move(dbHandle)), threadPool_(threadPool) {
     dbCache_ = std::make_shared<CollectionDBCache>();
   }
+
+void CollectionDB::initialize() {
+  // only called on startup -- blocking is ok.
+  LOG(INFO) << "initializing CollectionDB cache.";
+  vector<string> collectionIds = threadPool_->addFuture([this](){
+    return dbHandle_->listCollections();
+  }).get();
+  for (auto &collId: collectionIds) {
+    LOG(INFO) << "initializing cache for " << collId;
+    dbCache_->createCollection(collId);
+    vector<string> positiveDocs = threadPool_->addFuture([this, collId](){
+      return dbHandle_->listPositiveCollectionDocs(collId);
+    }).get();
+    LOG(INFO) << "positive docs for " << collId << " : " << positiveDocs.size();
+    for (auto &docId: positiveDocs) {
+      dbCache_->addPositiveDocToCollection(collId, docId);
+    }
+    vector<string> negativeDocs = threadPool_->addFuture([this, collId](){
+      return dbHandle_->listNegativeCollectionDocs(collId);
+    }).get();
+    LOG(INFO) << "negative docs for " << collId << " : " << negativeDocs.size();
+    for (auto &docId: negativeDocs) {
+      dbCache_->addNegativeDocToCollection(collId, docId);
+    }
+  }
+  LOG(INFO) << "CollectionDB initialized.";
+}
 
 Future<bool> CollectionDB::doesCollectionExist(const string &collectionId) {
   return makeFuture(dbCache_->doesCollectionExist(collectionId));

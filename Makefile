@@ -25,6 +25,7 @@ OBJ=$(addprefix ./src/, \
 		persistence/CentroidDBHandle.o \
 		persistence/DocumentDB.o \
 		persistence/DocumentDBHandle.o \
+		persistence/DocumentDBCache.o \
 		persistence/CollectionDB.o \
 		persistence/CollectionDBHandle.o \
 		persistence/CollectionDBCache.o \
