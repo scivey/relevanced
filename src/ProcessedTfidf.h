@@ -2,7 +2,7 @@
 #include <vector>
 #include <map>
 #include <algorithm>
-#include <eigen3/Eigen/Dense>
+#include <eigen3/Eigen/Sparse>
 #include <folly/dynamic.h>
 #include <folly/DynamicConverter.h>
 #include <folly/Conv.h>
@@ -41,28 +41,22 @@ public:
     return article->getTfidfWordCounts(documentCounts_);
   }
 
-  Eigen::VectorXd tfVecOfArticle(ProcessedDocument *article) {
+  Eigen::SparseVector<double> tfVecOfArticle(ProcessedDocument *article) {
     size_t size = sortedKeys_.size();
-    Eigen::VectorXd vec(size);
-    for (size_t i = 0; i < size; i++) {
-      vec(i) = 0.0;
-    }
+    Eigen::SparseVector<double> vec(size);
     for (auto &elem: article->normalizedWordCounts) {
       if (keyIndices_.find(elem.first) != keyIndices_.end()) {
-        vec(keyIndices_[elem.first]) = elem.second;
+        vec.insert(keyIndices_[elem.first]) = elem.second;
       }
     }
     return vec;
   }
 
-  Eigen::VectorXd tfidfVecOfArticle(ProcessedDocument *article) {
+  Eigen::SparseVector<double> tfidfVecOfArticle(ProcessedDocument *article) {
     size_t size = sortedKeys_.size();
-    Eigen::VectorXd vec(size);
-    for (size_t i = 0; i < size; i++) {
-      vec(i) = 0.0;
-    }
+    Eigen::SparseVector<double> vec(size);
     for (auto &elem: getNormalizedDocCounts(article)) {
-      vec(keyIndices_[elem.first]) = elem.second;
+      vec.insert(keyIndices_[elem.first]) = elem.second;
     }
     return vec;
   }
@@ -80,13 +74,13 @@ public:
   }
 
 
-  static ProcessedTfidf* newFromDynamic(dynamic &d) {
+  static std::shared_ptr<ProcessedTfidf> newFromDynamic(dynamic &d) {
     auto docCounts = d["documentCounts"];
     auto counts = folly::convertTo<map<string, size_t>>(docCounts);
-    return new ProcessedTfidf(counts);
+    return std::make_shared<ProcessedTfidf>(counts);
   }
 
-  static ProcessedTfidf* newFromJson(const string &js) {
+  static std::shared_ptr<ProcessedTfidf> newFromJson(const string &js) {
     auto dyn = folly::parseJson(js);
     return newFromDynamic(dyn);
   }

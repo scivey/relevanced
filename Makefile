@@ -2,7 +2,7 @@ CXX=clang++-3.5
 CC=clang-3.5
 CFLAGS=-I./src --std=c99
 CXX_FLAGS=--std=c++14 -stdlib=libstdc++ -I./src
-LINK=-lthriftcpp2 -lthrift -lwangle -lfolly -lrocksdb -lglog -lsqlite3 -lz -lsnappy -llz4 -lbz2 -ldouble-conversion -lboost_thread -lboost_system -latomic -pthread
+LINK=-lthriftcpp2 -lthrift -lwangle -lfolly -lrocksdb -lglog -lsqlite3 -lz -lsnappy -llz4 -lbz2 -ldouble-conversion -lboost_thread -lboost_system -ljemalloc -latomic -pthread
 
 %.o:%.cpp
 	$(CXX) $(CXX_FLAGS) -o $@ -c $<
@@ -15,6 +15,7 @@ OBJ=$(addprefix ./src/, \
 		CentroidManager.o \
 		CentroidUpdateWorker.o \
 		CentroidUpdater.o \
+		ProcessedCentroid.o \
 		RelevanceScoreWorker.o \
 		tokenizer/Tokenizer.o \
 		stemmer/PorterStemmer.o \
@@ -29,8 +30,8 @@ OBJ=$(addprefix ./src/, \
 		persistence/CollectionDB.o \
 		persistence/CollectionDBHandle.o \
 		persistence/CollectionDBCache.o \
+		persistence/ColonPrefixedRockHandle.o \
 		persistence/RockHandle.o \
-		persistence/SqlDb.o \
 		util.o \
 	)
 
@@ -66,3 +67,5 @@ thrift-py:
 	thrift1 --gen py -o ./clients/python/relevanced_client src/TextRelevance.thrift
 	rm -rf ./clients/python/relevanced_client/gen_py
 	mv ./clients/python/relevanced_client/gen-py ./clients/python/relevanced_client/gen_py
+
+.PHONY: proc

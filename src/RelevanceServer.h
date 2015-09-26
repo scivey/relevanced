@@ -2,10 +2,12 @@
 #include <string>
 #include <memory>
 #include <folly/futures/Future.h>
+#include <folly/futures/helpers.h>
+
 #include <glog/logging.h>
 #include "gen-cpp2/Relevance.h"
 #include "RelevanceScoreWorker.h"
-
+#include <folly/Optional.h>
 #include "persistence/PersistenceService.h"
 #include "DocumentProcessor.h"
 #include "Document.h"
@@ -14,6 +16,7 @@
 namespace {
   using namespace std;
   using namespace folly;
+  using util::UniquePointer;
 }
 
 class RelevanceServer: public services::RelevanceSvIf {
@@ -29,8 +32,11 @@ public:
   void ping() {}
   Future<double> future_getRelevanceForDoc(unique_ptr<string> collId, unique_ptr<string> docId) {
     string coll = *collId;
-    return persistence_->getDocumentDb().lock()->loadDocument(*docId).then([this, coll](ProcessedDocument *doc) {
-      return scoreWorker_->getRelevanceForDoc(coll, doc);
+    return persistence_->getDocumentDb().lock()->loadDocumentShared(*docId).then([this, coll](Optional<shared_ptr<ProcessedDocument>> doc) {
+      if (!doc.hasValue()) {
+        return makeFuture(0.0);
+      }
+      return scoreWorker_->getRelevanceForDoc(coll, doc.value());
     });
   }
   Future<double> future_getRelevanceForText(unique_ptr<string> collId, unique_ptr<string> text) override {
@@ -60,8 +66,12 @@ public:
 
   Future<unique_ptr<string>> future_getDocument(unique_ptr<string> id) override {
     auto docDb = persistence_->getDocumentDb().lock();
-    return docDb->loadDocument(*id).then([](ProcessedDocument* proced) {
-      auto uniq = std::make_unique<string>(proced->id);
+    return docDb->loadDocument(*id).then([](Optional<UniquePointer<ProcessedDocument>> proced) {
+      if (!proced.hasValue()) {
+        auto uniq = std::make_unique<string>("{}");
+        return std::move(uniq);
+      }
+      auto uniq = std::make_unique<string>(proced.value()->toJson());
       return std::move(uniq);
     });
   }
@@ -79,7 +89,8 @@ public:
     auto id = *collId;
     LOG(INFO) << "listing documents for: " << id;
     auto collDb = persistence_->getCollectionDb().lock();
-    return collDb->listCollectionDocs(id).then([](vector<string> docIds) {
+    return collDb->listCollectionDocs(id).then([id](vector<string> docIds) {
+      LOG(INFO) << "listCollectionDocs: returning " << docIds.size() << " for " << id;
       return std::move(std::make_unique<vector<string>>(docIds));
     });
   }
@@ -113,8 +124,8 @@ public:
     });
   }
   Future<unique_ptr<vector<string>>> future_listDocuments() override {
-    auto collDb = persistence_->getCollectionDb().lock();
-    return collDb->listKnownDocuments().then([](vector<string> res) {
+    auto docDb = persistence_->getDocumentDb().lock();
+    return docDb->listDocuments().then([](vector<string> res) {
       return std::move(std::make_unique<vector<string>>(res));
     });
   }

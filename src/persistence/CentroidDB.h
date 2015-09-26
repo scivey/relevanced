@@ -20,6 +20,7 @@ public:
   virtual folly::Future<bool> doesCentroidExist(const std::string&) = 0;
   virtual folly::Future<bool> deleteCentroid(const std::string&) = 0;
   virtual folly::Future<bool> saveCentroid(const std::string&, ProcessedCentroid*) = 0;
+  virtual folly::Future<bool> saveCentroid(const std::string&, std::shared_ptr<ProcessedCentroid>) = 0;
   virtual folly::Future<ProcessedCentroid*> loadCentroid(const std::string&) = 0;
 };
 
@@ -40,6 +41,7 @@ public:
   folly::Future<bool> doesCentroidExist(const std::string &id) override;
   folly::Future<bool> deleteCentroid(const std::string &id) override;
   folly::Future<bool> saveCentroid(const std::string &id, ProcessedCentroid *centroid) override;
+  folly::Future<bool> saveCentroid(const std::string &id, std::shared_ptr<ProcessedCentroid> centroid) override;
   folly::Future<ProcessedCentroid*> loadCentroid(const std::string &id) override;
 };
 

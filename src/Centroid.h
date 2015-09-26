@@ -1,22 +1,23 @@
 #pragma once
 #include <vector>
-#include <eigen3/Eigen/Dense>
+#include <memory>
+#include <eigen3/Eigen/Sparse>
 #include "Tfidf.h"
 #include "ProcessedDocument.h"
 #include "ProcessedCentroid.h"
-
+#include "util.h"
 class Centroid {
 protected:
-  Tfidf *tfidf_;
-  Eigen::VectorXd center_;
-  std::vector<ProcessedDocument*> articles_;
+  shared_ptr<Tfidf> tfidf_;
+  Eigen::SparseVector<double> center_;
+  std::vector<std::shared_ptr<ProcessedDocument>> articles_;
   bool centerInitialized_ {false};
-  Eigen::VectorXd getSV();
+  Eigen::SparseVector<double> getSV();
 public:
-  Centroid(std::vector<ProcessedDocument*> articles, Tfidf *tfidf): articles_(articles), tfidf_(tfidf) {}
-  double score(ProcessedDocument *article);
-  bool isRelevant(ProcessedDocument *article);
-  void evalRelevance(ProcessedDocument *article);
-  double test(const std::vector<ProcessedDocument*> &goodArticles, const std::vector<ProcessedDocument*> &badArticles);
-  ProcessedCentroid* toNewProcessedCentroid();
+  Centroid(std::vector<std::shared_ptr<ProcessedDocument>> articles, shared_ptr<Tfidf> tfidf): articles_(articles), tfidf_(tfidf) {}
+  double score(std::shared_ptr<ProcessedDocument> article);
+  double score(ProcessedDocument* article);
+  bool isRelevant(std::shared_ptr<ProcessedDocument> article);
+  bool isRelevant(ProcessedDocument* article);
+  std::shared_ptr<ProcessedCentroid> toNewProcessedCentroid();
 };

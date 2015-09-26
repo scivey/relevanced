@@ -1,3 +1,4 @@
+#include <memory>
 #include <wangle/concurrent/CPUThreadPoolExecutor.h>
 #include <wangle/concurrent/FutureExecutor.h>
 #include <folly/futures/Future.h>
@@ -15,10 +16,12 @@
 #include "DocumentProcessor.h"
 #include "ProcessedDocument.h"
 #include "RelevanceScoreWorker.h"
+#include "util.h"
 
 using namespace wangle;
 using namespace folly;
 using namespace std;
+
 RelevanceScoreWorker::RelevanceScoreWorker(
   shared_ptr<persistence::PersistenceServiceIf> persistence,
   shared_ptr<CentroidManager> centroidManager,
@@ -61,6 +64,10 @@ Future<double> RelevanceScoreWorker::getRelevanceForDoc(string collectionId, Pro
     }
     return center->score(doc);
   });
+}
+
+Future<double> RelevanceScoreWorker::getRelevanceForDoc(string collectionId, shared_ptr<ProcessedDocument> doc) {
+  return getRelevanceForDoc(collectionId, doc.get());
 }
 
 Future<double> RelevanceScoreWorker::getRelevanceForText(string collectionId, string text) {

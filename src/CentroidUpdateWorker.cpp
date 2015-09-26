@@ -7,6 +7,7 @@
 #include <chrono>
 #include <glog/logging.h>
 #include <folly/Format.h>
+#include <folly/Optional.h>
 #include "util.h"
 #include "ProcessedDocument.h"
 #include "ProcessedCentroid.h"
@@ -16,6 +17,7 @@
 using namespace persistence;
 using namespace std;
 using namespace folly;
+using util::UniquePointer;
 
 CentroidUpdateWorker::CentroidUpdateWorker(
   shared_ptr<persistence::PersistenceServiceIf> persistence,
@@ -33,27 +35,32 @@ bool CentroidUpdateWorker::run() {
     LOG(INFO) << "collection does not exist! : " << collectionId_;
     return false;
   }
-  LOG(INFO) << "listing all docs.";
-  vector<ProcessedDocument*> goodDocs;
-  vector<ProcessedDocument*> allDocs;
+  vector<shared_ptr<ProcessedDocument>> goodDocs;
+  vector<shared_ptr<ProcessedDocument>> allDocs;
   LOG(INFO) << "listing positive docs.";
   for (auto &id: collectionDb->listPositiveCollectionDocs(collectionId_).get()) {
-    auto doc = documentDb->loadDocument(id).get();
-    allDocs.push_back(doc);
-    goodDocs.push_back(doc);
+    auto doc = documentDb->loadDocumentShared(id).get();
+    if (!doc.hasValue()) {
+      LOG(INFO) << "missing document: " << id;
+      collectionDb->removeDocFromCollection(collectionId_, id);
+    } else {
+      allDocs.push_back(doc.value());
+      goodDocs.push_back(doc.value());
+    }
   }
   LOG(INFO) << "listing negative docs.";
   size_t negCount = 0;
   for (auto &id: collectionDb->listNegativeCollectionDocs(collectionId_).get()) {
     negCount++;
-    auto doc = documentDb->loadDocument(id).get();
-    allDocs.push_back(doc);
+    auto doc = documentDb->loadDocumentShared(id).get();
+    if (!doc.hasValue()) {
+      LOG(INFO) << "missing document: " << id;
+      collectionDb->removeDocFromCollection(collectionId_, id);
+    } else {
+      allDocs.push_back(doc.value());
+    }
   }
   LOG(INFO) << format("doc counts: all {}   - {}   + {}", allDocs.size(), negCount, goodDocs.size());
-  LOG(INFO) << "DOCUMENT IDS";
-  for (auto &elem: allDocs) {
-    LOG(INFO) << elem->id;
-  }
   LOG(INFO) << "computing...";
 
   CentroidFactory centroidFactory(allDocs);

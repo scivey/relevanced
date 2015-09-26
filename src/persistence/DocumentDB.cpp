@@ -6,7 +6,7 @@
 #include <wangle/concurrent/FutureExecutor.h>
 #include <folly/futures/Future.h>
 #include <folly/futures/helpers.h>
-
+#include <folly/Optional.h>
 #include "DocumentDB.h"
 #include "DocumentDBCache.h"
 #include "DocumentDBHandle.h"
@@ -23,6 +23,8 @@ DocumentDB::DocumentDB(UniquePointer<DocumentDBHandleIf> dbHandle, shared_ptr<Fu
   : dbHandle_(std::move(dbHandle)), threadPool_(threadPool){
     dbCache_ = make_shared<DocumentDBCache>();
 }
+
+void DocumentDB::initialize() {}
 
 Future<bool> DocumentDB::doesDocumentExist(const string &docId) {
   if (dbCache_->exists(docId)) {
@@ -53,9 +55,29 @@ Future<bool> DocumentDB::saveDocument(ProcessedDocument *doc) {
   return makeFuture(true);
 }
 
-Future<ProcessedDocument*> DocumentDB::loadDocument(const string &docId) {
+Future<bool> DocumentDB::saveDocument(shared_ptr<ProcessedDocument> doc) {
+  dbCache_->add(doc->id);
+  threadPool_->addFuture([this, doc](){
+    dbHandle_->saveDocument(doc);
+  });
+  return makeFuture(true);
+}
+
+Future<Optional<UniquePointer<ProcessedDocument>>> DocumentDB::loadDocument(const string &docId) {
   return threadPool_->addFuture([this, docId](){
-    return dbHandle_->loadDocument(docId);
+    return std::move(dbHandle_->loadDocument(docId));
+  });
+}
+
+Future<Optional<shared_ptr<ProcessedDocument>>> DocumentDB::loadDocumentShared(const string &docId) {
+  return threadPool_->addFuture([this, docId](){
+    return dbHandle_->loadDocumentShared(docId);
+  });
+}
+
+Future<vector<string>> DocumentDB::listDocuments() {
+  return threadPool_->addFuture([this](){
+    return dbHandle_->listDocuments();
   });
 }
 

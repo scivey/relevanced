@@ -1,4 +1,4 @@
-from func_test.main import main_large
+from func_test.main import main
 
 if __name__ == '__main__':
-    main_large()
+    main()

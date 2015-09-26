@@ -6,9 +6,10 @@
 #include <string>
 #include <sstream>
 #include <folly/Format.h>
-#include <sqlite3.h>
 #include <glog/logging.h>
-#include "SqlDb.h"
+#include "ColonPrefixedRockHandle.h"
+#include "RockHandle.h"
+
 #include "util.h"
 
 namespace persistence {
@@ -34,20 +35,11 @@ public:
 
 class CollectionDBHandle: public CollectionDBHandleIf {
 protected:
-  util::UniquePointer<SqlDb> sqlDb_;
+  util::UniquePointer<ColonPrefixedRockHandle> collectionDocsHandle_;
+  util::UniquePointer<RockHandleIf> collectionListHandle_;
   bool addDocToCollection(const std::string&, const std::string&, bool isPositive);
-  sqlite3_stmt *collectionCountByNameStmt_ {nullptr};
-  sqlite3_stmt *createCollectionStmt_ {nullptr};
-  sqlite3_stmt *doesCollectionHaveDocStmt_ {nullptr};
-  sqlite3_stmt *addDocumentToCollectionStmt_ {nullptr};
-  sqlite3_stmt *listCollectionsStmt_ {nullptr};
-  sqlite3_stmt *getCollectionDocCountStmt_ {nullptr};
-  sqlite3_stmt *listCollectionDocsStmt_ {nullptr};
-  sqlite3_stmt *listCollectionDocsOfTypeStmt_ {nullptr};
-  sqlite3_stmt *listKnownDocumentsStmt_ {nullptr};
-
 public:
-  CollectionDBHandle(util::UniquePointer<SqlDb> sqlDb);
+  CollectionDBHandle(util::UniquePointer<ColonPrefixedRockHandle>, util::UniquePointer<RockHandleIf>);
   bool ensureTables() override;
   bool doesCollectionExist(const std::string&) override;
   bool createCollection(const std::string&) override;

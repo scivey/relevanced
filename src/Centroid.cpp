@@ -1,7 +1,8 @@
 #include <vector>
 #include <cmath>
+#include <memory>
 #include <glog/logging.h>
-#include <eigen3/Eigen/Dense>
+#include <eigen3/Eigen/Sparse>
 
 #include "Centroid.h"
 #include "Tfidf.h"
@@ -9,15 +10,13 @@
 #include "ProcessedCentroid.h"
 #include "util.h"
 
+using util::UniquePointer;
 using namespace std;
 
-Eigen::VectorXd Centroid::getSV() {
+Eigen::SparseVector<double> Centroid::getSV() {
   size_t size = tfidf_->getCorpusSize();
   if (!centerInitialized_) {
-    Eigen::VectorXd midVec(size);
-    for(size_t i = 0; i < size; i++) {
-      midVec(i) = 0.0;
-    }
+    Eigen::SparseVector<double> midVec(size);
     for (auto article: articles_) {
       auto artVec = tfidf_->tfVecOfArticle(article);
       midVec += artVec;
@@ -27,37 +26,28 @@ Eigen::VectorXd Centroid::getSV() {
   }
   return center_;
 }
-double Centroid::score(ProcessedDocument *article) {
+double Centroid::score(ProcessedDocument* article) {
   auto support = getSV();
   auto artVec = tfidf_->tfVecOfArticle(article);
-  double dotProd = 0.0;
-  size_t corpusSize = tfidf_->getCorpusSize();
-  for (size_t i = 0; i < corpusSize; i++) {
-    dotProd += (support(i) * artVec(i));
-  }
-  double mag1 = util::vectorMag(support, corpusSize);
-  double mag2 = util::vectorMag(artVec, corpusSize);
-  return dotProd / (mag1 * mag2);
-}
-bool Centroid::isRelevant(ProcessedDocument *article) {
-  return score(article) > 0.2;
-}
-double Centroid::test(const vector<ProcessedDocument*> &goodArticles, const vector<ProcessedDocument*> &badArticles) {
-  size_t total = goodArticles.size() + badArticles.size();
-  size_t mistakes = 0;
-  for (auto article: goodArticles) {
-    if (!isRelevant(article)) {
-      mistakes++;
-    }
-  }
-  for(auto article: badArticles) {
-    if (isRelevant(article)) {
-      mistakes++;
-    }
-  }
-  return 1.0 - ((double) mistakes) / ((double) goodArticles.size() + badArticles.size());
+  double dotProd = util::sparseDot(artVec, support);
+  return dotProd;
+  // size_t corpusSize = tfidf_->getCorpusSize();
+  // double mag1 = util::vectorMag(support, corpusSize);
+  // double mag2 = util::vectorMag(artVec, corpusSize);
+  // return dotProd / (mag1 * mag2);
 }
 
-ProcessedCentroid* Centroid::toNewProcessedCentroid() {
-  return new ProcessedCentroid(getSV(), tfidf_->toNewProcessedTfidf());
+double Centroid::score(shared_ptr<ProcessedDocument> article) {
+  return score(article.get());
+}
+
+bool Centroid::isRelevant(ProcessedDocument* article) {
+  return score(article) > 0.2;
+}
+bool Centroid::isRelevant(shared_ptr<ProcessedDocument> article) {
+  return isRelevant(article.get());
+}
+
+shared_ptr<ProcessedCentroid> Centroid::toNewProcessedCentroid() {
+  return std::make_shared<ProcessedCentroid>(getSV(), tfidf_->toNewProcessedTfidf());
 }

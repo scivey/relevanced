@@ -10,7 +10,6 @@
 #include "CollectionDB.h"
 #include "CollectionDBHandle.h"
 #include "CollectionDBCache.h"
-#include "SqlDb.h"
 #include "util.h"
 
 using namespace std;
@@ -33,6 +32,10 @@ void CollectionDB::initialize() {
   for (auto &collId: collectionIds) {
     LOG(INFO) << "initializing cache for " << collId;
     dbCache_->createCollection(collId);
+    vector<string> allDocs = threadPool_->addFuture([this, collId](){
+      return dbHandle_->listCollectionDocs(collId);
+    }).get();
+    LOG(INFO) << "all doc count for " << collId << " : " << allDocs.size();
     vector<string> positiveDocs = threadPool_->addFuture([this, collId](){
       return dbHandle_->listPositiveCollectionDocs(collId);
     }).get();
@@ -108,15 +111,24 @@ Future<int> CollectionDB::getCollectionDocCount(const string &collectionId) {
 }
 
 Future<vector<string>> CollectionDB::listCollectionDocs(const string &collectionId) {
-  return makeFuture(dbCache_->listCollectionDocs(collectionId));
+  // return makeFuture(dbCache_->listCollectionDocs(collectionId));
+  return threadPool_->addFuture([this, collectionId](){
+    return dbHandle_->listCollectionDocs(collectionId);
+  });
 }
 
 Future<vector<string>> CollectionDB::listPositiveCollectionDocs(const string &collectionId) {
-  return makeFuture(dbCache_->listPositiveCollectionDocs(collectionId));
+  // return makeFuture(dbCache_->listPositiveCollectionDocs(collectionId));
+  return threadPool_->addFuture([this, collectionId](){
+    return dbHandle_->listPositiveCollectionDocs(collectionId);
+  });
 }
 
 Future<vector<string>> CollectionDB::listNegativeCollectionDocs(const string &collectionId) {
-  return makeFuture(dbCache_->listNegativeCollectionDocs(collectionId));
+  // return makeFuture(dbCache_->listNegativeCollectionDocs(collectionId));
+  return threadPool_->addFuture([this, collectionId](){
+    return dbHandle_->listNegativeCollectionDocs(collectionId);
+  });
 }
 
 Future<vector<string>> CollectionDB::listKnownDocuments() {

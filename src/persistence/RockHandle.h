@@ -24,9 +24,13 @@ namespace persistence {
 class RockHandleIf {
 public:
   virtual bool put(std::string key, std::string val) = 0;
+  virtual bool put(std::string key, rocksdb::Slice) = 0;
   virtual std::string get(const std::string &key) = 0;
+  virtual bool get(const std::string &key, std::string &result) = 0;
   virtual bool exists(const std::string &key) = 0;
   virtual bool del(const std::string &key) = 0;
+  virtual bool iterRange(const std::string &start, const std::string &end, std::function<void (rocksdb::Iterator *it, std::function<void()>)> iterFn) = 0;
+  virtual bool iterAll(std::function<void (rocksdb::Iterator *it, std::function<void()>)> iterFn) = 0;
   virtual ~RockHandleIf() = default;
 };
 
@@ -38,14 +42,18 @@ protected:
   const std::string dbPath_;
   std::unique_ptr<rocksdb::OptimisticTransactionDB> txnDb_;
   rocksdb::DB *db_;
-  rocksdb::Status status_;
 public:
   RockHandle(std::string dbPath);
   bool put(std::string key, std::string val) override;
+  bool put(std::string key, rocksdb::Slice) override;
   std::string get(const std::string &key) override;
+  bool get(const std::string &key, std::string &result) override;
   bool exists(const std::string &key) override;
   bool del(const std::string &key) override;
+  bool iterRange(const std::string &start, const std::string &end, std::function<void (rocksdb::Iterator *it, std::function<void()>)> iterFn) override;
+  bool iterAll(std::function<void (rocksdb::Iterator *it, std::function<void()>)> iterFn) override;
 };
+
 
 } // persistence
 

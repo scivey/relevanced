@@ -3,6 +3,7 @@
 #include <folly/Format.h>
 #include <cmath>
 #include <vector>
+#include "util.h"
 #include "ProcessedDocument.h"
 
 #include "Tfidf.h"
@@ -11,17 +12,17 @@
 namespace {
   using namespace std;
   using namespace folly;
+  using util::UniquePointer;
 }
 
 class CentroidFactory {
 protected:
-  vector<ProcessedDocument*> articles_;
-  Tfidf *tfidf_;
+  shared_ptr<Tfidf> tfidf_;
 public:
-  CentroidFactory(vector<ProcessedDocument*> articles): articles_(articles) {
-    tfidf_ = new Tfidf(articles_);
+  CentroidFactory(std::vector<shared_ptr<ProcessedDocument>> articles) {
+    tfidf_.reset(new Tfidf(articles));
   };
-  Centroid* makeCentroid(vector<ProcessedDocument*> articles) {
+  Centroid* makeCentroid(std::vector<shared_ptr<ProcessedDocument>> articles) {
     return new Centroid(articles, tfidf_);
   }
 };

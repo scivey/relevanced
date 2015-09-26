@@ -1,6 +1,6 @@
 #include "CentroidDB.h"
 #include "util.h"
-
+#include <memory>
 #include <string>
 #include <folly/futures/Future.h>
 #include <wangle/concurrent/CPUThreadPoolExecutor.h>
@@ -31,6 +31,12 @@ Future<bool> CentroidDB::deleteCentroid(const string &id) {
 Future<bool> CentroidDB::saveCentroid(const string &id, ProcessedCentroid *centroid) {
   return threadPool_->addFuture([this, id, centroid](){
     return dbHandle_->saveCentroid(id, centroid);
+  });
+}
+
+Future<bool> CentroidDB::saveCentroid(const string &id, shared_ptr<ProcessedCentroid> centroid) {
+  return threadPool_->addFuture([this, id, centroid](){
+    return dbHandle_->saveCentroid(id, centroid.get());
   });
 }
 

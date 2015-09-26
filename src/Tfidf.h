@@ -1,8 +1,10 @@
 #pragma once
 #include <vector>
 #include <map>
+#include <memory>
 #include <algorithm>
-#include <eigen3/Eigen/Dense>
+#include <eigen3/Eigen/Sparse>
+#include <glog/logging.h>
 #include "ProcessedDocument.h"
 #include "ProcessedTfidf.h"
 
@@ -14,12 +16,12 @@ namespace {
 
 class Tfidf {
 protected:
-  vector<ProcessedDocument*> articles_;
+  vector<shared_ptr<ProcessedDocument>> articles_;
   map<string, size_t> documentCounts_;
   map<string, size_t> keyIndices_;
   vector<string> sortedKeys_;
 public:
-  Tfidf(vector<ProcessedDocument*> articles): articles_(articles){}
+  Tfidf(vector<shared_ptr<ProcessedDocument>> articles): articles_(articles){}
   size_t getCorpusSize() {
     getDocumentCounts();
     return sortedKeys_.size();
@@ -28,8 +30,8 @@ public:
     if (documentCounts_.size() == 0) {
       util::Counter<string> counter;
       map<string, size_t> counts;
-      for (auto &art: articles_) {
-        for (auto &artWord: art->normalizedWordCounts) {
+      for (auto art: articles_) {
+        for (auto artWord: art->normalizedWordCounts) {
           counter.incr(artWord.first);
         }
       }
@@ -47,29 +49,26 @@ public:
   map<string, double> getNormalizedDocCounts(ProcessedDocument *article) {
     return article->getTfidfWordCounts(getDocumentCounts());
   }
-  Eigen::VectorXd tfVecOfArticle(ProcessedDocument *article) {
+  Eigen::SparseVector<double> tfVecOfArticle(ProcessedDocument *article) {
     getDocumentCounts();
     size_t size = sortedKeys_.size();
-    Eigen::VectorXd vec(size);
-    for (size_t i = 0; i < size; i++) {
-      vec(i) = 0.0;
-    }
+    Eigen::SparseVector<double> vec(size);
     for (auto &elem: article->normalizedWordCounts) {
       if (keyIndices_.find(elem.first) != keyIndices_.end()) {
-        vec(keyIndices_[elem.first]) = elem.second;
+        vec.insert(keyIndices_[elem.first]) = elem.second;
       }
     }
     return vec;
   }
-  Eigen::VectorXd tfidfVecOfArticle(ProcessedDocument *article) {
+  Eigen::SparseVector<double> tfVecOfArticle(std::shared_ptr<ProcessedDocument> article) {
+    return tfVecOfArticle(article.get());
+  }
+  Eigen::SparseVector<double> tfidfVecOfArticle(ProcessedDocument *article) {
     getDocumentCounts();
     size_t size = sortedKeys_.size();
-    Eigen::VectorXd vec(size);
-    for (size_t i = 0; i < size; i++) {
-      vec(i) = 0.0;
-    }
+    Eigen::SparseVector<double> vec(size);
     for (auto &elem: getNormalizedDocCounts(article)) {
-      vec(keyIndices_[elem.first]) = elem.second;
+      vec.insert(keyIndices_[elem.first]) = elem.second;
     }
     return vec;
   }
@@ -81,8 +80,8 @@ public:
     );
     return processed;
   }
-  ProcessedTfidf* toNewProcessedTfidf() {
-    return new ProcessedTfidf(
+  std::shared_ptr<ProcessedTfidf> toNewProcessedTfidf() {
+    return std::make_shared<ProcessedTfidf>(
       getDocumentCounts(), keyIndices_, sortedKeys_
     );
   }

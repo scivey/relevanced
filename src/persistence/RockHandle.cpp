@@ -24,37 +24,68 @@ RockHandle::RockHandle(string dbPath): dbPath_(dbPath){
   options_.OptimizeLevelStyleCompaction();
   options_.create_if_missing = true;
   rocksdb::OptimisticTransactionDB *txnDbPtr = nullptr;
-  status_ = rocksdb::OptimisticTransactionDB::Open(options_, dbPath_.c_str(), &txnDbPtr);
-  assert(status_.ok());
+  auto status = rocksdb::OptimisticTransactionDB::Open(options_, dbPath_.c_str(), &txnDbPtr);
+  assert(status.ok());
   assert(txnDbPtr != nullptr);
   txnDb_.reset(txnDbPtr);
   db_ = txnDb_->GetBaseDB();
 }
 
 bool RockHandle::put(string key, string val) {
-  status_ = db_->Put(writeOptions_, key, val);
-  return status_.ok();
+  LOG(INFO) << "persisting: " << key << " -> " << val.substr(0,20);
+  auto status = db_->Put(writeOptions_, key, val);
+  return status.ok();
+}
+
+bool RockHandle::put(string key, rocksdb::Slice val) {
+  auto status = db_->Put(writeOptions_, key, val);
+  return status.ok();
 }
 
 string RockHandle::get(const string &key) {
   string val;
-  status_ = db_->Get(readOptions_, key, &val);
+  auto status = db_->Get(readOptions_, key, &val);
   return val;
+}
+
+bool RockHandle::get(const string &key, string &result) {
+  auto status = db_->Get(readOptions_, key, &result);
+  return status.ok();
 }
 
 bool RockHandle::exists(const string &key) {
   string val;
-  status_ = db_->Get(readOptions_, key, &val);
-  return !status_.IsNotFound();
+  auto status = db_->Get(readOptions_, key, &val);
+  return !status.IsNotFound();
 }
 
 bool RockHandle::del(const string &key) {
   if (!exists(key)) {
     return false;
   }
-  status_ = db_->Delete(writeOptions_, key);
+  auto status = db_->Delete(writeOptions_, key);
   return true;
 }
 
+bool RockHandle::iterRange(const string &start, const string &end, function<void (rocksdb::Iterator*, function<void()>)> iterFn) {
+  rocksdb::Iterator *it = db_->NewIterator(readOptions_);
+  bool stop = false;
+  bool foundAny = false;
+  function<void ()> escapeFn([&stop](){
+    stop = true;
+  });
+  for (it->Seek(start); it->Valid() && it->key().ToString() < end; it->Next()) {
+    foundAny = true;
+    iterFn(it, escapeFn);
+    if (stop) {
+      break;
+    }
+  }
+  return foundAny;
+}
+
+bool RockHandle::iterAll(function<void (rocksdb::Iterator*, function<void()>)> iterFn) {
+  return iterRange("a", "zzzzz", iterFn);
+}
 } // persistence
 

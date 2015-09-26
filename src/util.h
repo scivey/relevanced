@@ -9,7 +9,7 @@
 
 #include <vector>
 #include <memory>
-#include <eigen3/Eigen/Dense>
+#include <eigen3/Eigen/Sparse>
 
 namespace {
   using namespace std;
@@ -44,6 +44,15 @@ struct UniquePointer {
 
     UniquePointer(UniquePointer<T>&& other) noexcept:
         UniquePointer(std::move(other.ptr)) {}
+
+    UniquePointer<T> &operator=(UniquePointer<T> &&other) noexcept {
+      ptr = std::move(other.ptr);
+      return *this;
+    }
+
+    T* get() {
+      return ptr.get();
+    }
 
     T* operator->() {
         return ptr.get();
@@ -87,6 +96,8 @@ vector<T> vecOfSet(const set<T> &t) {
 }
 
 std::string getUuid();
-double vectorMag(const Eigen::VectorXd &vec, size_t count);
+double vectorMag(const Eigen::SparseVector<double> &vec, size_t count);
+
+double sparseDot(Eigen::SparseVector<double> &vec1, Eigen::SparseVector<double> &vec2);
 
 } // util

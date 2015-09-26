@@ -1,11 +1,15 @@
 #pragma once
 #include <string>
 #include <map>
+#include <glog/logging.h>
 #include <folly/FBString.h>
 #include <folly/json.h>
 #include <folly/dynamic.h>
 #include <folly/Conv.h>
 #include <folly/DynamicConverter.h>
+#include "serialization/serializers.h"
+#include "serialization/bytes.h"
+
 
 class ProcessedDocument {
 public:
@@ -26,3 +30,49 @@ public:
   static ProcessedDocument* newFromJson(const std::string &js);
 };
 
+
+namespace serialization {
+  template<>
+  struct Serializer<ProcessedDocument> {
+    static size_t serialize(unsigned char **bytes, ProcessedDocument &target) {
+      size_t sizeEstimate = 0;
+      size_t elemCount = 0;
+      for (auto &elem: target.normalizedWordCounts) {
+        sizeEstimate += elem.first.size() + 8;
+        sizeEstimate += 8;
+        elemCount++;
+      }
+      sizeEstimate += sizeof(size_t) * 2 * elemCount;
+      sizeEstimate += target.id.size() + 8;
+      LOG(INFO) << "size estimate: " << sizeEstimate << " for " << target.id;
+      ByteArrayWriter writer(sizeEstimate);
+      writer.write<string>(target.id);
+      for (auto &elem: target.normalizedWordCounts) {
+        writer.write<string>(elem.first);
+        writer.write<double>(elem.second);
+      }
+      writer.finalize();
+      *bytes = writer.getData();
+      return writer.getSize();
+    }
+  };
+
+  template<>
+  struct Deserializer<ProcessedDocument> {
+    static void deserialize(unsigned char *bytes, ProcessedDocument &result) {
+      ByteReader reader(bytes);
+      reader.readString(result.id);
+      while (!reader.isFinished()) {
+        string key;
+        reader.readString(key);
+        auto extraChars = key.find('|');
+        if (extraChars != string::npos) {
+          key.erase(extraChars);
+        }
+        double val;
+        reader.read(val);
+        result.normalizedWordCounts.insert(make_pair(key, val));
+      }
+    }
+  };
+}

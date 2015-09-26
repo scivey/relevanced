@@ -1,12 +1,12 @@
 #pragma once
 
+#include <memory>
 #include <wangle/concurrent/CPUThreadPoolExecutor.h>
 #include <wangle/concurrent/FutureExecutor.h>
 #include <folly/futures/Future.h>
 #include <folly/Synchronized.h>
 #include <vector>
 #include <cassert>
-
 #include "persistence/DocumentDB.h"
 #include "persistence/CentroidDB.h"
 #include "persistence/CollectionDB.h"
@@ -14,6 +14,7 @@
 #include "ProcessedCentroid.h"
 #include "DocumentProcessor.h"
 #include "ProcessedDocument.h"
+#include "util.h"
 
 class RelevanceScoreWorker {
 protected:
@@ -31,6 +32,7 @@ public:
   void initialize();
   folly::Future<bool> reloadCentroid(std::string id);
   folly::Future<double> getRelevanceForDoc(std::string collectionId, ProcessedDocument *doc);
+  folly::Future<double> getRelevanceForDoc(std::string collectionId, std::shared_ptr<ProcessedDocument> doc);
   folly::Future<double> getRelevanceForText(std::string collectionId, std::string text);
   folly::Future<bool> recompute(std::string collectionId);
 };

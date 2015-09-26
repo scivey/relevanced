@@ -10,10 +10,16 @@
 #include "DocumentProcessor.h"
 #include "RelevanceServer.h"
 #include "persistence/PersistenceService.h"
-#include "persistence/SqlDb.h"
 #include "persistence/RockHandle.h"
+#include "persistence/ColonPrefixedRockHandle.h"
+#include "ProcessedDocument.h"
+#include "serialization/serializers.h"
+
+
+
 #include "persistence/CollectionDB.h"
 #include "persistence/CollectionDBHandle.h"
+
 #include "persistence/DocumentDB.h"
 #include "persistence/DocumentDBHandle.h"
 #include "persistence/CentroidDB.h"
@@ -25,6 +31,7 @@
 #include <folly/futures/Future.h>
 #include <thrift/lib/cpp2/server/ThriftServer.h>
 #include <thrift/lib/cpp2/async/AsyncProcessor.h>
+#include <rocksdb/slice.h>
 
 using namespace std;
 using namespace folly;
@@ -65,21 +72,26 @@ shared_ptr<PersistenceServiceIf> getPersistence() {
   shared_ptr<DocumentDBIf> docDb(
     (DocumentDBIf*) new DocumentDB(
       std::move(docDbHandle),
-      make_shared<FutureExecutor<CPUThreadPoolExecutor>>(1)
+      make_shared<FutureExecutor<CPUThreadPoolExecutor>>(4)
     )
   );
 
-  UniquePointer<SqlDb> sqlDb(
-    new SqlDb("data/collections.sqlite")
+  UniquePointer<RockHandleIf> collectionListRock(
+    (RockHandleIf*) new RockHandle("data/collections_rock")
+  );
+  UniquePointer<ColonPrefixedRockHandle> collectionDocumentsRock(
+    new ColonPrefixedRockHandle("data/collection_docs_rock")
   );
   UniquePointer<CollectionDBHandleIf> collDbHandle(
-    (CollectionDBHandleIf*) new CollectionDBHandle(std::move(sqlDb))
+    (CollectionDBHandleIf*) new CollectionDBHandle(
+      std::move(collectionDocumentsRock), std::move(collectionListRock)
+    )
   );
   collDbHandle->ensureTables();
   shared_ptr<CollectionDBIf> collDb(
     (CollectionDBIf*) new CollectionDB(
       std::move(collDbHandle),
-      make_shared<FutureExecutor<CPUThreadPoolExecutor>>(1)
+      make_shared<FutureExecutor<CPUThreadPoolExecutor>>(4)
     )
   );
   collDb->initialize();
@@ -148,3 +160,22 @@ int main() {
   t1.join();
   LOG(INFO) << "end";
 }
+
+
+// int main() {
+//   shared_ptr<TokenizerIf> tokenizer(
+//     (TokenizerIf*) new Tokenizer
+//   );
+//   shared_ptr<StopwordFilterIf> stopwordFilter(
+//     (StopwordFilterIf*) new StopwordFilter
+//   );
+//   shared_ptr<StemmerIf> stemmer(
+//     (StemmerIf*) new PorterStemmer
+//   );
+//   DocumentProcessor proc(stemmer, tokenizer, stopwordFilter);
+
+//   Document doc1("doc-1", "a fish is a type of animal which is different from a cat.");
+//   Document doc2("doc-2", "a fish is also something that lives with other fish in an aquarium.");
+//   ProcessedDocument d1 = proc.process(doc1);
+//   ProcessedDocument d2 = proc.process(doc2);
+// }

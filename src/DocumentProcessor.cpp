@@ -4,7 +4,10 @@
 #include "DocumentProcessor.h"
 #include "ProcessedDocument.h"
 #include "Document.h"
+#include "util.h"
+
 using namespace std;
+using util::UniquePointer;
 
 void DocumentProcessor::process_(const Document &doc, ProcessedDocument *result) {
   map<string, double> wordCounts;
@@ -27,14 +30,24 @@ void DocumentProcessor::process_(const Document &doc, ProcessedDocument *result)
   result->normalizedWordCounts = std::move(wordCounts);
 }
 
+void DocumentProcessor::process_(const Document &doc, shared_ptr<ProcessedDocument> result) {
+  return process_(doc, result.get());
+}
+
 ProcessedDocument DocumentProcessor::process(const Document &doc) {
   ProcessedDocument processed(doc.id);
   process_(doc, &processed);
   return processed;
 }
 
-ProcessedDocument* DocumentProcessor::processNew(const Document &doc) {
-  auto result = new ProcessedDocument(doc.id);
+shared_ptr<ProcessedDocument> DocumentProcessor::processNew(const Document &doc) {
+  auto result = std::make_shared<ProcessedDocument>(doc.id);
   process_(doc, result);
   return result;
+}
+
+UniquePointer<ProcessedDocument> DocumentProcessor::processUnique(const Document &doc) {
+  ProcessedDocument *result = new ProcessedDocument(doc.id);
+  process_(doc, result);
+  return UniquePointer<ProcessedDocument>(result);
 }
