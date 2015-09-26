@@ -30,7 +30,6 @@ bool CentroidUpdateWorker::run() {
   auto documentDb = persistence_->getDocumentDb().lock();
   auto centroidDb = persistence_->getCentroidDb().lock();
 
-  this_thread::sleep_for(chrono::milliseconds(500));
   if (!collectionDb->doesCollectionExist(collectionId_).get()) {
     LOG(INFO) << "collection does not exist! : " << collectionId_;
     return false;

@@ -3,6 +3,7 @@
 #include <folly/Format.h>
 #include <cmath>
 #include <vector>
+#include <memory>
 #include "util.h"
 #include "ProcessedDocument.h"
 
@@ -22,7 +23,7 @@ public:
   CentroidFactory(std::vector<shared_ptr<ProcessedDocument>> articles) {
     tfidf_.reset(new Tfidf(articles));
   };
-  Centroid* makeCentroid(std::vector<shared_ptr<ProcessedDocument>> articles) {
-    return new Centroid(articles, tfidf_);
+  std::shared_ptr<Centroid> makeCentroid(std::vector<shared_ptr<ProcessedDocument>> articles) {
+    return std::make_shared<Centroid>(articles, tfidf_);
   }
 };

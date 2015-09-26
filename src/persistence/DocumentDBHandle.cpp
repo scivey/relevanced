@@ -28,16 +28,10 @@ bool DocumentDBHandle::doesDocumentExist(const string &docId) {
 }
 
 bool DocumentDBHandle::saveDocument(ProcessedDocument *doc) {
-  // auto val = doc->toJson();
-  // rocksdb::Slice data(val);
-  LOG(INFO) << "saving document: " << doc->id;
   unsigned char *serialized;
   size_t len = serialization::serialize(&serialized, *doc);
-  LOG(INFO) << "putting serialized document.. (" << len << ")";
   rocksdb::Slice data((char*) serialized, len);
   rockHandle_->put(doc->id, data);
-  LOG(INFO) << "persisted serialized document: " << doc->id;
-  // rockHandle_->put(doc->id, data);
   free(serialized);
   return true;
 }
@@ -55,12 +49,10 @@ bool DocumentDBHandle::deleteDocument(const string &docId) {
 }
 
 ProcessedDocument* DocumentDBHandle::loadDocumentDangerously(const string &docId) {
-
   string serialized;
   if (!rockHandle_->get(docId, serialized)) {
     return nullptr;
   }
-  // return ProcessedDocument::newFromJson(serialized);
   auto processed = new ProcessedDocument("");
   serialization::deserialize((unsigned char*) serialized.c_str(), *processed);
   return processed;

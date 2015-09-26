@@ -5,6 +5,7 @@
 #include <functional>
 #include <vector>
 #include <folly/futures/Future.h>
+#include <folly/Optional.h>
 #include <folly/Synchronized.h>
 #include "persistence/PersistenceService.h"
 #include "CentroidUpdater.h"
@@ -22,7 +23,8 @@ public:
     util::UniquePointer<CentroidUpdater>,
     std::shared_ptr<persistence::PersistenceServiceIf>
   );
-  folly::Future<ProcessedCentroid*> getCentroid(const std::string &id);
+  folly::Future<folly::Optional<std::shared_ptr<ProcessedCentroid>>>
+    getCentroid(const std::string &id);
   void onUpdate(std::function<void (const std::string&)>);
   void echoUpdated(const std::string&);
   folly::Future<bool> update(const std::string &id);

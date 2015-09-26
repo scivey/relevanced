@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include <folly/futures/Future.h>
+#include <folly/Optional.h>
 #include <wangle/concurrent/CPUThreadPoolExecutor.h>
 #include <wangle/concurrent/FutureExecutor.h>
 using namespace std;
@@ -40,7 +41,7 @@ Future<bool> CentroidDB::saveCentroid(const string &id, shared_ptr<ProcessedCent
   });
 }
 
-Future<ProcessedCentroid*> CentroidDB::loadCentroid(const string &id) {
+Future<Optional<shared_ptr<ProcessedCentroid>>> CentroidDB::loadCentroid(const string &id) {
   return threadPool_->addFuture([this, id](){
     return dbHandle_->loadCentroid(id);
   });

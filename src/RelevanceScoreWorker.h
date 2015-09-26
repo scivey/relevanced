@@ -22,7 +22,8 @@ protected:
   std::shared_ptr<CentroidManager> centroidManager_;
   std::shared_ptr<DocumentProcessor> docProcessor_;
   wangle::FutureExecutor<wangle::CPUThreadPoolExecutor> threadPool_ {4};
-  folly::Synchronized<std::map<std::string, ProcessedCentroid*>> centroids_;
+  folly::Synchronized<std::map<std::string, std::shared_ptr<ProcessedCentroid>>> centroids_;
+  folly::Optional<std::shared_ptr<ProcessedCentroid>> getLoadedCentroid_(const std::string &id);
 public:
   RelevanceScoreWorker(
     std::shared_ptr<persistence::PersistenceServiceIf> persistence,

@@ -4,6 +4,7 @@
 #include <folly/futures/Future.h>
 #include <folly/futures/helpers.h>
 
+#include <folly/Optional.h>
 #include <folly/Synchronized.h>
 #include <vector>
 #include <cassert>
@@ -30,6 +31,7 @@ RelevanceScoreWorker::RelevanceScoreWorker(
    centroidManager_(centroidManager),
    docProcessor_(docProcessor){}
 
+// run synchronously on startup
 void RelevanceScoreWorker::initialize() {
   LOG(INFO) << "[ loading... ]";
   auto collectionDb = persistence_->getCollectionDb().lock();
@@ -37,8 +39,12 @@ void RelevanceScoreWorker::initialize() {
   SYNCHRONIZED(centroids_) {
     for (auto &id: collectionIds) {
       LOG(INFO) << "[ loading centroid: " << id << " ... ]";
-      ProcessedCentroid *centroid = centroidManager_->getCentroid(id).get();
-      centroids_[id] = centroid;
+      auto centroid = centroidManager_->getCentroid(id).get();
+      if (centroid.hasValue()) {
+        centroids_[id] = centroid.value();
+      } else {
+        LOG(INFO) << "no existing centroid for collection " << id;
+      }
     }
   }
   centroidManager_->onUpdate([this](const string &id) {
@@ -48,24 +54,38 @@ void RelevanceScoreWorker::initialize() {
 }
 
 Future<bool> RelevanceScoreWorker::reloadCentroid(string id) {
-  return centroidManager_->getCentroid(id).then([id, this](ProcessedCentroid *centroid) {
-    LOG(INFO) << "got processed centroid...";
-    assert(centroid != nullptr);
+  return centroidManager_->getCentroid(id).then([id, this](Optional<shared_ptr<ProcessedCentroid>> centroid) {
+    if (!centroid.hasValue()) {
+      LOG(INFO) << "tried to reload null centroid: " << id;
+      return false;
+    }
     SYNCHRONIZED(centroids_) {
-      centroids_[id] = centroid;
+      centroids_[id] = centroid.value();
     }
     LOG(INFO) << "inserted";
     return true;
   });
 }
 
+Optional<shared_ptr<ProcessedCentroid>> RelevanceScoreWorker::getLoadedCentroid_(const string &id) {
+  Optional<shared_ptr<ProcessedCentroid>> center;
+  SYNCHRONIZED(centroids_) {
+    auto elem = centroids_.find(id);
+    if (elem != centroids_.end()) {
+      center.assign(elem->second);
+    }
+  }
+  return center;
+}
+
 Future<double> RelevanceScoreWorker::getRelevanceForDoc(string collectionId, ProcessedDocument *doc) {
   return threadPool_.addFuture([this, collectionId, doc](){
-    ProcessedCentroid *center;
-    SYNCHRONIZED(centroids_) {
-      center = centroids_[collectionId];
+    auto centroid = getLoadedCentroid_(collectionId);
+    if (!centroid.hasValue()) {
+      LOG(INFO) << "relevance request against null centroid: " << collectionId;
+      return 0.0;
     }
-    return center->score(doc);
+    return centroid.value()->score(doc);
   });
 }
 
@@ -75,13 +95,14 @@ Future<double> RelevanceScoreWorker::getRelevanceForDoc(string collectionId, sha
 
 Future<double> RelevanceScoreWorker::getRelevanceForText(string collectionId, string text) {
   return threadPool_.addFuture([this, collectionId, text](){
-    ProcessedCentroid *center;
-    SYNCHRONIZED(centroids_) {
-      center = centroids_[collectionId];
+    auto centroid = getLoadedCentroid_(collectionId);
+    if (!centroid.hasValue()) {
+      LOG(INFO) << "relevance request against null centroid: " << collectionId;
+      return 0.0;
     }
     Document doc("no-id", text);
     auto processed = docProcessor_->process(doc);
-    return center->score(&processed);
+    return centroid.value()->score(&processed);
   });
 }
 

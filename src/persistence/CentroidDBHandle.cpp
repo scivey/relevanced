@@ -6,6 +6,8 @@
 #include <sstream>
 
 #include <folly/Format.h>
+#include <folly/Optional.h>
+
 #include <glog/logging.h>
 
 #include "CentroidDBHandle.h"
@@ -32,9 +34,13 @@ bool CentroidDBHandle::deleteCentroid(const string &id) {
   return rockHandle_->del(id);
 }
 
-ProcessedCentroid* CentroidDBHandle::loadCentroid(const string &id) {
-  auto serialized = rockHandle_->get(id);
-  return ProcessedCentroid::newFromJson(serialized);
+Optional<shared_ptr<ProcessedCentroid>> CentroidDBHandle::loadCentroid(const string &id) {
+  string serialized;
+  Optional<shared_ptr<ProcessedCentroid>> result;
+  if (rockHandle_->get(id, serialized)) {
+    result.assign(ProcessedCentroid::newFromJson(serialized));
+  }
+  return result;
 }
 
 

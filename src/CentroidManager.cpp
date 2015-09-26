@@ -3,6 +3,7 @@
 #include <vector>
 #include <functional>
 #include <folly/futures/Future.h>
+#include <folly/Optional.h>
 
 #include "persistence/PersistenceService.h"
 #include "CentroidUpdater.h"
@@ -21,14 +22,17 @@ CentroidManager::CentroidManager(UniquePointer<CentroidUpdater> updater, shared_
     });
   }
 
-Future<ProcessedCentroid*> CentroidManager::getCentroid(const string &id) {
-  return persistence_->getCentroidDb().lock()->doesCentroidExist(id).then([this, id] (bool doesExist) {
-    if (doesExist) {
-      return persistence_->getCentroidDb().lock()->loadCentroid(id);
+Future<Optional<shared_ptr<ProcessedCentroid>>> CentroidManager::getCentroid(const string &id) {
+  return persistence_->getCentroidDb().lock()->loadCentroid(id).then([this, id] (Optional<shared_ptr<ProcessedCentroid>> optCentroid) {
+    if (optCentroid.hasValue()) {
+      return optCentroid;
     } else {
-      return updater_->update(id).then([this, id](bool updated) {
-        return persistence_->getCentroidDb().lock()->loadCentroid(id);
+      persistence_->getCollectionDb().lock()->doesCollectionExist(id).then([this, id](bool doesExist) {
+        if (doesExist) {
+          this->triggerUpdate(id);
+        }
       });
+      return optCentroid;
     }
   });
 }

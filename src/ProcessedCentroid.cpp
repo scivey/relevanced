@@ -67,7 +67,7 @@ ProcessedCentroid ProcessedCentroid::fromDynamic(dynamic &d) {
   return centroid;
 }
 
-ProcessedCentroid* ProcessedCentroid::newFromDynamic(dynamic &d) {
+shared_ptr<ProcessedCentroid> ProcessedCentroid::newFromDynamic(dynamic &d) {
   auto tfidf = ProcessedTfidf::newFromDynamic(d["tfidf"]);
   auto size = tfidf->getCorpusSize();
   Eigen::SparseVector<double> center(size);
@@ -75,7 +75,7 @@ ProcessedCentroid* ProcessedCentroid::newFromDynamic(dynamic &d) {
   for (auto &elem: tempDict) {
     center.insert(elem.first) = elem.second;
   }
-  return new ProcessedCentroid(center, tfidf);
+  return std::make_shared<ProcessedCentroid>(center, tfidf);
 }
 
 ProcessedCentroid ProcessedCentroid::fromJson(const string &js) {
@@ -83,7 +83,7 @@ ProcessedCentroid ProcessedCentroid::fromJson(const string &js) {
   return fromDynamic(dyn);
 }
 
-ProcessedCentroid* ProcessedCentroid::newFromJson(const string &js) {
+shared_ptr<ProcessedCentroid> ProcessedCentroid::newFromJson(const string &js) {
   auto dyn = folly::parseJson(js);
   return newFromDynamic(dyn);
 }

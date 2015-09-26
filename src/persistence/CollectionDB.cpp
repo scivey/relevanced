@@ -111,21 +111,18 @@ Future<int> CollectionDB::getCollectionDocCount(const string &collectionId) {
 }
 
 Future<vector<string>> CollectionDB::listCollectionDocs(const string &collectionId) {
-  // return makeFuture(dbCache_->listCollectionDocs(collectionId));
   return threadPool_->addFuture([this, collectionId](){
     return dbHandle_->listCollectionDocs(collectionId);
   });
 }
 
 Future<vector<string>> CollectionDB::listPositiveCollectionDocs(const string &collectionId) {
-  // return makeFuture(dbCache_->listPositiveCollectionDocs(collectionId));
   return threadPool_->addFuture([this, collectionId](){
     return dbHandle_->listPositiveCollectionDocs(collectionId);
   });
 }
 
 Future<vector<string>> CollectionDB::listNegativeCollectionDocs(const string &collectionId) {
-  // return makeFuture(dbCache_->listNegativeCollectionDocs(collectionId));
   return threadPool_->addFuture([this, collectionId](){
     return dbHandle_->listNegativeCollectionDocs(collectionId);
   });

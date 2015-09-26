@@ -22,7 +22,7 @@ public:
   folly::dynamic asDynamic_();
   std::string toJson();
   static ProcessedCentroid fromDynamic(folly::dynamic &d);
-  static ProcessedCentroid* newFromDynamic(folly::dynamic &d);
+  static std::shared_ptr<ProcessedCentroid> newFromDynamic(folly::dynamic &d);
   static ProcessedCentroid fromJson(const std::string &js);
-  static ProcessedCentroid* newFromJson(const std::string &js);
+  static std::shared_ptr<ProcessedCentroid> newFromJson(const std::string &js);
 };
