@@ -25,7 +25,7 @@ void CentroidUpdater::initialize() {
   evThread_ = make_shared<thread>([this](){
     base_.loopForever();
   });
-  chrono::milliseconds initialDelay(10000);
+  chrono::milliseconds initialDelay(5000);
   chrono::milliseconds debounceInterval(30000);
   updateQueue_ = make_shared<DebouncedQueue<string>>(
     &base_, 100, initialDelay, debounceInterval

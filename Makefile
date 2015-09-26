@@ -51,11 +51,11 @@ gross_c_obj:
 	$(CC) $(CFLAGS) -o ./src/stemmer/porter_stemmer.o -c ./src/stemmer/porter_stemmer.c
 
 .PHONY: gross_c_obj
-runner: $(OBJ) $(THRIFT_OBJ) gross_c_obj
+relevanced: $(OBJ) $(THRIFT_OBJ) gross_c_obj
 	$(CXX) $(CXX_FLAGS) -o $@ $(OBJ) $(C_OBJ) $(THRIFT_OBJ) $(LINK)
 
-run: runner
-	./runner
+run: relevanced
+	./relevanced
 
 clean:
 	rm -f runner src/*.o src/persistence/*.o src/stemmer/*.o src/stopwords/*.o src/tokenizer/*.o
@@ -77,3 +77,6 @@ build-docker-base:
 
 build-docker-relevanced:
 	sudo docker build -t scivey/relevanced containers/relevanced
+
+GTEST_LIB = ./external/gtest-1.7.0-min/gtest-all.o
+GMOCK_LIB = ./external/gmock-1.7.0/src/gmock-all.o

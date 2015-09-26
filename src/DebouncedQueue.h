@@ -42,8 +42,10 @@ public:
       }
     }
     if (shouldWrite) {
-      base_->runInEventBaseThread([this, t](){
-        pipe_->write(t);
+      folly::makeFuture(t).delayed(initialDelay_).then([this](T elem) {
+        base_->runInEventBaseThread([this, elem](){
+          pipe_->write(elem);
+        });
       });
       folly::makeFuture(t).delayed(interval_).then([this](T elem) {
         removeDebounced(elem);
