@@ -14,7 +14,17 @@
 #include "CentroidUpdateWorker.h"
 #include "persistence/PersistenceService.h"
 
-class CentroidUpdater {
+class CentroidUpdaterIf {
+public:
+  virtual void initialize() = 0;
+  virtual void echoUpdated(const std::string&) = 0;
+  virtual void onUpdate(std::function<void (const std::string&)>) = 0;
+  virtual void triggerUpdate(const std::string &collectionId) = 0;
+  virtual folly::Future<bool> update(const std::string &collectionId) = 0;
+  virtual ~CentroidUpdaterIf() = default;
+};
+
+class CentroidUpdater: public CentroidUpdaterIf {
 protected:
   std::shared_ptr<persistence::PersistenceServiceIf> persistence_;
   std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>> threadPool_;
@@ -28,9 +38,10 @@ public:
     std::shared_ptr<persistence::PersistenceServiceIf>,
     std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>>
   );
-  void echoUpdated(const std::string&);
-  void onUpdate(std::function<void (const std::string&)>);
-  void triggerUpdate(const std::string &collectionId);
-  folly::Future<bool> update(const std::string &collectionId);
+  void initialize() override;
+  void echoUpdated(const std::string&) override;
+  void onUpdate(std::function<void (const std::string&)>) override;
+  void triggerUpdate(const std::string &collectionId) override;
+  folly::Future<bool> update(const std::string &collectionId) override;
 };
 

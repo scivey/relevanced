@@ -15,10 +15,10 @@
 #include "RelevanceServer.h"
 
 class ThriftRelevanceServer: public services::RelevanceSvIf {
-  std::shared_ptr<RelevanceServer> server_;
+  std::shared_ptr<RelevanceServerIf> server_;
 public:
   ThriftRelevanceServer(
-    std::shared_ptr<RelevanceServer> server
+    std::shared_ptr<RelevanceServerIf> server
   );
   void ping();
   folly::Future<double> future_getRelevanceForDoc(std::unique_ptr<std::string> collId, std::unique_ptr<std::string> docId) override;

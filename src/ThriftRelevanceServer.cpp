@@ -5,11 +5,13 @@
 #include <glog/logging.h>
 #include "gen-cpp2/Relevance.h"
 #include "ThriftRelevanceServer.h"
+#include "RelevanceServer.h"
+
 
 using namespace std;
 using namespace folly;
 
-ThriftRelevanceServer::ThriftRelevanceServer(shared_ptr<RelevanceServer> server)
+ThriftRelevanceServer::ThriftRelevanceServer(shared_ptr<RelevanceServerIf> server)
   :server_(server) {}
 
 void ThriftRelevanceServer::ping(){

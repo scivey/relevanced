@@ -23,8 +23,8 @@ protected:
   std::shared_ptr<stopwords::StopwordFilterIf> stopwordFilter_;
 public:
   DocumentProcessor(
-    std::shared_ptr<stemmer::StemmerIf> stemmer,
     std::shared_ptr<tokenizer::TokenizerIf> tokenizer,
+    std::shared_ptr<stemmer::StemmerIf> stemmer,
     std::shared_ptr<stopwords::StopwordFilterIf> stopwordFilter
   ) : stemmer_(stemmer), tokenizer_(tokenizer), stopwordFilter_(stopwordFilter) {}
   std::shared_ptr<ProcessedDocument> processNew(const Document &doc) override;

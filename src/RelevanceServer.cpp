@@ -18,8 +18,8 @@ using namespace folly;
 using util::UniquePointer;
 
 RelevanceServer::RelevanceServer(
-  shared_ptr<RelevanceScoreWorker> scoreWorker,
-  shared_ptr<DocumentProcessor> docProcessor,
+  shared_ptr<RelevanceScoreWorkerIf> scoreWorker,
+  shared_ptr<DocumentProcessorIf> docProcessor,
   shared_ptr<persistence::PersistenceServiceIf> persistenceSv
 ): scoreWorker_(scoreWorker), docProcessor_(docProcessor), persistence_(persistenceSv) {}
 

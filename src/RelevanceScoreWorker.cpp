@@ -25,8 +25,8 @@ using namespace std;
 
 RelevanceScoreWorker::RelevanceScoreWorker(
   shared_ptr<persistence::PersistenceServiceIf> persistence,
-  shared_ptr<CentroidManager> centroidManager,
-  shared_ptr<DocumentProcessor> docProcessor
+  shared_ptr<CentroidManagerIf> centroidManager,
+  shared_ptr<DocumentProcessorIf> docProcessor
 ): persistence_(persistence),
    centroidManager_(centroidManager),
    docProcessor_(docProcessor){}

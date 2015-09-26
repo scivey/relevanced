@@ -28,10 +28,8 @@ bool CollectionDBHandle::addDocToCollection(const string &collId, const string &
   }
   string value = sformat("{}", iVal);
   if (collectionDocsHandle_->exists(key)) {
-    LOG(INFO) << "already exists: " << key;
     return false;
   }
-  LOG(INFO) << "adding to collection: " << collId << "\t" << docId;
   assert(collectionDocsHandle_->put(key, value));
   return true;
 }

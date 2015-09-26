@@ -15,7 +15,7 @@ using namespace wangle;
 using persistence::PersistenceServiceIf;
 using util::UniquePointer;
 
-CentroidManager::CentroidManager(UniquePointer<CentroidUpdater> updater, shared_ptr<PersistenceServiceIf> persistence)
+CentroidManager::CentroidManager(UniquePointer<CentroidUpdaterIf> updater, shared_ptr<PersistenceServiceIf> persistence)
   : updater_(std::move(updater)), persistence_(std::move(persistence)) {
     updater_->onUpdate([this](const string &id) {
       this->echoUpdated(id);

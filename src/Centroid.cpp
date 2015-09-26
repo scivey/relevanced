@@ -31,10 +31,6 @@ double Centroid::score(ProcessedDocument* article) {
   auto artVec = tfidf_->tfVecOfArticle(article);
   double dotProd = util::sparseDot(artVec, support);
   return dotProd;
-  // size_t corpusSize = tfidf_->getCorpusSize();
-  // double mag1 = util::vectorMag(support, corpusSize);
-  // double mag2 = util::vectorMag(artVec, corpusSize);
-  // return dotProd / (mag1 * mag2);
 }
 
 double Centroid::score(shared_ptr<ProcessedDocument> article) {

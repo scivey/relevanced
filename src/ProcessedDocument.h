@@ -25,9 +25,9 @@ public:
   folly::dynamic asDynamic_();
   std::string toJson();
   static ProcessedDocument fromDynamic(folly::dynamic &d);
-  static ProcessedDocument* newFromDynamic(folly::dynamic &d);
+  static std::shared_ptr<ProcessedDocument> newFromDynamic(folly::dynamic &d);
   static ProcessedDocument fromJson(const std::string &js);
-  static ProcessedDocument* newFromJson(const std::string &js);
+  static std::shared_ptr<ProcessedDocument> newFromJson(const std::string &js);
 };
 
 

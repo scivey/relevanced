@@ -44,13 +44,13 @@ public:
 
 class RelevanceServer: public RelevanceServerIf {
   shared_ptr<persistence::PersistenceServiceIf> persistence_;
-  shared_ptr<DocumentProcessor> docProcessor_;
-  shared_ptr<RelevanceScoreWorker> scoreWorker_;
+  shared_ptr<DocumentProcessorIf> docProcessor_;
+  shared_ptr<RelevanceScoreWorkerIf> scoreWorker_;
   folly::Future<std::unique_ptr<std::string>> internalCreateDocumentWithID(std::string id, std::string text);
 public:
   RelevanceServer(
-    shared_ptr<RelevanceScoreWorker> scoreWorker,
-    shared_ptr<DocumentProcessor> docProcessor,
+    shared_ptr<RelevanceScoreWorkerIf> scoreWorker,
+    shared_ptr<DocumentProcessorIf> docProcessor,
     shared_ptr<persistence::PersistenceServiceIf> persistenceSv
   );
   void ping() override;

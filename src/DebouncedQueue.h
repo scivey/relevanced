@@ -17,8 +17,9 @@ class DebouncedQueue {
   folly::EventBase *base_;
   std::chrono::milliseconds interval_;
   std::chrono::milliseconds requeueDelay_;
+  std::chrono::milliseconds initialDelay_;
 public:
-  DebouncedQueue(folly::EventBase *base, size_t n, std::chrono::milliseconds interval): base_(base), interval_(interval) {
+  DebouncedQueue(folly::EventBase *base, size_t n, std::chrono::milliseconds initialDelay, std::chrono::milliseconds interval): base_(base), initialDelay_(initialDelay), interval_(interval) {
     pipe_.reset(
       new folly::ProducerConsumerQueue<T>(n)
     );

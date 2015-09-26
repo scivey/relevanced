@@ -73,7 +73,7 @@ ProcessedDocument ProcessedDocument::fromDynamic(dynamic &d) {
   return doc;
 }
 
-ProcessedDocument* ProcessedDocument::newFromDynamic(dynamic &d) {
+shared_ptr<ProcessedDocument> ProcessedDocument::newFromDynamic(dynamic &d) {
   string id = folly::convertTo<string>(d["id"]);
   map<string, double> normalizedWordCounts;
   auto counts = d["normalizedWordCounts"];
@@ -82,7 +82,7 @@ ProcessedDocument* ProcessedDocument::newFromDynamic(dynamic &d) {
     double val = folly::convertTo<double>(counts[k]);
     normalizedWordCounts[key] = val;
   }
-  auto doc = new ProcessedDocument(id);
+  auto doc = std::make_shared<ProcessedDocument>(id);
   doc->normalizedWordCounts = normalizedWordCounts;
   return doc;
 }
@@ -91,7 +91,7 @@ ProcessedDocument ProcessedDocument::fromJson(const string &js) {
   return fromDynamic(dyn);
 }
 
-ProcessedDocument* ProcessedDocument::newFromJson(const string &js) {
+shared_ptr<ProcessedDocument> ProcessedDocument::newFromJson(const string &js) {
   auto dyn = folly::parseJson(js);
   return newFromDynamic(dyn);
 }

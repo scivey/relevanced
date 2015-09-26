@@ -19,19 +19,22 @@ using namespace wangle;
 CentroidUpdater::CentroidUpdater(
   shared_ptr<PersistenceServiceIf> persistence,
   shared_ptr<FutureExecutor<CPUThreadPoolExecutor>> threadPool
-): persistence_(persistence), threadPool_(threadPool) {
+): persistence_(persistence), threadPool_(threadPool) {}
+
+void CentroidUpdater::initialize() {
   evThread_ = make_shared<thread>([this](){
     base_.loopForever();
   });
+  chrono::milliseconds initialDelay(10000);
+  chrono::milliseconds debounceInterval(30000);
   updateQueue_ = make_shared<DebouncedQueue<string>>(
-    &base_, 100, chrono::milliseconds(30000)
+    &base_, 100, initialDelay, debounceInterval
   );
   dequeueThread_ = make_shared<thread>([this](){
     string elem;
     for (;;) {
       this_thread::sleep_for(chrono::milliseconds(1000));
       while (updateQueue_->read(elem)) {
-        LOG(INFO) << "background update: " << elem;
         update(elem);
       }
     }
@@ -42,7 +45,7 @@ Future<bool> CentroidUpdater::update(const string &collectionId) {
   return threadPool_->addFuture([this, collectionId](){
     CentroidUpdateWorker worker(persistence_, collectionId);
     bool result = worker.run();
-    makeFuture(collectionId).delayed(chrono::milliseconds(10)).then([this](string collId) {
+    makeFuture(collectionId).delayed(chrono::milliseconds(50)).then([this](string collId) {
       this->echoUpdated(collId);
     });
     return result;
