@@ -2,7 +2,7 @@ CXX=clang++-3.5
 CC=clang-3.5
 CFLAGS=-I./src --std=c99
 CXX_FLAGS=--std=c++14 -stdlib=libstdc++ -I./src
-LINK=-lthriftcpp2 -lthrift -lwangle -lfolly -lrocksdb -lglog -lsqlite3 -lz -lsnappy -llz4 -lbz2 -ldouble-conversion -lboost_thread -lboost_system -ljemalloc -latomic -pthread
+LINK=-lthriftcpp2 -lthrift -lwangle -lfolly -lrocksdb -lglog -lz -lsnappy -llz4 -lbz2 -ldouble-conversion -lboost_thread -lboost_system -ljemalloc -latomic -pthread
 
 %.o:%.cpp
 	$(CXX) $(CXX_FLAGS) -o $@ -c $<
@@ -74,3 +74,6 @@ thrift-py:
 
 build-docker-base:
 	sudo docker build -t scivey/cpp-base containers/cpp-base
+
+build-docker-relevanced:
+	sudo docker build -t scivey/relevanced containers/relevanced

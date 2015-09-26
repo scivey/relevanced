@@ -46,3 +46,16 @@ RUN cd /build && \
     cd /build/rocksdb-rocksdb-3.13.1 && \
     make shared_lib && \
     make install
+
+RUN apt-get install -y libeigen3-dev liblapack-dev libarpack2-dev
+
+RUN cd /build && \
+    wget https://github.com/mit-nlp/MITIE/archive/v0.4.tar.gz && \
+    tar -xaf v0.4.tar.gz && \
+    cd /build/MITIE-0.4 && \
+    make -j4
+
+RUN cp -r /build/MITIE-0.4/mitielib/include/* /usr/local/include/ && \
+    cp /build/MITIE-0.4/mitielib/libmitie.* /usr/local/lib
+
+RUN apt-get install -y libbz2-dev
