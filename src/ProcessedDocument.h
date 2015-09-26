@@ -33,7 +33,7 @@ public:
 
 namespace serialization {
   template<>
-  struct Serializer<ProcessedDocument> {
+  struct BinarySerializer<ProcessedDocument> {
     static size_t serialize(unsigned char **bytes, ProcessedDocument &target) {
       size_t sizeEstimate = 0;
       size_t elemCount = 0;
@@ -58,7 +58,7 @@ namespace serialization {
   };
 
   template<>
-  struct Deserializer<ProcessedDocument> {
+  struct BinaryDeserializer<ProcessedDocument> {
     static void deserialize(unsigned char *bytes, ProcessedDocument &result) {
       ByteReader reader(bytes);
       reader.readString(result.id);

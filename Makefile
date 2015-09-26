@@ -11,6 +11,8 @@ OBJ=$(addprefix ./src/, \
 		main.o \
 		DocumentProcessor.o \
 		ProcessedDocument.o \
+		ThriftRelevanceServer.o \
+		RelevanceServer.o \
 		Centroid.o \
 		CentroidManager.o \
 		CentroidUpdateWorker.o \
@@ -69,3 +71,6 @@ thrift-py:
 	mv ./clients/python/relevanced_client/gen-py ./clients/python/relevanced_client/gen_py
 
 .PHONY: proc
+
+build-docker-base:
+	sudo docker build -t scivey/cpp-base containers/cpp-base

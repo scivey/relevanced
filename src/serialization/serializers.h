@@ -5,14 +5,14 @@
 namespace serialization {
 
 template<typename T>
-struct Deserializer {
+struct BinaryDeserializer {
   static void deserialize(unsigned char *bytes, T &result) {
     LOG(INFO) << "default deserialization!";
   }
 };
 
 template<typename T>
-struct Serializer {
+struct BinarySerializer {
   static size_t serialize(unsigned char **result, T &target) {
     unsigned char *res = (unsigned char*) malloc(1);
     *result = res;
@@ -22,13 +22,13 @@ struct Serializer {
 };
 
 template<typename T>
-size_t serialize(unsigned char **result, T &target) {
-  return Serializer<T>::serialize(result, target);
+size_t binarySerialize(unsigned char **result, T &target) {
+  return BinarySerializer<T>::serialize(result, target);
 }
 
 template<typename T>
-void deserialize(unsigned char *bytes, T &result) {
-  Deserializer<T>::deserialize(bytes, result);
+void binaryDeserialize(unsigned char *bytes, T &result) {
+  BinaryDeserializer<T>::deserialize(bytes, result);
 }
 
 }

@@ -8,18 +8,15 @@
 #include "stemmer/StemmerIf.h"
 #include "stemmer/PorterStemmer.h"
 #include "DocumentProcessor.h"
-#include "RelevanceServer.h"
 #include "persistence/PersistenceService.h"
 #include "persistence/RockHandle.h"
 #include "persistence/ColonPrefixedRockHandle.h"
 #include "ProcessedDocument.h"
 #include "serialization/serializers.h"
-
-
-
 #include "persistence/CollectionDB.h"
 #include "persistence/CollectionDBHandle.h"
-
+#include "RelevanceServer.h"
+#include "ThriftRelevanceServer.h"
 #include "persistence/DocumentDB.h"
 #include "persistence/DocumentDBHandle.h"
 #include "persistence/CentroidDB.h"
@@ -141,10 +138,10 @@ int main() {
       persistence, centroidManager, documentProcessor
     );
     relevanceWorker->initialize();
-    auto service = make_shared<RelevanceServer>(
+    auto relServer = make_shared<RelevanceServer>(
       relevanceWorker, documentProcessor, persistence
     );
-
+    auto service = make_shared<ThriftRelevanceServer>(relServer);
     bool allowInsecureLoopback = true;
     string saslPolicy = "";
     auto server = new apache::thrift::ThriftServer(

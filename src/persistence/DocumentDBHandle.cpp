@@ -29,7 +29,7 @@ bool DocumentDBHandle::doesDocumentExist(const string &docId) {
 
 bool DocumentDBHandle::saveDocument(ProcessedDocument *doc) {
   unsigned char *serialized;
-  size_t len = serialization::serialize(&serialized, *doc);
+  size_t len = serialization::binarySerialize(&serialized, *doc);
   rocksdb::Slice data((char*) serialized, len);
   rockHandle_->put(doc->id, data);
   free(serialized);
@@ -54,7 +54,7 @@ ProcessedDocument* DocumentDBHandle::loadDocumentDangerously(const string &docId
     return nullptr;
   }
   auto processed = new ProcessedDocument("");
-  serialization::deserialize((unsigned char*) serialized.c_str(), *processed);
+  serialization::binaryDeserialize((unsigned char*) serialized.c_str(), *processed);
   return processed;
 }
 

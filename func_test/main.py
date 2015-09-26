@@ -52,31 +52,40 @@ def init_collections(client):
     for coll in ('wiki_math', 'wiki_poli'):
         if coll not in existing_collections:
             client.create_collection(coll)
+    existing_math_docs = set(client.list_collection_documents('wiki_math'))
+    existing_poli_docs = set(client.list_collection_documents('wiki_poli'))
 
     for url in load_large_math().keys():
-        client.add_positive_document_to_collection(
-            'wiki_math', url
-        )
-        client.add_negative_document_to_collection(
-            'wiki_poli', url
-        )
+        if url not in existing_math_docs:
+            client.add_positive_document_to_collection(
+                'wiki_math', url
+            )
+        if url not in existing_poli_docs:
+            client.add_negative_document_to_collection(
+                'wiki_poli', url
+            )
 
     for url in load_large_poli().keys():
-        client.add_negative_document_to_collection(
-            'wiki_math', url
-        )
-        client.add_positive_document_to_collection(
-            'wiki_poli', url
-        )
+        if url not in existing_math_docs:
+            client.add_negative_document_to_collection(
+                'wiki_math', url
+            )
+        if url not in existing_poli_docs:
+            client.add_positive_document_to_collection(
+                'wiki_poli', url
+            )
 
     for url in load_large_irrelevant().keys():
-        for coll in ('wiki_math', 'wiki_poli'):
-            client.add_negative_document_to_collection(coll, url)
+        if url not in existing_poli_docs:
+            client.add_negative_document_to_collection('wiki_poli', url)
+        if url not in existing_math_docs:
+            client.add_negative_document_to_collection('wiki_math', url)
 
 def main():
     client = get_client()
-    # init_documents(client)
-    # init_collections(client)
+    init_documents(client)
+    init_collections(client)
+    # time.sleep(5)
     # client.recompute('wiki_math')
     # client.recompute('wiki_poli')
     print('math -> math')
