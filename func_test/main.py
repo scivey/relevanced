@@ -77,7 +77,7 @@ def main():
     client = get_client()
     # init_documents(client)
     # init_collections(client)
-    client.recompute('wiki_math')
+    # client.recompute('wiki_math')
     # client.recompute('wiki_poli')
     print('math -> math')
     for doc in load_large_math().values()[:10]:

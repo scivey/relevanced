@@ -35,4 +35,5 @@ public:
   folly::Future<double> getRelevanceForDoc(std::string collectionId, std::shared_ptr<ProcessedDocument> doc);
   folly::Future<double> getRelevanceForText(std::string collectionId, std::string text);
   folly::Future<bool> recompute(std::string collectionId);
+  void triggerUpdate(std::string collectionId);
 };

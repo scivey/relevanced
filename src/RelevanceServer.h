@@ -99,18 +99,35 @@ public:
     auto doc = *docId;
     LOG(INFO) << "adding positive document to " << coll << " : " << doc;
     auto collDb = persistence_->getCollectionDb().lock();
-    return collDb->addPositiveDocToCollection(coll, doc);
+    return collDb->addPositiveDocToCollection(coll, doc).then([this, coll](bool added) {
+      if (added) {
+        scoreWorker_->triggerUpdate(coll);
+      }
+      return added;
+    });
   }
   Future<bool> future_addNegativeDocumentToCollection(unique_ptr<string> collId, unique_ptr<string> docId) override {
     auto coll = *collId;
     auto doc = *docId;
     LOG(INFO) << "adding negative document to " << coll << " : " << doc;
     auto collDb = persistence_->getCollectionDb().lock();
-    return collDb->addNegativeDocToCollection(coll, doc);
+    return collDb->addNegativeDocToCollection(coll, doc).then([this, coll](bool added) {
+      if (added) {
+        scoreWorker_->triggerUpdate(coll);
+      }
+      return added;
+    });
   }
   Future<bool> future_removeDocumentFromCollection(unique_ptr<string> collId, unique_ptr<string> docId) override {
     auto collDb = persistence_->getCollectionDb().lock();
-    return collDb->removeDocFromCollection(*collId, *docId);
+    auto coll = *collId;
+    auto doc = *docId;
+    return collDb->removeDocFromCollection(coll, doc).then([this, coll](bool removed){
+      if (removed) {
+        scoreWorker_->triggerUpdate(coll);
+      }
+      return removed;
+    });
   }
   Future<bool> future_recompute(unique_ptr<string> collId) override {
     auto coll = *collId;

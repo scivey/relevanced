@@ -41,6 +41,9 @@ void RelevanceScoreWorker::initialize() {
       centroids_[id] = centroid;
     }
   }
+  centroidManager_->onUpdate([this](const string &id) {
+    reloadCentroid(id);
+  });
   LOG(INFO) << "[ done loading ]";
 }
 
@@ -90,4 +93,8 @@ Future<bool> RelevanceScoreWorker::recompute(string collectionId) {
     }
     return makeFuture(false);
   });
+}
+
+void RelevanceScoreWorker::triggerUpdate(string collectionId) {
+  centroidManager_->triggerUpdate(collectionId);
 }
