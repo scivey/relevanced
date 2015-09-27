@@ -10,21 +10,21 @@
 #include "util.h"
 #include "TestHelpers.h"
 #include "ProcessedDocument.h"
-#include "persistence/CollectionDBHandle.h"
+#include "persistence/ClassifierDBHandle.h"
 #include "persistence/RockHandle.h"
 #include "persistence/InMemoryRockHandle.h"
 #include "serialization/serializers.h"
 #include "MockRock.h"
 
 using namespace std;
-using persistence::CollectionDBHandle;
+using persistence::ClassifierDBHandle;
 using persistence::RockHandleIf;
 using persistence::InMemoryRockHandle;
 using util::UniquePointer;
 using ::testing::Return;
 using ::testing::_;
 
-TEST(CollectionDBHandle, DoesCollectionExistTrue) {
+TEST(ClassifierDBHandle, DoesClassifierExistTrue) {
   MockRock docMockRock;
   UniquePointer<RockHandleIf> docRockHandle(
     &docMockRock, NonDeleter<RockHandleIf>()
@@ -33,17 +33,17 @@ TEST(CollectionDBHandle, DoesCollectionExistTrue) {
   UniquePointer<RockHandleIf> listRockHandle(
     &listMockRock, NonDeleter<RockHandleIf>()
   );
-  string id {"collection-id"};
+  string id {"classifier-id"};
   EXPECT_CALL(listMockRock, exists(id))
     .WillOnce(Return(true));
-  CollectionDBHandle dbHandle(
+  ClassifierDBHandle dbHandle(
     std::move(docRockHandle),
     std::move(listRockHandle)
   );
-  EXPECT_TRUE(dbHandle.doesCollectionExist(id));
+  EXPECT_TRUE(dbHandle.doesClassifierExist(id));
 }
 
-TEST(CollectionDBHandle, DoesCollectionExistFalse) {
+TEST(ClassifierDBHandle, DoesClassifierExistFalse) {
   MockRock docMockRock;
   UniquePointer<RockHandleIf> docRockHandle(
     &docMockRock, NonDeleter<RockHandleIf>()
@@ -52,17 +52,17 @@ TEST(CollectionDBHandle, DoesCollectionExistFalse) {
   UniquePointer<RockHandleIf> listRockHandle(
     &listMockRock, NonDeleter<RockHandleIf>()
   );
-  string id {"collection-id"};
+  string id {"classifier-id"};
   EXPECT_CALL(listMockRock, exists(id))
     .WillOnce(Return(false));
-  CollectionDBHandle dbHandle(
+  ClassifierDBHandle dbHandle(
     std::move(docRockHandle),
     std::move(listRockHandle)
   );
-  EXPECT_FALSE(dbHandle.doesCollectionExist(id));
+  EXPECT_FALSE(dbHandle.doesClassifierExist(id));
 }
 
-TEST(CollectionDBHandle, CreateCollectionExists) {
+TEST(ClassifierDBHandle, CreateClassifierExists) {
   InMemoryRockHandle docMockRock("doc");
   UniquePointer<RockHandleIf> docRockHandle(
     &docMockRock, NonDeleter<RockHandleIf>()
@@ -72,19 +72,19 @@ TEST(CollectionDBHandle, CreateCollectionExists) {
     &listMockRock, NonDeleter<RockHandleIf>()
   );
   string data {"value"};
-  listMockRock.put("collection", data);
-  EXPECT_TRUE(listMockRock.exists("collection"));
-  CollectionDBHandle dbHandle(
+  listMockRock.put("classifier", data);
+  EXPECT_TRUE(listMockRock.exists("classifier"));
+  ClassifierDBHandle dbHandle(
     std::move(docRockHandle),
     std::move(listRockHandle)
   );
 
-  EXPECT_FALSE(dbHandle.createCollection("collection"));
+  EXPECT_FALSE(dbHandle.createClassifier("classifier"));
 
-  EXPECT_EQ("value", listMockRock.get("collection"));
+  EXPECT_EQ("value", listMockRock.get("classifier"));
 }
 
-TEST(CollectionDBHandle, CreateCollectionDoesNotExist) {
+TEST(ClassifierDBHandle, CreateClassifierDoesNotExist) {
   InMemoryRockHandle docMockRock("doc");
   UniquePointer<RockHandleIf> docRockHandle(
     &docMockRock, NonDeleter<RockHandleIf>()
@@ -93,18 +93,18 @@ TEST(CollectionDBHandle, CreateCollectionDoesNotExist) {
   UniquePointer<RockHandleIf> listRockHandle(
     &listMockRock, NonDeleter<RockHandleIf>()
   );
-  EXPECT_FALSE(listMockRock.exists("collection"));
-  CollectionDBHandle dbHandle(
+  EXPECT_FALSE(listMockRock.exists("classifier"));
+  ClassifierDBHandle dbHandle(
     std::move(docRockHandle),
     std::move(listRockHandle)
   );
 
-  EXPECT_TRUE(dbHandle.createCollection("collection"));
+  EXPECT_TRUE(dbHandle.createClassifier("classifier"));
 
-  EXPECT_TRUE(listMockRock.get("collection") != "");
+  EXPECT_TRUE(listMockRock.get("classifier") != "");
 }
 
-TEST(CollectionDBHandle, DoesCollectionHaveDocumentTrue) {
+TEST(ClassifierDBHandle, DoesClassifierHaveDocumentTrue) {
   InMemoryRockHandle docMockRock("doc");
   UniquePointer<RockHandleIf> docRockHandle(
     &docMockRock, NonDeleter<RockHandleIf>()
@@ -114,17 +114,17 @@ TEST(CollectionDBHandle, DoesCollectionHaveDocumentTrue) {
     &listMockRock, NonDeleter<RockHandleIf>()
   );
   string val {"1"};
-  docMockRock.put("collection_id:document_id", val);
-  EXPECT_TRUE(docMockRock.exists("collection_id:document_id"));
-  CollectionDBHandle dbHandle(
+  docMockRock.put("classifier_id:document_id", val);
+  EXPECT_TRUE(docMockRock.exists("classifier_id:document_id"));
+  ClassifierDBHandle dbHandle(
     std::move(docRockHandle),
     std::move(listRockHandle)
   );
 
-  EXPECT_TRUE(dbHandle.doesCollectionHaveDocument("collection_id", "document_id"));
+  EXPECT_TRUE(dbHandle.doesClassifierHaveDocument("classifier_id", "document_id"));
 }
 
-TEST(CollectionDBHandle, DoesCollectionHaveDocumentFalse) {
+TEST(ClassifierDBHandle, DoesClassifierHaveDocumentFalse) {
   InMemoryRockHandle docMockRock("doc");
   UniquePointer<RockHandleIf> docRockHandle(
     &docMockRock, NonDeleter<RockHandleIf>()
@@ -133,56 +133,16 @@ TEST(CollectionDBHandle, DoesCollectionHaveDocumentFalse) {
   UniquePointer<RockHandleIf> listRockHandle(
     &listMockRock, NonDeleter<RockHandleIf>()
   );
-  EXPECT_FALSE(docMockRock.exists("collection_id:document_id"));
-  CollectionDBHandle dbHandle(
+  EXPECT_FALSE(docMockRock.exists("classifier_id:document_id"));
+  ClassifierDBHandle dbHandle(
     std::move(docRockHandle),
     std::move(listRockHandle)
   );
 
-  EXPECT_FALSE(dbHandle.doesCollectionHaveDocument("collection_id", "document_id"));
+  EXPECT_FALSE(dbHandle.doesClassifierHaveDocument("classifier_id", "document_id"));
 }
 
-TEST(CollectionDBHandle, AddPositiveDocumentToCollectionHappy) {
-  InMemoryRockHandle docMockRock("doc");
-  UniquePointer<RockHandleIf> docRockHandle(
-    &docMockRock, NonDeleter<RockHandleIf>()
-  );
-  InMemoryRockHandle listMockRock("list");
-  UniquePointer<RockHandleIf> listRockHandle(
-    &listMockRock, NonDeleter<RockHandleIf>()
-  );
-  string collVal {"1"};
-  listMockRock.put("collection_id", collVal);
-  EXPECT_TRUE(listMockRock.exists("collection_id"));
-  EXPECT_FALSE(docMockRock.exists("collection_id:document_id"));
-  CollectionDBHandle dbHandle(
-    std::move(docRockHandle),
-    std::move(listRockHandle)
-  );
-  EXPECT_TRUE(dbHandle.addPositiveDocumentToCollection("collection_id", "document_id"));
-  EXPECT_EQ("1", docMockRock.get("collection_id:document_id"));
-}
-
-TEST(CollectionDBHandle, AddPositiveDocumentToCollectionMissingCollection) {
-  InMemoryRockHandle docMockRock("doc");
-  UniquePointer<RockHandleIf> docRockHandle(
-    &docMockRock, NonDeleter<RockHandleIf>()
-  );
-  InMemoryRockHandle listMockRock("list");
-  UniquePointer<RockHandleIf> listRockHandle(
-    &listMockRock, NonDeleter<RockHandleIf>()
-  );
-  EXPECT_FALSE(listMockRock.exists("collection_id"));
-  EXPECT_FALSE(docMockRock.exists("collection_id:document_id"));
-  CollectionDBHandle dbHandle(
-    std::move(docRockHandle),
-    std::move(listRockHandle)
-  );
-  EXPECT_FALSE(dbHandle.addPositiveDocumentToCollection("collection_id", "document_id"));
-  EXPECT_FALSE(docMockRock.exists("collection_id:document_id"));
-}
-
-TEST(CollectionDBHandle, AddPositiveDocumentToCollectionAlreadyExists) {
+TEST(ClassifierDBHandle, AddPositiveDocumentToClassifierHappy) {
   InMemoryRockHandle docMockRock("doc");
   UniquePointer<RockHandleIf> docRockHandle(
     &docMockRock, NonDeleter<RockHandleIf>()
@@ -192,20 +152,60 @@ TEST(CollectionDBHandle, AddPositiveDocumentToCollectionAlreadyExists) {
     &listMockRock, NonDeleter<RockHandleIf>()
   );
   string collVal {"1"};
-  listMockRock.put("collection_id", collVal);
-  EXPECT_TRUE(listMockRock.exists("collection_id"));
-  EXPECT_FALSE(docMockRock.exists("collection_id:document_id"));
+  listMockRock.put("classifier_id", collVal);
+  EXPECT_TRUE(listMockRock.exists("classifier_id"));
+  EXPECT_FALSE(docMockRock.exists("classifier_id:document_id"));
+  ClassifierDBHandle dbHandle(
+    std::move(docRockHandle),
+    std::move(listRockHandle)
+  );
+  EXPECT_TRUE(dbHandle.addPositiveDocumentToClassifier("classifier_id", "document_id"));
+  EXPECT_EQ("1", docMockRock.get("classifier_id:document_id"));
+}
+
+TEST(ClassifierDBHandle, AddPositiveDocumentToClassifierMissingClassifier) {
+  InMemoryRockHandle docMockRock("doc");
+  UniquePointer<RockHandleIf> docRockHandle(
+    &docMockRock, NonDeleter<RockHandleIf>()
+  );
+  InMemoryRockHandle listMockRock("list");
+  UniquePointer<RockHandleIf> listRockHandle(
+    &listMockRock, NonDeleter<RockHandleIf>()
+  );
+  EXPECT_FALSE(listMockRock.exists("classifier_id"));
+  EXPECT_FALSE(docMockRock.exists("classifier_id:document_id"));
+  ClassifierDBHandle dbHandle(
+    std::move(docRockHandle),
+    std::move(listRockHandle)
+  );
+  EXPECT_FALSE(dbHandle.addPositiveDocumentToClassifier("classifier_id", "document_id"));
+  EXPECT_FALSE(docMockRock.exists("classifier_id:document_id"));
+}
+
+TEST(ClassifierDBHandle, AddPositiveDocumentToClassifierAlreadyExists) {
+  InMemoryRockHandle docMockRock("doc");
+  UniquePointer<RockHandleIf> docRockHandle(
+    &docMockRock, NonDeleter<RockHandleIf>()
+  );
+  InMemoryRockHandle listMockRock("list");
+  UniquePointer<RockHandleIf> listRockHandle(
+    &listMockRock, NonDeleter<RockHandleIf>()
+  );
+  string collVal {"1"};
+  listMockRock.put("classifier_id", collVal);
+  EXPECT_TRUE(listMockRock.exists("classifier_id"));
+  EXPECT_FALSE(docMockRock.exists("classifier_id:document_id"));
   string existing {"existing_value"};
-  docMockRock.put("collection_id:document_id", existing);
-  CollectionDBHandle dbHandle(
+  docMockRock.put("classifier_id:document_id", existing);
+  ClassifierDBHandle dbHandle(
     std::move(docRockHandle),
     std::move(listRockHandle)
   );
-  EXPECT_FALSE(dbHandle.addPositiveDocumentToCollection("collection_id", "document_id"));
-  EXPECT_EQ("existing_value", docMockRock.get("collection_id:document_id"));
+  EXPECT_FALSE(dbHandle.addPositiveDocumentToClassifier("classifier_id", "document_id"));
+  EXPECT_EQ("existing_value", docMockRock.get("classifier_id:document_id"));
 }
 
-TEST(CollectionDBHandle, AddNegativeDocumentToCollectionHappy) {
+TEST(ClassifierDBHandle, AddNegativeDocumentToClassifierHappy) {
   InMemoryRockHandle docMockRock("doc");
   UniquePointer<RockHandleIf> docRockHandle(
     &docMockRock, NonDeleter<RockHandleIf>()
@@ -215,18 +215,18 @@ TEST(CollectionDBHandle, AddNegativeDocumentToCollectionHappy) {
     &listMockRock, NonDeleter<RockHandleIf>()
   );
   string collVal {"1"};
-  listMockRock.put("collection_id", collVal);
-  EXPECT_TRUE(listMockRock.exists("collection_id"));
-  EXPECT_FALSE(docMockRock.exists("collection_id:document_id"));
-  CollectionDBHandle dbHandle(
+  listMockRock.put("classifier_id", collVal);
+  EXPECT_TRUE(listMockRock.exists("classifier_id"));
+  EXPECT_FALSE(docMockRock.exists("classifier_id:document_id"));
+  ClassifierDBHandle dbHandle(
     std::move(docRockHandle),
     std::move(listRockHandle)
   );
-  EXPECT_TRUE(dbHandle.addNegativeDocumentToCollection("collection_id", "document_id"));
-  EXPECT_EQ("0", docMockRock.get("collection_id:document_id"));
+  EXPECT_TRUE(dbHandle.addNegativeDocumentToClassifier("classifier_id", "document_id"));
+  EXPECT_EQ("0", docMockRock.get("classifier_id:document_id"));
 }
 
-TEST(CollectionDBHandle, AddNegativeDocumentToCollectionMissingCollection) {
+TEST(ClassifierDBHandle, AddNegativeDocumentToClassifierMissingClassifier) {
   InMemoryRockHandle docMockRock("doc");
   UniquePointer<RockHandleIf> docRockHandle(
     &docMockRock, NonDeleter<RockHandleIf>()
@@ -235,17 +235,17 @@ TEST(CollectionDBHandle, AddNegativeDocumentToCollectionMissingCollection) {
   UniquePointer<RockHandleIf> listRockHandle(
     &listMockRock, NonDeleter<RockHandleIf>()
   );
-  EXPECT_FALSE(listMockRock.exists("collection_id"));
-  EXPECT_FALSE(docMockRock.exists("collection_id:document_id"));
-  CollectionDBHandle dbHandle(
+  EXPECT_FALSE(listMockRock.exists("classifier_id"));
+  EXPECT_FALSE(docMockRock.exists("classifier_id:document_id"));
+  ClassifierDBHandle dbHandle(
     std::move(docRockHandle),
     std::move(listRockHandle)
   );
-  EXPECT_FALSE(dbHandle.addNegativeDocumentToCollection("collection_id", "document_id"));
-  EXPECT_FALSE(docMockRock.exists("collection_id:document_id"));
+  EXPECT_FALSE(dbHandle.addNegativeDocumentToClassifier("classifier_id", "document_id"));
+  EXPECT_FALSE(docMockRock.exists("classifier_id:document_id"));
 }
 
-TEST(CollectionDBHandle, AddNegativeDocumentToCollectionAlreadyExists) {
+TEST(ClassifierDBHandle, AddNegativeDocumentToClassifierAlreadyExists) {
   InMemoryRockHandle docMockRock("doc");
   UniquePointer<RockHandleIf> docRockHandle(
     &docMockRock, NonDeleter<RockHandleIf>()
@@ -255,21 +255,21 @@ TEST(CollectionDBHandle, AddNegativeDocumentToCollectionAlreadyExists) {
     &listMockRock, NonDeleter<RockHandleIf>()
   );
   string collVal {"1"};
-  listMockRock.put("collection_id", collVal);
-  EXPECT_TRUE(listMockRock.exists("collection_id"));
-  EXPECT_FALSE(docMockRock.exists("collection_id:document_id"));
+  listMockRock.put("classifier_id", collVal);
+  EXPECT_TRUE(listMockRock.exists("classifier_id"));
+  EXPECT_FALSE(docMockRock.exists("classifier_id:document_id"));
   string existing {"existing_value"};
-  docMockRock.put("collection_id:document_id", existing);
-  CollectionDBHandle dbHandle(
+  docMockRock.put("classifier_id:document_id", existing);
+  ClassifierDBHandle dbHandle(
     std::move(docRockHandle),
     std::move(listRockHandle)
   );
-  EXPECT_FALSE(dbHandle.addNegativeDocumentToCollection("collection_id", "document_id"));
-  EXPECT_EQ("existing_value", docMockRock.get("collection_id:document_id"));
+  EXPECT_FALSE(dbHandle.addNegativeDocumentToClassifier("classifier_id", "document_id"));
+  EXPECT_EQ("existing_value", docMockRock.get("classifier_id:document_id"));
 }
 
 
-TEST(CollectionDBHandle, RemoveDocFromCollectionHappy) {
+TEST(ClassifierDBHandle, RemoveDocFromClassifierHappy) {
   InMemoryRockHandle docMockRock("doc");
   UniquePointer<RockHandleIf> docRockHandle(
     &docMockRock, NonDeleter<RockHandleIf>()
@@ -279,17 +279,17 @@ TEST(CollectionDBHandle, RemoveDocFromCollectionHappy) {
     &listMockRock, NonDeleter<RockHandleIf>()
   );
   string keyVal {"anything"};
-  docMockRock.put("collection_id:document_id", keyVal);
-  EXPECT_TRUE(docMockRock.exists("collection_id:document_id"));
-  CollectionDBHandle dbHandle(
+  docMockRock.put("classifier_id:document_id", keyVal);
+  EXPECT_TRUE(docMockRock.exists("classifier_id:document_id"));
+  ClassifierDBHandle dbHandle(
     std::move(docRockHandle),
     std::move(listRockHandle)
   );
-  EXPECT_TRUE(dbHandle.removeDocumentFromCollection("collection_id", "document_id"));
-  EXPECT_FALSE(docMockRock.exists("collection_id:document_id"));
+  EXPECT_TRUE(dbHandle.removeDocumentFromClassifier("classifier_id", "document_id"));
+  EXPECT_FALSE(docMockRock.exists("classifier_id:document_id"));
 }
 
-TEST(CollectionDBHandle, RemoveDocFromCollectionSadPanda) {
+TEST(ClassifierDBHandle, RemoveDocFromClassifierSadPanda) {
   InMemoryRockHandle docMockRock("doc");
   UniquePointer<RockHandleIf> docRockHandle(
     &docMockRock, NonDeleter<RockHandleIf>()
@@ -298,15 +298,15 @@ TEST(CollectionDBHandle, RemoveDocFromCollectionSadPanda) {
   UniquePointer<RockHandleIf> listRockHandle(
     &listMockRock, NonDeleter<RockHandleIf>()
   );
-  EXPECT_FALSE(docMockRock.exists("collection_id:document_id"));
-  CollectionDBHandle dbHandle(
+  EXPECT_FALSE(docMockRock.exists("classifier_id:document_id"));
+  ClassifierDBHandle dbHandle(
     std::move(docRockHandle),
     std::move(listRockHandle)
   );
-  EXPECT_FALSE(dbHandle.removeDocumentFromCollection("collection_id", "document_id"));
+  EXPECT_FALSE(dbHandle.removeDocumentFromClassifier("classifier_id", "document_id"));
 }
 
-TEST(CollectionDBHandle, ListCollections) {
+TEST(ClassifierDBHandle, ListClassifiers) {
   InMemoryRockHandle docMockRock("doc");
   UniquePointer<RockHandleIf> docRockHandle(
     &docMockRock, NonDeleter<RockHandleIf>()
@@ -319,18 +319,18 @@ TEST(CollectionDBHandle, ListCollections) {
   listMockRock.put("coll1", anything);
   listMockRock.put("coll2", anything);
   listMockRock.put("coll3", anything);
-  CollectionDBHandle dbHandle(
+  ClassifierDBHandle dbHandle(
     std::move(docRockHandle),
     std::move(listRockHandle)
   );
-  auto collections = dbHandle.listCollections();
-  EXPECT_EQ(3, collections.size());
-  EXPECT_EQ("coll1", collections.at(0));
-  EXPECT_EQ("coll2", collections.at(1));
-  EXPECT_EQ("coll3", collections.at(2));
+  auto classifiers = dbHandle.listClassifiers();
+  EXPECT_EQ(3, classifiers.size());
+  EXPECT_EQ("coll1", classifiers.at(0));
+  EXPECT_EQ("coll2", classifiers.at(1));
+  EXPECT_EQ("coll3", classifiers.at(2));
 }
 
-TEST(CollectionDBHandle, ListCollectionsEmpty) {
+TEST(ClassifierDBHandle, ListClassifiersEmpty) {
   InMemoryRockHandle docMockRock("doc");
   UniquePointer<RockHandleIf> docRockHandle(
     &docMockRock, NonDeleter<RockHandleIf>()
@@ -339,15 +339,15 @@ TEST(CollectionDBHandle, ListCollectionsEmpty) {
   UniquePointer<RockHandleIf> listRockHandle(
     &listMockRock, NonDeleter<RockHandleIf>()
   );
-  CollectionDBHandle dbHandle(
+  ClassifierDBHandle dbHandle(
     std::move(docRockHandle),
     std::move(listRockHandle)
   );
-  auto collections = dbHandle.listCollections();
-  EXPECT_EQ(0, collections.size());
+  auto classifiers = dbHandle.listClassifiers();
+  EXPECT_EQ(0, classifiers.size());
 }
 
-TEST(CollectionDBHandle, ListCollectionDocuments) {
+TEST(ClassifierDBHandle, ListAllClassifierDocuments) {
   InMemoryRockHandle docMockRock("doc");
   UniquePointer<RockHandleIf> docRockHandle(
     &docMockRock, NonDeleter<RockHandleIf>()
@@ -362,11 +362,11 @@ TEST(CollectionDBHandle, ListCollectionDocuments) {
   docMockRock.put("coll1:doc2", anything);
   docMockRock.put("coll1:doc3", anything);
   docMockRock.put("coll1:doc4", anything);
-  CollectionDBHandle dbHandle(
+  ClassifierDBHandle dbHandle(
     std::move(docRockHandle),
     std::move(listRockHandle)
   );
-  auto documents = dbHandle.listCollectionDocuments("coll1");
+  auto documents = dbHandle.listAllClassifierDocuments("coll1");
   EXPECT_EQ(4, documents.size());
   EXPECT_EQ("doc1", documents.at(0));
   EXPECT_EQ("doc2", documents.at(1));
@@ -374,7 +374,7 @@ TEST(CollectionDBHandle, ListCollectionDocuments) {
   EXPECT_EQ("doc4", documents.at(3));
 }
 
-TEST(CollectionDBHandle, ListCollectionDocumentsEmpty) {
+TEST(ClassifierDBHandle, ListAllClassifierDocumentsEmpty) {
   InMemoryRockHandle docMockRock("doc");
   UniquePointer<RockHandleIf> docRockHandle(
     &docMockRock, NonDeleter<RockHandleIf>()
@@ -385,10 +385,10 @@ TEST(CollectionDBHandle, ListCollectionDocumentsEmpty) {
   );
   string anything {"1"};
   listMockRock.put("coll1", anything);
-  CollectionDBHandle dbHandle(
+  ClassifierDBHandle dbHandle(
     std::move(docRockHandle),
     std::move(listRockHandle)
   );
-  auto documents = dbHandle.listCollectionDocuments("coll1");
+  auto documents = dbHandle.listAllClassifierDocuments("coll1");
   EXPECT_EQ(0, documents.size());
 }

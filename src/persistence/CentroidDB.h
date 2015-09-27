@@ -11,7 +11,7 @@
 
 #include "CentroidDBHandle.h"
 #include "RockHandle.h"
-#include "ProcessedCentroid.h"
+#include "Centroid.h"
 #include "util.h"
 
 namespace persistence {
@@ -20,9 +20,9 @@ class CentroidDBIf {
 public:
   virtual folly::Future<bool> doesCentroidExist(const std::string&) = 0;
   virtual folly::Future<bool> deleteCentroid(const std::string&) = 0;
-  virtual folly::Future<bool> saveCentroid(const std::string&, ProcessedCentroid*) = 0;
-  virtual folly::Future<bool> saveCentroid(const std::string&, std::shared_ptr<ProcessedCentroid>) = 0;
-  virtual folly::Future<folly::Optional<std::shared_ptr<ProcessedCentroid>>>
+  virtual folly::Future<bool> saveCentroid(const std::string&, Centroid*) = 0;
+  virtual folly::Future<bool> saveCentroid(const std::string&, std::shared_ptr<Centroid>) = 0;
+  virtual folly::Future<folly::Optional<std::shared_ptr<Centroid>>>
     loadCentroid(const std::string&) = 0;
 };
 
@@ -42,9 +42,9 @@ public:
 
   folly::Future<bool> doesCentroidExist(const std::string &id) override;
   folly::Future<bool> deleteCentroid(const std::string &id) override;
-  folly::Future<bool> saveCentroid(const std::string &id, ProcessedCentroid *centroid) override;
-  folly::Future<bool> saveCentroid(const std::string &id, std::shared_ptr<ProcessedCentroid> centroid) override;
-  folly::Future<folly::Optional<std::shared_ptr<ProcessedCentroid>>>
+  folly::Future<bool> saveCentroid(const std::string &id, Centroid *centroid) override;
+  folly::Future<bool> saveCentroid(const std::string &id, std::shared_ptr<Centroid> centroid) override;
+  folly::Future<folly::Optional<std::shared_ptr<Centroid>>>
     loadCentroid(const std::string &id) override;
 };
 

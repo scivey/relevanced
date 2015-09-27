@@ -21,20 +21,47 @@ public:
     std::shared_ptr<RelevanceServerIf> server
   );
   void ping();
-  folly::Future<double> future_getRelevanceForDoc(std::unique_ptr<std::string> collId, std::unique_ptr<std::string> docId) override;
-  folly::Future<double> future_getRelevanceForText(std::unique_ptr<std::string> collId, std::unique_ptr<std::string> text) override;
-  folly::Future<std::unique_ptr<std::string>> future_createDocument(std::unique_ptr<std::string> text) override;
-  folly::Future<std::unique_ptr<std::string>> future_createDocumentWithID(std::unique_ptr<std::string> id, std::unique_ptr<std::string> text) override;
-  folly::Future<bool> future_deleteDocument(std::unique_ptr<std::string> id) override;
-  folly::Future<std::unique_ptr<std::string>> future_getDocument(std::unique_ptr<std::string> id) override;
-  folly::Future<bool> future_createCollection(std::unique_ptr<std::string> collId) override;
-  folly::Future<bool> future_deleteCollection(std::unique_ptr<std::string> collId) override;
-  folly::Future<std::unique_ptr<std::vector<std::string>>> future_listCollectionDocuments(std::unique_ptr<std::string> collId) override;
-  folly::Future<bool> future_addPositiveDocumentToCollection(std::unique_ptr<std::string> collId, std::unique_ptr<std::string> docId) override;
-  folly::Future<bool> future_addNegativeDocumentToCollection(std::unique_ptr<std::string> collId, std::unique_ptr<std::string> docId) override;
-  folly::Future<bool> future_removeDocumentFromCollection(std::unique_ptr<std::string> collId, std::unique_ptr<std::string> docId) override;
+  folly::Future<unique_ptr<services::DocumentRelevanceResponse>>
+    future_getRelevanceForDoc(std::unique_ptr<std::string> collId, std::unique_ptr<std::string> docId) override;
+
+  folly::Future<unique_ptr<services::DocumentRelevanceResponse>>
+    future_getRelevanceForText(std::unique_ptr<std::string> collId, std::unique_ptr<std::string> text) override;
+
+  folly::Future<unique_ptr<services::CrudResponse>>
+    future_createDocument(std::unique_ptr<std::string> text) override;
+
+  folly::Future<unique_ptr<services::CrudResponse>>
+    future_createDocumentWithID(std::unique_ptr<std::string> id, std::unique_ptr<std::string> text) override;
+
+  folly::Future<unique_ptr<services::CrudResponse>>
+    future_deleteDocument(std::unique_ptr<std::string> id) override;
+
+  folly::Future<std::unique_ptr<std::string>>
+    future_getDocument(std::unique_ptr<std::string> id) override;
+
+  folly::Future<unique_ptr<services::CrudResponse>>
+    future_createClassifier(std::unique_ptr<std::string> collId) override;
+
+  folly::Future<unique_ptr<services::CrudResponse>>
+    future_deleteClassifier(std::unique_ptr<std::string> collId) override;
+
+  folly::Future<unique_ptr<services::ListClassifierDocumentsResponse>>
+    future_listAllClassifierDocuments(std::unique_ptr<std::string> collId) override;
+
+  folly::Future<unique_ptr<services::CrudResponse>>
+    future_addPositiveDocumentToClassifier(std::unique_ptr<std::string> collId, std::unique_ptr<std::string> docId) override;
+
+  folly::Future<unique_ptr<services::CrudResponse>>
+    future_addNegativeDocumentToClassifier(std::unique_ptr<std::string> collId, std::unique_ptr<std::string> docId) override;
+
+  folly::Future<unique_ptr<services::CrudResponse>>
+    future_removeDocumentFromClassifier(std::unique_ptr<std::string> collId, std::unique_ptr<std::string> docId) override;
+
   folly::Future<bool> future_recompute(std::unique_ptr<std::string> collId) override;
-  folly::Future<std::unique_ptr<std::vector<std::string>>> future_listCollections() override;
+
+  folly::Future<std::unique_ptr<std::vector<std::string>>> future_listClassifiers() override;
   folly::Future<std::unique_ptr<std::vector<std::string>>> future_listDocuments() override;
-  folly::Future<int> future_getCollectionSize(std::unique_ptr<std::string> collId) override;
+
+  folly::Future<unique_ptr<services::GetClassifierSizeResponse>>
+    future_getClassifierSize(std::unique_ptr<std::string> collId) override;
 };

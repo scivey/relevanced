@@ -11,9 +11,9 @@
 
 #include "persistence/DocumentDB.h"
 #include "persistence/CentroidDB.h"
-#include "persistence/CollectionDB.h"
+#include "persistence/ClassifierDB.h"
 #include "CentroidManager.h"
-#include "ProcessedCentroid.h"
+#include "Centroid.h"
 #include "DocumentProcessor.h"
 #include "ProcessedDocument.h"
 #include "RelevanceScoreWorker.h"
@@ -25,25 +25,23 @@ using namespace std;
 
 RelevanceScoreWorker::RelevanceScoreWorker(
   shared_ptr<persistence::PersistenceServiceIf> persistence,
-  shared_ptr<CentroidManagerIf> centroidManager,
-  shared_ptr<DocumentProcessorIf> docProcessor
+  shared_ptr<CentroidManagerIf> centroidManager
 ): persistence_(persistence),
-   centroidManager_(centroidManager),
-   docProcessor_(docProcessor){}
+   centroidManager_(centroidManager){}
 
 // run synchronously on startup
 void RelevanceScoreWorker::initialize() {
   LOG(INFO) << "[ loading... ]";
-  auto collectionDb = persistence_->getCollectionDb().lock();
-  auto collectionIds = collectionDb->listCollections().get();
+  auto classifierDb = persistence_->getClassifierDb().lock();
+  auto classifierIds = classifierDb->listClassifiers().get();
   SYNCHRONIZED(centroids_) {
-    for (auto &id: collectionIds) {
+    for (auto &id: classifierIds) {
       LOG(INFO) << "[ loading centroid: " << id << " ... ]";
       auto centroid = centroidManager_->getCentroid(id).get();
       if (centroid.hasValue()) {
         centroids_[id] = centroid.value();
       } else {
-        LOG(INFO) << "no existing centroid for collection " << id;
+        LOG(INFO) << "no existing centroid for classifier " << id;
       }
     }
   }
@@ -54,7 +52,7 @@ void RelevanceScoreWorker::initialize() {
 }
 
 Future<bool> RelevanceScoreWorker::reloadCentroid(string id) {
-  return centroidManager_->getCentroid(id).then([id, this](Optional<shared_ptr<ProcessedCentroid>> centroid) {
+  return centroidManager_->getCentroid(id).then([id, this](Optional<shared_ptr<Centroid>> centroid) {
     if (!centroid.hasValue()) {
       LOG(INFO) << "tried to reload null centroid: " << id;
       return false;
@@ -67,8 +65,8 @@ Future<bool> RelevanceScoreWorker::reloadCentroid(string id) {
   });
 }
 
-Optional<shared_ptr<ProcessedCentroid>> RelevanceScoreWorker::getLoadedCentroid_(const string &id) {
-  Optional<shared_ptr<ProcessedCentroid>> center;
+Optional<shared_ptr<Centroid>> RelevanceScoreWorker::getLoadedCentroid_(const string &id) {
+  Optional<shared_ptr<Centroid>> center;
   SYNCHRONIZED(centroids_) {
     auto elem = centroids_.find(id);
     if (elem != centroids_.end()) {
@@ -78,44 +76,31 @@ Optional<shared_ptr<ProcessedCentroid>> RelevanceScoreWorker::getLoadedCentroid_
   return center;
 }
 
-Future<double> RelevanceScoreWorker::getRelevanceForDoc(string collectionId, ProcessedDocument *doc) {
-  return threadPool_.addFuture([this, collectionId, doc](){
-    auto centroid = getLoadedCentroid_(collectionId);
+Future<double> RelevanceScoreWorker::getRelevanceForDoc(string classifierId, ProcessedDocument *doc) {
+  return threadPool_.addFuture([this, classifierId, doc](){
+    auto centroid = getLoadedCentroid_(classifierId);
     if (!centroid.hasValue()) {
-      LOG(INFO) << "relevance request against null centroid: " << collectionId;
+      LOG(INFO) << "relevance request against null centroid: " << classifierId;
       return 0.0;
     }
     return centroid.value()->score(doc);
   });
 }
 
-Future<double> RelevanceScoreWorker::getRelevanceForDoc(string collectionId, shared_ptr<ProcessedDocument> doc) {
-  return getRelevanceForDoc(collectionId, doc.get());
+Future<double> RelevanceScoreWorker::getRelevanceForDoc(string classifierId, shared_ptr<ProcessedDocument> doc) {
+  return getRelevanceForDoc(classifierId, doc.get());
 }
 
-Future<double> RelevanceScoreWorker::getRelevanceForText(string collectionId, string text) {
-  return threadPool_.addFuture([this, collectionId, text](){
-    auto centroid = getLoadedCentroid_(collectionId);
-    if (!centroid.hasValue()) {
-      LOG(INFO) << "relevance request against null centroid: " << collectionId;
-      return 0.0;
-    }
-    Document doc("no-id", text);
-    auto processed = docProcessor_->process(doc);
-    return centroid.value()->score(&processed);
-  });
-}
-
-Future<bool> RelevanceScoreWorker::recompute(string collectionId) {
-  return centroidManager_->update(collectionId).then([this, collectionId] (bool updated) {
+Future<bool> RelevanceScoreWorker::recompute(string classifierId) {
+  return centroidManager_->update(classifierId).then([this, classifierId] (bool updated) {
     LOG(INFO) << "updated ? " << updated;
     if (updated) {
-      return reloadCentroid(collectionId);
+      return reloadCentroid(classifierId);
     }
     return makeFuture(false);
   });
 }
 
-void RelevanceScoreWorker::triggerUpdate(string collectionId) {
-  centroidManager_->triggerUpdate(collectionId);
+void RelevanceScoreWorker::triggerUpdate(string classifierId) {
+  centroidManager_->triggerUpdate(classifierId);
 }

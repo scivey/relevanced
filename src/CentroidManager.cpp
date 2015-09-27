@@ -22,12 +22,12 @@ CentroidManager::CentroidManager(UniquePointer<CentroidUpdaterIf> updater, share
     });
   }
 
-Future<Optional<shared_ptr<ProcessedCentroid>>> CentroidManager::getCentroid(const string &id) {
-  return persistence_->getCentroidDb().lock()->loadCentroid(id).then([this, id] (Optional<shared_ptr<ProcessedCentroid>> optCentroid) {
+Future<Optional<shared_ptr<Centroid>>> CentroidManager::getCentroid(const string &id) {
+  return persistence_->getCentroidDb().lock()->loadCentroid(id).then([this, id] (Optional<shared_ptr<Centroid>> optCentroid) {
     if (optCentroid.hasValue()) {
       return optCentroid;
     } else {
-      persistence_->getCollectionDb().lock()->doesCollectionExist(id).then([this, id](bool doesExist) {
+      persistence_->getClassifierDb().lock()->doesClassifierExist(id).then([this, id](bool doesExist) {
         if (doesExist) {
           this->triggerUpdate(id);
         }
@@ -41,10 +41,10 @@ Future<bool> CentroidManager::update(const string &id) {
   return updater_->update(id);
 }
 
-void CentroidManager::echoUpdated(const string &collectionId) {
+void CentroidManager::echoUpdated(const string &classifierId) {
   SYNCHRONIZED(updateCallbacks_) {
     for (auto &cb: updateCallbacks_) {
-      cb(collectionId);
+      cb(classifierId);
     }
   }
 }

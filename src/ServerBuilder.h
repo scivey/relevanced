@@ -10,13 +10,14 @@
 #include "stemmer/StemmerIf.h"
 #include "stemmer/PorterStemmer.h"
 #include "DocumentProcessor.h"
+#include "DocumentProcessingWorker.h"
 #include "persistence/PersistenceService.h"
 #include "persistence/RockHandle.h"
 #include "persistence/PrefixedRockHandle.h"
 #include "ProcessedDocument.h"
 #include "serialization/serializers.h"
-#include "persistence/CollectionDB.h"
-#include "persistence/CollectionDBHandle.h"
+#include "persistence/ClassifierDB.h"
+#include "persistence/ClassifierDBHandle.h"
 #include "RelevanceServer.h"
 #include "ThriftRelevanceServer.h"
 #include "persistence/DocumentDB.h"
@@ -52,8 +53,8 @@ template<typename RockHandleT,
   typename PrefixedRockT,
   typename CentroidDBHandleT,
   typename CentroidDBT,
-  typename CollectionDBHandleT,
-  typename CollectionDBT,
+  typename ClassifierDBHandleT,
+  typename ClassifierDBT,
   typename DocumentDBHandleT,
   typename DocumentDBT,
   typename PersistenceServiceT
@@ -89,21 +90,21 @@ shared_ptr<PersistenceServiceIf> buildPersistence(const string &dataDir) {
     )
   );
 
-  string collectionDir = dataDir + "/collections_rock";
-  UniquePointer<RockHandleIf> collectionListRock(
-    (RockHandleIf*) new RockHandleT(collectionDir)
+  string classifierDir = dataDir + "/classifiers_rock";
+  UniquePointer<RockHandleIf> classifierListRock(
+    (RockHandleIf*) new RockHandleT(classifierDir)
   );
-  string collectionDocsDir = dataDir + "/collection_docs_rock";
-  UniquePointer<RockHandleIf> collectionDocumentsRock(
-    new PrefixedRockT(collectionDocsDir)
+  string classifierDocsDir = dataDir + "/classifier_docs_rock";
+  UniquePointer<RockHandleIf> classifierDocumentsRock(
+    new PrefixedRockT(classifierDocsDir)
   );
-  UniquePointer<CollectionDBHandleIf> collDbHandle(
-    (CollectionDBHandleIf*) new CollectionDBHandleT(
-      std::move(collectionDocumentsRock), std::move(collectionListRock)
+  UniquePointer<ClassifierDBHandleIf> collDbHandle(
+    (ClassifierDBHandleIf*) new ClassifierDBHandleT(
+      std::move(classifierDocumentsRock), std::move(classifierListRock)
     )
   );
-  shared_ptr<CollectionDBIf> collDb(
-    (CollectionDBIf*) new CollectionDBT(
+  shared_ptr<ClassifierDBIf> collDb(
+    (ClassifierDBIf*) new ClassifierDBT(
       std::move(collDbHandle),
       make_shared<FutureExecutor<CPUThreadPoolExecutor>>(4)
     )
@@ -133,8 +134,8 @@ shared_ptr<CentroidManagerIf> buildCentroidManager(shared_ptr<PersistenceService
   );
 }
 
-template<typename ProcessorT, typename TokenizerT, typename StemmerT, typename StopwordFilterT>
-shared_ptr<DocumentProcessorIf> buildDocumentProcessor() {
+template<typename ProcessWorkerT, typename ProcessorT, typename TokenizerT, typename StemmerT, typename StopwordFilterT>
+shared_ptr<DocumentProcessingWorkerIf> buildDocumentProcessor() {
   shared_ptr<TokenizerIf> tokenizer(
     (TokenizerIf*) new TokenizerT
   );
@@ -144,22 +145,24 @@ shared_ptr<DocumentProcessorIf> buildDocumentProcessor() {
   shared_ptr<StopwordFilterIf> stopwordFilter(
     (StopwordFilterIf*) new StopwordFilterT
   );
-  return shared_ptr<DocumentProcessorIf>(
+  shared_ptr<DocumentProcessorIf> processor(
     (DocumentProcessorIf*) new ProcessorT(
       tokenizer, stemmer, stopwordFilter
     )
+  );
+  return shared_ptr<DocumentProcessingWorkerIf>(
+    new ProcessWorkerT(processor)
   );
 }
 
 template<typename WorkerType>
 shared_ptr<RelevanceScoreWorkerIf> buildRelevanceWorker(
   shared_ptr<PersistenceServiceIf> persistence,
-  shared_ptr<CentroidManagerIf> manager,
-  shared_ptr<DocumentProcessorIf> processor
+  shared_ptr<CentroidManagerIf> manager
 ) {
   shared_ptr<RelevanceScoreWorkerIf> result(
     (RelevanceScoreWorkerIf*) new WorkerType(
-      persistence, manager, processor
+      persistence, manager
     )
   );
   result->initialize();
@@ -170,7 +173,7 @@ shared_ptr<RelevanceScoreWorkerIf> buildRelevanceWorker(
 
 class ServerBuilder {
   shared_ptr<PersistenceServiceIf> persistence_;
-  shared_ptr<DocumentProcessorIf> processor_;
+  shared_ptr<DocumentProcessingWorkerIf> processor_;
   shared_ptr<RelevanceScoreWorkerIf> relevanceWorker_;
   shared_ptr<CentroidManagerIf> centroidManager_;
   shared_ptr<RelevanceServerOptions> options_;
@@ -181,8 +184,8 @@ public:
     typename PrefixedRockT,
     typename CentroidDBHandleT,
     typename CentroidDBT,
-    typename CollectionDBHandleT,
-    typename CollectionDBT,
+    typename ClassifierDBHandleT,
+    typename ClassifierDBT,
     typename DocumentDBHandleT,
     typename DocumentDBT,
     typename PersistenceServiceT
@@ -190,15 +193,15 @@ public:
   void buildPersistence() {
     persistence_ = detail::buildPersistence<
       RockHandleT, PrefixedRockT, CentroidDBHandleT, CentroidDBT,
-      CollectionDBHandleT, CollectionDBT,
+      ClassifierDBHandleT, ClassifierDBT,
       DocumentDBHandleT, DocumentDBT, PersistenceServiceT
     >(options_->dataDir);
   }
 
-  template<typename ProcessorT, typename TokenizerT, typename StemmerT, typename StopwordFilterT>
+  template<typename ProcessWorkerT, typename ProcessorT, typename TokenizerT, typename StemmerT, typename StopwordFilterT>
   void buildDocumentProcessor() {
     processor_ = detail::buildDocumentProcessor<
-      ProcessorT, TokenizerT, StemmerT, StopwordFilterT
+      ProcessWorkerT, ProcessorT, TokenizerT, StemmerT, StopwordFilterT
     >();
   }
 
@@ -213,12 +216,11 @@ public:
   template<typename RelevanceScoreWorkerT, typename CentroidManagerT, typename CentroidUpdaterT>
   void buildRelevanceWorker() {
     assert(persistence_.get() != nullptr);
-    assert(processor_.get() != nullptr);
     centroidManager_ = detail::buildCentroidManager<
       CentroidManagerT, CentroidUpdaterT
     >(persistence_);
     relevanceWorker_ = detail::buildRelevanceWorker<RelevanceScoreWorkerT>(
-      persistence_, centroidManager_, processor_
+      persistence_, centroidManager_
     );
   }
 

@@ -1,24 +1,49 @@
 namespace cpp2 services
 
+enum RelevanceStatus {
+    OK = 0,
+    CLASSIFIER_DOES_NOT_EXIST = 1,
+    CLASSIFIER_ALREADY_EXISTS = 2,
+    DOCUMENT_DOES_NOT_EXIST = 3,
+    DOCUMENT_ALREADY_EXISTS = 4
+}
+
+struct DocumentRelevanceResponse {
+    1: required RelevanceStatus status;
+    2: required double relevance;
+}
+
+struct GetClassifierSizeResponse {
+    1: required RelevanceStatus status;
+    2: required i32 size;
+}
+
+struct ListClassifierDocumentsResponse {
+    1: required RelevanceStatus status;
+    2: required list<string> documents;
+}
+
+struct CrudResponse {
+    1: required RelevanceStatus status;
+    2: required string created;
+}
+
 service Relevance {
     void ping(),
-    double getRelevanceForDoc(1: string collectionId, 2: string docId),
-    double getRelevanceForText(1: string collectionId, 2: string text),
-    string createDocument(1: string text),
-    string createDocumentWithID(1: string id, 2: string text),
-    bool deleteDocument(1: string id),
+    DocumentRelevanceResponse getRelevanceForDoc(1: string classifierId, 2: string docId),
+    DocumentRelevanceResponse getRelevanceForText(1: string classifierId, 2: string text),
+    CrudResponse createDocument(1: string text),
+    CrudResponse createDocumentWithID(1: string id, 2: string text),
+    CrudResponse deleteDocument(1: string id),
     string getDocument(1: string id),
-    bool createCollection(1: string collectionId),
-    bool deleteCollection(1: string collectionId),
-    list<string> listCollectionDocuments(1: string collectionId),
-    bool addPositiveDocumentToCollection(1: string collectionId, 2: string docId)
-    bool addNegativeDocumentToCollection(1: string collectionId, 2: string docId)
-    bool removeDocumentFromCollection(1: string collectionId, 2: string docId)
-    string addNewPositiveDocumentToCollection(1: string collectionId, 2: string text),
-    string addNewNegativeDocumentToCollection(1: string collectionId, 2: string text),
-    bool recompute(1: string collectionId),
-    list<string> listCollections(),
+    CrudResponse createClassifier(1: string classifierId),
+    CrudResponse deleteClassifier(1: string classifierId),
+    ListClassifierDocumentsResponse listAllClassifierDocuments(1: string classifierId),
+    CrudResponse addPositiveDocumentToClassifier(1: string classifierId, 2: string docId)
+    CrudResponse addNegativeDocumentToClassifier(1: string classifierId, 2: string docId)
+    CrudResponse removeDocumentFromClassifier(1: string classifierId, 2: string docId)
+    bool recompute(1: string classifierId),
+    list<string> listClassifiers(),
     list<string> listDocuments(),
-    list<string> listUnassociatedDocuments(),
-    i32 getCollectionSize(1: string collectionId)
+    GetClassifierSizeResponse getClassifierSize(1: string classifierId)
 }

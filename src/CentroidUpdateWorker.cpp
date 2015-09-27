@@ -10,8 +10,9 @@
 #include <folly/Optional.h>
 #include "util.h"
 #include "ProcessedDocument.h"
-#include "ProcessedCentroid.h"
-#include "CentroidFactory.h"
+#include "Centroid.h"
+#include "Vocabulary.h"
+#include "VocabularyBuilder.h"
 #include "CentroidUpdateWorker.h"
 #include "persistence/PersistenceService.h"
 using namespace persistence;
@@ -21,54 +22,52 @@ using util::UniquePointer;
 
 CentroidUpdateWorker::CentroidUpdateWorker(
   shared_ptr<persistence::PersistenceServiceIf> persistence,
-  string collectionId
-): persistence_(persistence), collectionId_(collectionId) {}
+  string classifierId
+): persistence_(persistence), classifierId_(classifierId) {}
+
 
 bool CentroidUpdateWorker::run() {
   LOG(INFO) << "CentroidUpdateWorker::run";
-  auto collectionDb = persistence_->getCollectionDb().lock();
+  auto classifierDb = persistence_->getClassifierDb().lock();
   auto documentDb = persistence_->getDocumentDb().lock();
   auto centroidDb = persistence_->getCentroidDb().lock();
-
-  if (!collectionDb->doesCollectionExist(collectionId_).get()) {
-    LOG(INFO) << "collection does not exist! : " << collectionId_;
+  if (!classifierDb->doesClassifierExist(classifierId_).get()) {
+    LOG(INFO) << "classifier does not exist! : " << classifierId_;
     return false;
   }
-  vector<shared_ptr<ProcessedDocument>> goodDocs;
-  vector<shared_ptr<ProcessedDocument>> allDocs;
-  LOG(INFO) << "listing positive docs.";
-  for (auto &id: collectionDb->listPositiveCollectionDocuments(collectionId_).get()) {
-    auto doc = documentDb->loadDocumentShared(id).get();
+  VocabularyBuilder vocabBuilder;
+  set<string> vocabulary;
+  LOG(INFO) << "building vocabulary for " << classifierId_;
+  for (auto &id: classifierDb->listAllClassifierDocuments(classifierId_).get()) {
+    auto doc = documentDb->loadDocument(id).get();
     if (!doc.hasValue()) {
       LOG(INFO) << "missing document: " << id;
-      collectionDb->removeDocumentFromCollection(collectionId_, id);
+      classifierDb->removeDocumentFromClassifier(classifierId_, id);
     } else {
-      allDocs.push_back(doc.value());
-      goodDocs.push_back(doc.value());
+      vocabBuilder.addDocument(doc.value().get());
     }
   }
-  LOG(INFO) << "listing negative docs.";
-  size_t negCount = 0;
-  for (auto &id: collectionDb->listNegativeCollectionDocuments(collectionId_).get()) {
-    negCount++;
-    auto doc = documentDb->loadDocumentShared(id).get();
-    if (!doc.hasValue()) {
-      LOG(INFO) << "missing document: " << id;
-      collectionDb->removeDocumentFromCollection(collectionId_, id);
-    } else {
-      allDocs.push_back(doc.value());
-    }
-  }
-  LOG(INFO) << format("doc counts: all {}   - {}   + {}", allDocs.size(), negCount, goodDocs.size());
-  LOG(INFO) << "computing...";
 
-  CentroidFactory centroidFactory(allDocs);
-  LOG(INFO) << "making centroid...";
-  auto centroid = centroidFactory.makeCentroid(goodDocs);
-  LOG(INFO) << "processing centroid...";
-  auto processed = centroid->toNewProcessedCentroid();
+  auto vocab = vocabBuilder.build();
+  Eigen::SparseVector<double> centroidVec(vocab->size());
+  size_t documentCount = 0;
+  LOG(INFO) << "building centroid for " << classifierId_;
+  for (auto &id: classifierDb->listAllPositiveClassifierDocuments(classifierId_).get()) {
+    auto doc = documentDb->loadDocument(id).get();
+    if (!doc.hasValue()) {
+      LOG(INFO) << "missing document: " << id;
+      classifierDb->removeDocumentFromClassifier(classifierId_, id);
+    } else {
+      LOG(INFO) << "adding document scores: " << id;
+      auto docVec = vocab->vecOfDocument(doc.value().get());
+      centroidVec += docVec;
+      documentCount++;
+    }
+  }
+  centroidVec = centroidVec / documentCount;
+  auto centroid = make_shared<Centroid>(centroidVec, vocab);
   LOG(INFO) << "persisting...";
-  centroidDb->saveCentroid(collectionId_, processed).get();
+  centroidDb->saveCentroid(classifierId_, centroid).get();
   LOG(INFO) << "persisted..";
   return true;
 }

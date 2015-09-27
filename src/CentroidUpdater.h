@@ -19,8 +19,8 @@ public:
   virtual void initialize() = 0;
   virtual void echoUpdated(const std::string&) = 0;
   virtual void onUpdate(std::function<void (const std::string&)>) = 0;
-  virtual void triggerUpdate(const std::string &collectionId) = 0;
-  virtual folly::Future<bool> update(const std::string &collectionId) = 0;
+  virtual void triggerUpdate(const std::string &classifierId) = 0;
+  virtual folly::Future<bool> update(const std::string &classifierId) = 0;
   virtual ~CentroidUpdaterIf() = default;
 };
 
@@ -41,7 +41,7 @@ public:
   void initialize() override;
   void echoUpdated(const std::string&) override;
   void onUpdate(std::function<void (const std::string&)>) override;
-  void triggerUpdate(const std::string &collectionId) override;
-  folly::Future<bool> update(const std::string &collectionId) override;
+  void triggerUpdate(const std::string &classifierId) override;
+  folly::Future<bool> update(const std::string &classifierId) override;
 };
 

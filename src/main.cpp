@@ -5,10 +5,12 @@
 #include <glog/logging.h>
 
 #include "DocumentProcessor.h"
+#include "DocumentProcessingWorker.h"
+
 #include "persistence/CentroidDB.h"
 #include "persistence/CentroidDBHandle.h"
-#include "persistence/CollectionDB.h"
-#include "persistence/CollectionDBHandle.h"
+#include "persistence/ClassifierDB.h"
+#include "persistence/ClassifierDBHandle.h"
 #include "persistence/DocumentDB.h"
 #include "persistence/DocumentDBHandle.h"
 #include "persistence/PersistenceService.h"
@@ -52,12 +54,12 @@ int main() {
     builders::ServerBuilder builder(options);
     builder.buildPersistence<
       RockHandle, PrefixedRockHandle, CentroidDBHandle, CentroidDB,
-      CollectionDBHandle, CollectionDB, DocumentDBHandle,
+      ClassifierDBHandle, ClassifierDB, DocumentDBHandle,
       DocumentDB, PersistenceService
     >();
     builder.buildDocumentProcessor<
-      DocumentProcessor, Tokenizer,
-      PorterStemmer, StopwordFilter
+      DocumentProcessingWorker, DocumentProcessor,
+      Tokenizer, PorterStemmer, StopwordFilter
     >();
     builder.buildRelevanceWorker<
       RelevanceScoreWorker, CentroidManager, CentroidUpdater

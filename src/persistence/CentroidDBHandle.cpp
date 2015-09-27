@@ -11,8 +11,9 @@
 #include <glog/logging.h>
 
 #include "CentroidDBHandle.h"
+#include "serialization/serializers.h"
 #include "RockHandle.h"
-#include "ProcessedCentroid.h"
+#include "Centroid.h"
 #include "util.h"
 namespace persistence {
 
@@ -24,8 +25,8 @@ bool CentroidDBHandle::doesCentroidExist(const string &id) {
   return rockHandle_->exists(id);
 }
 
-bool CentroidDBHandle::saveCentroid(const string &id, ProcessedCentroid *centroid) {
-  auto val = centroid->toJson();
+bool CentroidDBHandle::saveCentroid(const string &id, Centroid *centroid) {
+  auto val = serialization::jsonSerialize<Centroid>(centroid);
   rockHandle_->put(id, val);
   return true;
 }
@@ -34,11 +35,14 @@ bool CentroidDBHandle::deleteCentroid(const string &id) {
   return rockHandle_->del(id);
 }
 
-Optional<shared_ptr<ProcessedCentroid>> CentroidDBHandle::loadCentroid(const string &id) {
+Optional<shared_ptr<Centroid>> CentroidDBHandle::loadCentroid(const string &id) {
   string serialized;
-  Optional<shared_ptr<ProcessedCentroid>> result;
+  Optional<shared_ptr<Centroid>> result;
   if (rockHandle_->get(id, serialized)) {
-    result.assign(ProcessedCentroid::newFromJson(serialized));
+    auto centroidRes = new Centroid;
+    auto loaded = serialization::jsonDeserialize<Centroid>(serialized);
+    *centroidRes = loaded;
+    result.assign(shared_ptr<Centroid>(centroidRes));
   }
   return result;
 }

@@ -47,44 +47,44 @@ def init_documents(client):
             )
             print('created : %s' % res)
 
-def init_collections(client):
-    existing_collections = set(client.list_collections())
+def init_classifiers(client):
+    existing_classifiers = set(client.list_classifiers())
     for coll in ('wiki_math', 'wiki_poli'):
-        if coll not in existing_collections:
-            client.create_collection(coll)
-    existing_math_docs = set(client.list_collection_documents('wiki_math'))
-    existing_poli_docs = set(client.list_collection_documents('wiki_poli'))
+        if coll not in existing_classifiers:
+            client.create_classifier(coll)
+    existing_math_docs = set(client.list_all_classifier_documents('wiki_math'))
+    existing_poli_docs = set(client.list_all_classifier_documents('wiki_poli'))
 
     for url in load_large_math().keys():
         if url not in existing_math_docs:
-            client.add_positive_document_to_collection(
+            client.add_positive_document_to_classifier(
                 'wiki_math', url
             )
         if url not in existing_poli_docs:
-            client.add_negative_document_to_collection(
+            client.add_negative_document_to_classifier(
                 'wiki_poli', url
             )
 
     for url in load_large_poli().keys():
         if url not in existing_math_docs:
-            client.add_negative_document_to_collection(
+            client.add_negative_document_to_classifier(
                 'wiki_math', url
             )
         if url not in existing_poli_docs:
-            client.add_positive_document_to_collection(
+            client.add_positive_document_to_classifier(
                 'wiki_poli', url
             )
 
     for url in load_large_irrelevant().keys():
         if url not in existing_poli_docs:
-            client.add_negative_document_to_collection('wiki_poli', url)
+            client.add_negative_document_to_classifier('wiki_poli', url)
         if url not in existing_math_docs:
-            client.add_negative_document_to_collection('wiki_math', url)
+            client.add_negative_document_to_classifier('wiki_math', url)
 
 def main():
     client = get_client()
     init_documents(client)
-    init_collections(client)
+    init_classifiers(client)
     # time.sleep(5)
     # client.recompute('wiki_math')
     # client.recompute('wiki_poli')

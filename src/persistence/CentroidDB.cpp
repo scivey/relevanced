@@ -29,19 +29,19 @@ Future<bool> CentroidDB::deleteCentroid(const string &id) {
   });
 }
 
-Future<bool> CentroidDB::saveCentroid(const string &id, ProcessedCentroid *centroid) {
+Future<bool> CentroidDB::saveCentroid(const string &id, Centroid *centroid) {
   return threadPool_->addFuture([this, id, centroid](){
     return dbHandle_->saveCentroid(id, centroid);
   });
 }
 
-Future<bool> CentroidDB::saveCentroid(const string &id, shared_ptr<ProcessedCentroid> centroid) {
+Future<bool> CentroidDB::saveCentroid(const string &id, shared_ptr<Centroid> centroid) {
   return threadPool_->addFuture([this, id, centroid](){
     return dbHandle_->saveCentroid(id, centroid.get());
   });
 }
 
-Future<Optional<shared_ptr<ProcessedCentroid>>> CentroidDB::loadCentroid(const string &id) {
+Future<Optional<shared_ptr<Centroid>>> CentroidDB::loadCentroid(const string &id) {
   return threadPool_->addFuture([this, id](){
     return dbHandle_->loadCentroid(id);
   });

@@ -13,7 +13,7 @@
 
 class CentroidManagerIf {
 public:
-  virtual folly::Future<folly::Optional<std::shared_ptr<ProcessedCentroid>>>
+  virtual folly::Future<folly::Optional<std::shared_ptr<Centroid>>>
     getCentroid(const std::string &id) = 0;
   virtual void onUpdate(std::function<void (const std::string&)>) = 0;
   virtual void echoUpdated(const std::string&) = 0;
@@ -34,7 +34,7 @@ public:
     util::UniquePointer<CentroidUpdaterIf>,
     std::shared_ptr<persistence::PersistenceServiceIf>
   );
-  folly::Future<folly::Optional<std::shared_ptr<ProcessedCentroid>>>
+  folly::Future<folly::Optional<std::shared_ptr<Centroid>>>
     getCentroid(const std::string &id) override;
   void onUpdate(std::function<void (const std::string&)>) override;
   void echoUpdated(const std::string&) override;

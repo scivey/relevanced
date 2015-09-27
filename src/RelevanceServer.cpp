@@ -12,6 +12,8 @@
 #include "Document.h"
 #include "util.h"
 #include "RelevanceServer.h"
+#include "serialization/serializers.h"
+#include "ProcessedDocument.h"
 
 using namespace std;
 using namespace folly;
@@ -19,9 +21,9 @@ using util::UniquePointer;
 
 RelevanceServer::RelevanceServer(
   shared_ptr<RelevanceScoreWorkerIf> scoreWorker,
-  shared_ptr<DocumentProcessorIf> docProcessor,
+  shared_ptr<DocumentProcessingWorkerIf> docProcessor,
   shared_ptr<persistence::PersistenceServiceIf> persistenceSv
-): scoreWorker_(scoreWorker), docProcessor_(docProcessor), persistence_(persistenceSv) {}
+): scoreWorker_(scoreWorker), processingWorker_(docProcessor), persistence_(persistenceSv) {}
 
 void RelevanceServer::ping() {}
 
@@ -36,7 +38,11 @@ Future<double> RelevanceServer::getRelevanceForDoc(unique_ptr<string> collId, un
 }
 
 Future<double> RelevanceServer::getRelevanceForText(unique_ptr<string> collId, unique_ptr<string> text) {
-  return scoreWorker_->getRelevanceForText(*collId, *text);
+  auto doc = std::make_shared<Document>("no-id", *text);
+  auto classifierId = *collId;
+  return processingWorker_->processNew(doc).then([this, classifierId](shared_ptr<ProcessedDocument> processed) {
+    return scoreWorker_->getRelevanceForDoc(classifierId, processed);
+  });
 }
 
 Future<unique_ptr<string>> RelevanceServer::createDocument(unique_ptr<string> text) {
@@ -44,13 +50,12 @@ Future<unique_ptr<string>> RelevanceServer::createDocument(unique_ptr<string> te
 }
 
 Future<unique_ptr<string>> RelevanceServer::internalCreateDocumentWithID(string id, string text) {
-  Document doc(id, text);
+  auto doc = std::make_shared<Document>(id, text);
   LOG(INFO) << "creating document: " << id.substr(0, 15) << "  |   " << text.substr(0, 20);
-  auto processed = docProcessor_->processNew(doc);
-  return persistence_->getDocumentDb().lock()->saveDocument(processed).then([id](bool saved) {
-    auto uniq = std::make_unique<string>(id);
-    return uniq;
+  processingWorker_->processNew(doc).then([this](shared_ptr<ProcessedDocument> processed) {
+    persistence_->getDocumentDb().lock()->saveDocument(processed);
   });
+  return makeFuture(std::make_unique<string>(id));
 }
 
 Future<unique_ptr<string>> RelevanceServer::createDocumentWithID(unique_ptr<string> id, unique_ptr<string> text) {
@@ -68,39 +73,39 @@ Future<unique_ptr<string>> RelevanceServer::getDocument(unique_ptr<string> id) {
       auto uniq = std::make_unique<string>("{}");
       return std::move(uniq);
     }
-    auto uniq = std::make_unique<string>(proced.value()->toJson());
+    auto uniq = std::make_unique<string>(serialization::jsonSerialize(proced.value().get()));
     return std::move(uniq);
   });
 }
 
-Future<bool> RelevanceServer::createCollection(unique_ptr<string> collId) {
+Future<bool> RelevanceServer::createClassifier(unique_ptr<string> collId) {
   auto id = *collId;
-  LOG(INFO) << "creating collection: " << id;
-  auto collDb = persistence_->getCollectionDb().lock();
-  return collDb->createCollection(id);
+  LOG(INFO) << "creating classifier: " << id;
+  auto collDb = persistence_->getClassifierDb().lock();
+  return collDb->createClassifier(id);
 }
 
-Future<bool> RelevanceServer::deleteCollection(unique_ptr<string> collId) {
-  auto collDb = persistence_->getCollectionDb().lock();
-  return collDb->deleteCollection(*collId);
+Future<bool> RelevanceServer::deleteClassifier(unique_ptr<string> collId) {
+  auto collDb = persistence_->getClassifierDb().lock();
+  return collDb->deleteClassifier(*collId);
 }
 
-Future<unique_ptr<vector<string>>> RelevanceServer::listCollectionDocuments(unique_ptr<string> collId) {
+Future<unique_ptr<vector<string>>> RelevanceServer::listAllClassifierDocuments(unique_ptr<string> collId) {
   auto id = *collId;
   LOG(INFO) << "listing documents for: " << id;
-  auto collDb = persistence_->getCollectionDb().lock();
-  return collDb->listCollectionDocuments(id).then([id](vector<string> docIds) {
-    LOG(INFO) << "listCollectionDocuments: returning " << docIds.size() << " for " << id;
+  auto collDb = persistence_->getClassifierDb().lock();
+  return collDb->listAllClassifierDocuments(id).then([id](vector<string> docIds) {
+    LOG(INFO) << "listClassifierDocuments: returning " << docIds.size() << " for " << id;
     return std::move(std::make_unique<vector<string>>(docIds));
   });
 }
 
-Future<bool> RelevanceServer::addPositiveDocumentToCollection(unique_ptr<string> collId, unique_ptr<string> docId) {
+Future<bool> RelevanceServer::addPositiveDocumentToClassifier(unique_ptr<string> collId, unique_ptr<string> docId) {
   auto coll = *collId;
   auto doc = *docId;
   LOG(INFO) << "adding positive document to " << coll << " : " << doc;
-  auto collDb = persistence_->getCollectionDb().lock();
-  return collDb->addPositiveDocumentToCollection(coll, doc).then([this, coll](bool added) {
+  auto collDb = persistence_->getClassifierDb().lock();
+  return collDb->addPositiveDocumentToClassifier(coll, doc).then([this, coll](bool added) {
     if (added) {
       scoreWorker_->triggerUpdate(coll);
     }
@@ -108,23 +113,23 @@ Future<bool> RelevanceServer::addPositiveDocumentToCollection(unique_ptr<string>
   });
 }
 
-Future<bool> RelevanceServer::addNegativeDocumentToCollection(unique_ptr<string> collId, unique_ptr<string> docId) {
+Future<bool> RelevanceServer::addNegativeDocumentToClassifier(unique_ptr<string> collId, unique_ptr<string> docId) {
   auto coll = *collId;
   auto doc = *docId;
   LOG(INFO) << "adding negative document to " << coll << " : " << doc;
-  auto collDb = persistence_->getCollectionDb().lock();
-  return collDb->addNegativeDocumentToCollection(coll, doc).then([this, coll](bool added) {
+  auto collDb = persistence_->getClassifierDb().lock();
+  return collDb->addNegativeDocumentToClassifier(coll, doc).then([this, coll](bool added) {
     if (added) {
       scoreWorker_->triggerUpdate(coll);
     }
     return added;
   });
 }
-Future<bool> RelevanceServer::removeDocumentFromCollection(unique_ptr<string> collId, unique_ptr<string> docId) {
-  auto collDb = persistence_->getCollectionDb().lock();
+Future<bool> RelevanceServer::removeDocumentFromClassifier(unique_ptr<string> collId, unique_ptr<string> docId) {
+  auto collDb = persistence_->getClassifierDb().lock();
   auto coll = *collId;
   auto doc = *docId;
-  return collDb->removeDocumentFromCollection(coll, doc).then([this, coll](bool removed){
+  return collDb->removeDocumentFromClassifier(coll, doc).then([this, coll](bool removed){
     if (removed) {
       scoreWorker_->triggerUpdate(coll);
     }
@@ -134,13 +139,13 @@ Future<bool> RelevanceServer::removeDocumentFromCollection(unique_ptr<string> co
 
 Future<bool> RelevanceServer::recompute(unique_ptr<string> collId) {
   auto coll = *collId;
-  LOG(INFO) << "recomputing collection centroid: " << coll;
+  LOG(INFO) << "recomputing classifier centroid: " << coll;
   return scoreWorker_->recompute(coll);
 }
 
-Future<unique_ptr<vector<string>>> RelevanceServer::listCollections() {
-  auto collDb = persistence_->getCollectionDb().lock();
-  return collDb->listCollections().then([](vector<string> res) {
+Future<unique_ptr<vector<string>>> RelevanceServer::listClassifiers() {
+  auto collDb = persistence_->getClassifierDb().lock();
+  return collDb->listClassifiers().then([](vector<string> res) {
     return std::move(std::make_unique<vector<string>>(res));
   });
 }
@@ -152,7 +157,7 @@ Future<unique_ptr<vector<string>>> RelevanceServer::listDocuments() {
   });
 }
 
-Future<int> RelevanceServer::getCollectionSize(unique_ptr<string> collId) {
-  auto collDb = persistence_->getCollectionDb().lock();
-  return collDb->getCollectionDocumentCount(*collId);
+Future<int> RelevanceServer::getClassifierSize(unique_ptr<string> collId) {
+  auto collDb = persistence_->getClassifierDb().lock();
+  return collDb->getClassifierDocumentCount(*collId);
 }

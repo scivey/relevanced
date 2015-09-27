@@ -9,7 +9,7 @@
 #include <folly/Optional.h>
 #include <glog/logging.h>
 #include "RockHandle.h"
-#include "ProcessedCentroid.h"
+#include "Centroid.h"
 #include "util.h"
 
 namespace persistence {
@@ -17,9 +17,9 @@ namespace persistence {
 class CentroidDBHandleIf {
 public:
   virtual bool doesCentroidExist(const std::string &id) = 0;
-  virtual bool saveCentroid(const std::string &id, ProcessedCentroid *centroid) = 0;
+  virtual bool saveCentroid(const std::string &id, Centroid *centroid) = 0;
   virtual bool deleteCentroid(const std::string &id) = 0;
-  virtual folly::Optional<std::shared_ptr<ProcessedCentroid>>
+  virtual folly::Optional<std::shared_ptr<Centroid>>
     loadCentroid(const std::string &id) = 0;
   virtual ~CentroidDBHandleIf() = default;
 };
@@ -30,9 +30,9 @@ protected:
 public:
   CentroidDBHandle(util::UniquePointer<RockHandleIf> rockHandle);
   bool doesCentroidExist(const std::string &id) override;
-  bool saveCentroid(const std::string &id, ProcessedCentroid *centroid) override;
+  bool saveCentroid(const std::string &id, Centroid *centroid) override;
   bool deleteCentroid(const std::string &id) override;
-  folly::Optional<std::shared_ptr<ProcessedCentroid>>
+  folly::Optional<std::shared_ptr<Centroid>>
     loadCentroid(const std::string &id) override;
 };
 

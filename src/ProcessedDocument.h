@@ -10,26 +10,13 @@
 #include "serialization/serializers.h"
 #include "serialization/bytes.h"
 
-
 class ProcessedDocument {
 public:
   std::map<std::string, double> normalizedWordCounts;
   std::string id;
   ProcessedDocument(const std::string& id): id(id){}
   ProcessedDocument(const std::string& id, std::map<std::string, double> counts): id(id), normalizedWordCounts(counts){}
-  void addCount(std::string word, double count);
-  bool hasWord(const std::string &word);
-  void addTfidfWordCounts(const std::map<std::string, size_t> &docCounts, std::map<std::string, double> &target);
-  std::map<std::string, double> getTfidfWordCounts(const std::map<std::string, size_t> &docCounts);
-  double getNormalizedWordCount(const std::string &word);
-  folly::dynamic asDynamic_();
-  std::string toJson();
-  static ProcessedDocument fromDynamic(folly::dynamic &d);
-  static std::shared_ptr<ProcessedDocument> newFromDynamic(folly::dynamic &d);
-  static ProcessedDocument fromJson(const std::string &js);
-  static std::shared_ptr<ProcessedDocument> newFromJson(const std::string &js);
 };
-
 
 namespace serialization {
   template<>
@@ -79,4 +66,41 @@ namespace serialization {
       }
     }
   };
+
+  template<>
+  struct JsonSerializer<ProcessedDocument> {
+    static std::string serialize(ProcessedDocument *doc) {
+      folly::dynamic counts = folly::dynamic::object;
+      for(auto &elem: doc->normalizedWordCounts) {
+        dynamic key = folly::toDynamic(elem.first);
+        dynamic val = folly::toDynamic(elem.second);
+        counts[key] = val;
+      }
+      folly::dynamic self = folly::dynamic::object;
+      folly::dynamic ident = folly::toDynamic(doc->id);
+      self["id"] = ident;
+      self["normalizedWordCounts"] = counts;
+      folly::fbstring js = folly::toJson(self);
+      return js.toStdString();
+    }
+  };
+
+  template<>
+  struct JsonDeserializer<ProcessedDocument> {
+    static ProcessedDocument deserialize(const std::string &js) {
+      auto dyn = folly::parseJson(js);
+      auto counts = dyn["normalizedWordCounts"];
+      ProcessedDocument result(
+        folly::convertTo<std::string>(dyn["id"])
+      );
+      for (auto &k: counts.keys()) {
+        string key = folly::convertTo<string>(k);
+        double val = folly::convertTo<double>(counts[k]);
+        result.normalizedWordCounts[key] = val;
+      }
+      return result;
+    }
+  };
+
+
 }

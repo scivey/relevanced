@@ -46,6 +46,14 @@ shared_ptr<ProcessedDocument> DocumentProcessor::processNew(const Document &doc)
   return result;
 }
 
+shared_ptr<ProcessedDocument> DocumentProcessor::processNew(shared_ptr<Document> doc) {
+  auto result = std::make_shared<ProcessedDocument>(doc->id);
+  auto d2 = *doc;
+  process_(d2, result);
+  return result;
+}
+
+
 UniquePointer<ProcessedDocument> DocumentProcessor::processUnique(const Document &doc) {
   ProcessedDocument *result = new ProcessedDocument(doc.id);
   process_(doc, result);

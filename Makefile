@@ -2,21 +2,20 @@ CXX=clang++-3.5
 CC=clang-3.5
 CFLAGS=-I./src --std=c99
 CXX_FLAGS=--std=c++14 -stdlib=libstdc++ -I./src -I./external/gmock-1.7.0/include -I./external/gtest-1.7.0/include -O0
-LINK=-lthriftcpp2 -lthrift -lwangle -lfolly -lrocksdb -lglog -lz -lsnappy -llz4 -lbz2 -ldouble-conversion -lboost_thread -lboost_system -ljemalloc -latomic -pthread
+LINK=-lthriftcpp2 -lthrift -lwangle -lfolly -lrocksdb -lmitie -lglog -lz -lsnappy -llz4 -lbz2 -ldouble-conversion -lboost_thread -lboost_system -ljemalloc -latomic -pthread
 
 %.o:%.cpp
 	$(CXX) $(CXX_FLAGS) -o $@ -c $<
 
 LIB_OBJ=$(addprefix ./src/, \
+		DocumentProcessingWorker.o \
 		DocumentProcessor.o \
-		ProcessedDocument.o \
 		ThriftRelevanceServer.o \
 		RelevanceServer.o \
-		Centroid.o \
 		CentroidManager.o \
 		CentroidUpdateWorker.o \
 		CentroidUpdater.o \
-		ProcessedCentroid.o \
+		Centroid.o \
 		RelevanceScoreWorker.o \
 		tokenizer/Tokenizer.o \
 		stemmer/PorterStemmer.o \
@@ -27,11 +26,13 @@ LIB_OBJ=$(addprefix ./src/, \
 		persistence/CentroidDBHandle.o \
 		persistence/DocumentDB.o \
 		persistence/DocumentDBHandle.o \
-		persistence/CollectionDB.o \
-		persistence/CollectionDBHandle.o \
+		persistence/ClassifierDB.o \
+		persistence/ClassifierDBHandle.o \
 		persistence/PrefixedRockHandle.o \
 		persistence/InMemoryRockHandle.o \
 		persistence/RockHandle.o \
+		Vocabulary.o \
+		VocabularyBuilder.o \
 		util.o \
 	)
 
@@ -46,13 +47,8 @@ THRIFT_OBJ = $(addprefix ./src/gen-cpp2/, \
 
 MAIN_OBJ=./src/main.o $(LIB_OBJ)
 
-C_OBJ = $(addprefix ./src/, stemmer/porter_stemmer.o)
-gross_c_obj:
-	$(CC) $(CFLAGS) -o ./src/stemmer/porter_stemmer.o -c ./src/stemmer/porter_stemmer.c
-
-.PHONY: gross_c_obj
-relevanced: $(MAIN_OBJ) $(THRIFT_OBJ) gross_c_obj
-	$(CXX) $(CXX_FLAGS) -o $@ $(MAIN_OBJ) $(C_OBJ) $(THRIFT_OBJ) $(LINK)
+relevanced: $(MAIN_OBJ) $(THRIFT_OBJ)
+	$(CXX) $(CXX_FLAGS) -o $@ $(MAIN_OBJ) $(THRIFT_OBJ) $(LINK)
 
 run: relevanced
 	./relevanced
@@ -66,9 +62,16 @@ thrift:
 	python -m thrift_compiler.main --gen cpp2 -o src src/TextRelevance.thrift
 
 thrift-py:
-	thrift1 --gen py -o ./clients/python/relevanced_client src/TextRelevance.thrift
+	thrift-0.9 --gen py -o ./clients/python/relevanced_client src/TextRelevance.thrift
 	rm -rf ./clients/python/relevanced_client/gen_py
 	mv ./clients/python/relevanced_client/gen-py ./clients/python/relevanced_client/gen_py
+
+thrift-node:
+	thrift-0.9 --gen js:node -o ./clients/nodejs/relevancedClient src/TextRelevance.thrift
+
+thrift-rb:
+	thrift-0.9 --gen rb -o ./clients/ruby/relevanced_client src/TextRelevance.thrift
+
 
 .PHONY: proc
 
@@ -95,13 +98,13 @@ UNIT_TEST_OBJ = $(addprefix ./src/test_unit/, \
 		test_DocumentProcessor.o \
 		test_CentroidDBHandle.o \
 		test_DocumentDBHandle.o \
-		test_CollectionDBHandle.o \
+		test_ClassifierDBHandle.o \
 		test_InMemoryRockHandle.o \
 		runTests.o \
 	)
 
-unit_test_runner: $(UNIT_TEST_OBJ) $(LIB_OBJ) $(C_OBJ) $(THRIFT_OBJ)
-	$(CXX) $(CXX_FLAGS) -o $@ $(UNIT_TEST_OBJ) $(C_OBJ) $(THRIFT_OBJ) $(LIB_OBJ) $(GTEST_LIB) $(GMOCK_LIB) $(LINK)
+unit_test_runner: $(UNIT_TEST_OBJ) $(LIB_OBJ) $(THRIFT_OBJ)
+	$(CXX) $(CXX_FLAGS) -o $@ $(UNIT_TEST_OBJ) $(THRIFT_OBJ) $(LIB_OBJ) $(GTEST_LIB) $(GMOCK_LIB) $(LINK)
 
 test-unit: unit_test_runner
 	./unit_test_runner

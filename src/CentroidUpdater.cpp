@@ -41,21 +41,21 @@ void CentroidUpdater::initialize() {
   });
 }
 
-Future<bool> CentroidUpdater::update(const string &collectionId) {
-  return threadPool_->addFuture([this, collectionId](){
-    CentroidUpdateWorker worker(persistence_, collectionId);
+Future<bool> CentroidUpdater::update(const string &classifierId) {
+  return threadPool_->addFuture([this, classifierId](){
+    CentroidUpdateWorker worker(persistence_, classifierId);
     bool result = worker.run();
-    makeFuture(collectionId).delayed(chrono::milliseconds(50)).then([this](string collId) {
+    makeFuture(classifierId).delayed(chrono::milliseconds(50)).then([this](string collId) {
       this->echoUpdated(collId);
     });
     return result;
   });
 }
 
-void CentroidUpdater::echoUpdated(const string &collectionId) {
+void CentroidUpdater::echoUpdated(const string &classifierId) {
   SYNCHRONIZED(updateCallbacks_) {
     for (auto &cb: updateCallbacks_) {
-      cb(collectionId);
+      cb(classifierId);
     }
   }
 }
@@ -64,6 +64,6 @@ void CentroidUpdater::onUpdate(function<void (const string&)> callback) {
   updateCallbacks_->push_back(std::move(callback));
 }
 
-void CentroidUpdater::triggerUpdate(const string &collectionId) {
-  updateQueue_->write(collectionId);
+void CentroidUpdater::triggerUpdate(const string &classifierId) {
+  updateQueue_->write(classifierId);
 }
