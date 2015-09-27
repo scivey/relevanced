@@ -10,6 +10,8 @@ using namespace std;
 using util::UniquePointer;
 
 void DocumentProcessor::process_(const Document &doc, ProcessedDocument *result) {
+  // computes normalized frequency for each term in the document:
+  // raw frequency divided by total number of (non-stopword) terms
   map<string, double> wordCounts;
   size_t totalWords;
   for (auto &word: tokenizer_->tokenize(doc.text)) {
