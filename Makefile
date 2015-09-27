@@ -96,6 +96,7 @@ UNIT_TEST_OBJ = $(addprefix ./src/test_unit/, \
 		test_CentroidDBHandle.o \
 		test_DocumentDBHandle.o \
 		test_CollectionDBHandle.o \
+		test_InMemoryRockHandle.o \
 		runTests.o \
 	)
 
