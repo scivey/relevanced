@@ -14,7 +14,7 @@
 #include <rocksdb/utilities/optimistic_transaction.h>
 #include <rocksdb/utilities/optimistic_transaction_db.h>
 #include <folly/Format.h>
-#include "ColonPrefixedRockHandle.h"
+#include "PrefixedRockHandle.h"
 
 using namespace std;
 using namespace folly;
@@ -48,7 +48,7 @@ public:
   }
 };
 
-ColonPrefixedRockHandle::ColonPrefixedRockHandle(string dbPath): dbPath_(dbPath) {
+PrefixedRockHandle::PrefixedRockHandle(string dbPath): dbPath_(dbPath) {
   options_.IncreaseParallelism();
   options_.OptimizeLevelStyleCompaction();
   options_.create_if_missing = true;
@@ -66,36 +66,36 @@ ColonPrefixedRockHandle::ColonPrefixedRockHandle(string dbPath): dbPath_(dbPath)
   db_ = txnDb_->GetBaseDB();
 }
 
-bool ColonPrefixedRockHandle::put(string key, string val) {
+bool PrefixedRockHandle::put(string key, string val) {
   auto status = db_->Put(writeOptions_, key, val);
   return status.ok();
 }
 
-bool ColonPrefixedRockHandle::put(string key, rocksdb::Slice val) {
+bool PrefixedRockHandle::put(string key, rocksdb::Slice val) {
   auto status = db_->Put(writeOptions_, key, val);
   assert(status.ok());
   return true;
 }
 
-string ColonPrefixedRockHandle::get(const string &key) {
+string PrefixedRockHandle::get(const string &key) {
   string val;
   auto status = db_->Get(readOptions_, key, &val);
   assert(status.ok());
   return val;
 }
 
-bool ColonPrefixedRockHandle::get(const string &key, string &result) {
+bool PrefixedRockHandle::get(const string &key, string &result) {
   auto status = db_->Get(readOptions_, key, &result);
   return status.ok();
 }
 
-bool ColonPrefixedRockHandle::exists(const string &key) {
+bool PrefixedRockHandle::exists(const string &key) {
   string val;
   auto status = db_->Get(readOptions_, key, &val);
   return !status.IsNotFound();
 }
 
-bool ColonPrefixedRockHandle::del(const string &key) {
+bool PrefixedRockHandle::del(const string &key) {
   if (!exists(key)) {
     return false;
   }
@@ -103,7 +103,7 @@ bool ColonPrefixedRockHandle::del(const string &key) {
   return true;
 }
 
-bool ColonPrefixedRockHandle::iter(const string &start, const string &end, function<void (rocksdb::Iterator*, function<void()>)> iterFn) {
+bool PrefixedRockHandle::iterRange(const string &start, const string &end, function<void (rocksdb::Iterator*, function<void()>)> iterFn) {
     rocksdb::Iterator *it = db_->NewIterator(readOptions_);
     bool foundAny = false;
     bool stop = false;
@@ -122,10 +122,16 @@ bool ColonPrefixedRockHandle::iter(const string &start, const string &end, funct
     return foundAny;
 }
 
-bool ColonPrefixedRockHandle::iterPrefix(const string &prefix, function<void (rocksdb::Iterator*, function<void()>)> iterFn) {
+bool PrefixedRockHandle::iterPrefix(const string &prefix, function<void (rocksdb::Iterator*, function<void()>)> iterFn) {
     string start = prefix + ":";
     string end = prefix + ";";
-    return iter(start, end, iterFn);
+    return iterRange(start, end, iterFn);
+}
+
+bool PrefixedRockHandle::iterAll(function<void (rocksdb::Iterator*, function<void()>)> iterFn) {
+    string start = "a";
+    string end = "zzz";
+    return iterRange(start, end, iterFn);
 }
 
 } // persistence

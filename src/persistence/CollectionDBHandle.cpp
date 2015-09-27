@@ -1,6 +1,6 @@
 #include "CollectionDBHandle.h"
 #include "util.h"
-#include "ColonPrefixedRockHandle.h"
+#include "PrefixedRockHandle.h"
 #include "RockHandle.h"
 #include <string>
 #include <vector>
@@ -17,10 +17,13 @@ using util::UniquePointer;
 
 namespace persistence {
 
-CollectionDBHandle::CollectionDBHandle(UniquePointer<ColonPrefixedRockHandle> collectionDocsHandle, UniquePointer<RockHandleIf> collectionListHandle):
+CollectionDBHandle::CollectionDBHandle(UniquePointer<RockHandleIf> collectionDocsHandle, UniquePointer<RockHandleIf> collectionListHandle):
   collectionDocsHandle_(std::move(collectionDocsHandle)), collectionListHandle_(std::move(collectionListHandle)) {}
 
 bool CollectionDBHandle::addDocToCollection(const string &collId, const string &docId, bool isPositive) {
+  if (!doesCollectionExist(collId)) {
+    return false;
+  }
   string key = sformat("{}:{}", collId, docId);
   int iVal = 0;
   if (isPositive) {
@@ -31,10 +34,6 @@ bool CollectionDBHandle::addDocToCollection(const string &collId, const string &
     return false;
   }
   assert(collectionDocsHandle_->put(key, value));
-  return true;
-}
-
-bool CollectionDBHandle::ensureTables() {
   return true;
 }
 

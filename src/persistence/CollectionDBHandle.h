@@ -7,7 +7,7 @@
 #include <sstream>
 #include <folly/Format.h>
 #include <glog/logging.h>
-#include "ColonPrefixedRockHandle.h"
+#include "PrefixedRockHandle.h"
 #include "RockHandle.h"
 
 #include "util.h"
@@ -16,7 +16,6 @@ namespace persistence {
 
 class CollectionDBHandleIf {
 public:
-  virtual bool ensureTables() = 0;
   virtual bool doesCollectionExist(const std::string&) = 0;
   virtual bool createCollection(const std::string&) = 0;
   virtual bool doesCollectionHaveDoc(const std::string&, const std::string&) = 0;
@@ -35,12 +34,11 @@ public:
 
 class CollectionDBHandle: public CollectionDBHandleIf {
 protected:
-  util::UniquePointer<ColonPrefixedRockHandle> collectionDocsHandle_;
+  util::UniquePointer<RockHandleIf> collectionDocsHandle_;
   util::UniquePointer<RockHandleIf> collectionListHandle_;
   bool addDocToCollection(const std::string&, const std::string&, bool isPositive);
 public:
-  CollectionDBHandle(util::UniquePointer<ColonPrefixedRockHandle>, util::UniquePointer<RockHandleIf>);
-  bool ensureTables() override;
+  CollectionDBHandle(util::UniquePointer<RockHandleIf>, util::UniquePointer<RockHandleIf>);
   bool doesCollectionExist(const std::string&) override;
   bool createCollection(const std::string&) override;
   bool doesCollectionHaveDoc(const std::string&, const std::string&) override;

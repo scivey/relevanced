@@ -1,14 +1,13 @@
 CXX=clang++-3.5
 CC=clang-3.5
 CFLAGS=-I./src --std=c99
-CXX_FLAGS=--std=c++14 -stdlib=libstdc++ -I./src
+CXX_FLAGS=--std=c++14 -stdlib=libstdc++ -I./src -I./external/gmock-1.7.0/include -I./external/gtest-1.7.0/include -O0
 LINK=-lthriftcpp2 -lthrift -lwangle -lfolly -lrocksdb -lglog -lz -lsnappy -llz4 -lbz2 -ldouble-conversion -lboost_thread -lboost_system -ljemalloc -latomic -pthread
 
 %.o:%.cpp
 	$(CXX) $(CXX_FLAGS) -o $@ -c $<
 
-OBJ=$(addprefix ./src/, \
-		main.o \
+LIB_OBJ=$(addprefix ./src/, \
 		DocumentProcessor.o \
 		ProcessedDocument.o \
 		ThriftRelevanceServer.o \
@@ -32,7 +31,8 @@ OBJ=$(addprefix ./src/, \
 		persistence/CollectionDB.o \
 		persistence/CollectionDBHandle.o \
 		persistence/CollectionDBCache.o \
-		persistence/ColonPrefixedRockHandle.o \
+		persistence/PrefixedRockHandle.o \
+		persistence/InMemoryRockHandle.o \
 		persistence/RockHandle.o \
 		util.o \
 	)
@@ -46,13 +46,15 @@ THRIFT_OBJ = $(addprefix ./src/gen-cpp2/, \
 		TextRelevance_types.o \
 	)
 
+MAIN_OBJ=./src/main.o $(LIB_OBJ)
+
 C_OBJ = $(addprefix ./src/, stemmer/porter_stemmer.o)
 gross_c_obj:
 	$(CC) $(CFLAGS) -o ./src/stemmer/porter_stemmer.o -c ./src/stemmer/porter_stemmer.c
 
 .PHONY: gross_c_obj
-relevanced: $(OBJ) $(THRIFT_OBJ) gross_c_obj
-	$(CXX) $(CXX_FLAGS) -o $@ $(OBJ) $(C_OBJ) $(THRIFT_OBJ) $(LINK)
+relevanced: $(MAIN_OBJ) $(THRIFT_OBJ) gross_c_obj
+	$(CXX) $(CXX_FLAGS) -o $@ $(MAIN_OBJ) $(C_OBJ) $(THRIFT_OBJ) $(LINK)
 
 run: relevanced
 	./relevanced
@@ -80,3 +82,30 @@ build-docker-relevanced:
 
 GTEST_LIB = ./external/gtest-1.7.0-min/gtest-all.o
 GMOCK_LIB = ./external/gmock-1.7.0/src/gmock-all.o
+
+$(GMOCK_LIB): ./external/gmock-1.7.0/src/gmock.cc
+	cd ./external/gmock-1.7.0 && autoreconf -ifv && ./configure && make lib/libgmock_main.la
+
+$(GTEST_LIB): ./external/gtest-1.7.0-min/src/gtest_main.cc
+	cd ./external/gtest-1.7.0-min && make libgtest.a
+
+UNIT_TEST_OBJ = $(addprefix ./src/test_unit/, \
+		test_PorterStemmer.o \
+		test_DocumentSerialization.o \
+		test_StopwordFilter.o \
+		test_Tokenizer.o \
+		test_DocumentProcessor.o \
+		test_CentroidDBHandle.o \
+		test_DocumentDBHandle.o \
+		test_CollectionDBHandle.o \
+		runTests.o \
+	)
+
+unit_test_runner: $(UNIT_TEST_OBJ) $(LIB_OBJ) $(C_OBJ) $(THRIFT_OBJ)
+	$(CXX) $(CXX_FLAGS) -o $@ $(UNIT_TEST_OBJ) $(C_OBJ) $(THRIFT_OBJ) $(LIB_OBJ) $(GTEST_LIB) $(GMOCK_LIB) $(LINK)
+
+test-unit: unit_test_runner
+	./unit_test_runner
+
+clean-test:
+	rm -f src/test_unit/*.o

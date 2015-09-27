@@ -30,6 +30,7 @@ public:
   virtual bool exists(const std::string &key) = 0;
   virtual bool del(const std::string &key) = 0;
   virtual bool iterRange(const std::string &start, const std::string &end, std::function<void (rocksdb::Iterator *it, std::function<void()>)> iterFn) = 0;
+  virtual bool iterPrefix(const std::string &start, std::function<void (rocksdb::Iterator *it, std::function<void()>)> iterFn) = 0;
   virtual bool iterAll(std::function<void (rocksdb::Iterator *it, std::function<void()>)> iterFn) = 0;
   virtual ~RockHandleIf() = default;
 };
@@ -51,6 +52,7 @@ public:
   bool exists(const std::string &key) override;
   bool del(const std::string &key) override;
   bool iterRange(const std::string &start, const std::string &end, std::function<void (rocksdb::Iterator *it, std::function<void()>)> iterFn) override;
+  bool iterPrefix(const std::string &start, std::function<void (rocksdb::Iterator *it, std::function<void()>)> iterFn) override;
   bool iterAll(std::function<void (rocksdb::Iterator *it, std::function<void()>)> iterFn) override;
 };
 

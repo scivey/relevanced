@@ -84,6 +84,12 @@ bool RockHandle::iterRange(const string &start, const string &end, function<void
   return foundAny;
 }
 
+bool RockHandle::iterPrefix(const string &prefix, function<void (rocksdb::Iterator*, function<void()>)> iterFn) {
+    string start = prefix + ":";
+    string end = prefix + ";";
+    return iterRange(start, end, iterFn);
+}
+
 bool RockHandle::iterAll(function<void (rocksdb::Iterator*, function<void()>)> iterFn) {
   return iterRange("a", "zzzzz", iterFn);
 }

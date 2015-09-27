@@ -12,7 +12,7 @@
 #include "DocumentProcessor.h"
 #include "persistence/PersistenceService.h"
 #include "persistence/RockHandle.h"
-#include "persistence/ColonPrefixedRockHandle.h"
+#include "persistence/PrefixedRockHandle.h"
 #include "ProcessedDocument.h"
 #include "serialization/serializers.h"
 #include "persistence/CollectionDB.h"
@@ -49,6 +49,7 @@ namespace builders {
 namespace detail {
 
 template<typename RockHandleT,
+  typename PrefixedRockT,
   typename CentroidDBHandleT,
   typename CentroidDBT,
   typename CollectionDBHandleT,
@@ -93,15 +94,14 @@ shared_ptr<PersistenceServiceIf> buildPersistence(const string &dataDir) {
     (RockHandleIf*) new RockHandleT(collectionDir)
   );
   string collectionDocsDir = dataDir + "/collection_docs_rock";
-  UniquePointer<ColonPrefixedRockHandle> collectionDocumentsRock(
-    new ColonPrefixedRockHandle(collectionDocsDir)
+  UniquePointer<RockHandleIf> collectionDocumentsRock(
+    new PrefixedRockT(collectionDocsDir)
   );
   UniquePointer<CollectionDBHandleIf> collDbHandle(
     (CollectionDBHandleIf*) new CollectionDBHandleT(
       std::move(collectionDocumentsRock), std::move(collectionListRock)
     )
   );
-  collDbHandle->ensureTables();
   shared_ptr<CollectionDBIf> collDb(
     (CollectionDBIf*) new CollectionDBT(
       std::move(collDbHandle),
@@ -178,6 +178,7 @@ public:
   ServerBuilder(shared_ptr<RelevanceServerOptions> options): options_(options) {}
 
   template<typename RockHandleT,
+    typename PrefixedRockT,
     typename CentroidDBHandleT,
     typename CentroidDBT,
     typename CollectionDBHandleT,
@@ -188,7 +189,7 @@ public:
   >
   void buildPersistence() {
     persistence_ = detail::buildPersistence<
-      RockHandleT, CentroidDBHandleT, CentroidDBT,
+      RockHandleT, PrefixedRockT, CentroidDBHandleT, CentroidDBT,
       CollectionDBHandleT, CollectionDBT,
       DocumentDBHandleT, DocumentDBT, PersistenceServiceT
     >(options_->dataDir);

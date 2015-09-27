@@ -62,6 +62,10 @@ namespace serialization {
     static void deserialize(unsigned char *bytes, ProcessedDocument &result) {
       ByteReader reader(bytes);
       reader.readString(result.id);
+      auto extra = result.id.find('|');
+      if (extra != string::npos) {
+        result.id.erase(extra);
+      }
       while (!reader.isFinished()) {
         string key;
         reader.readString(key);

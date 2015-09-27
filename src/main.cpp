@@ -3,28 +3,31 @@
 #include <chrono>
 
 #include <glog/logging.h>
-#include "stopwords/StopwordFilter.h"
-#include "tokenizer/Tokenizer.h"
-#include "stemmer/StemmerIf.h"
-#include "stemmer/PorterStemmer.h"
+
 #include "DocumentProcessor.h"
-#include "RelevanceServerOptions.h"
-#include "persistence/PersistenceService.h"
-#include "persistence/RockHandle.h"
-#include "persistence/ColonPrefixedRockHandle.h"
-#include "ProcessedDocument.h"
-#include "serialization/serializers.h"
-#include "persistence/CollectionDB.h"
-#include "persistence/CollectionDBHandle.h"
-#include "RelevanceServer.h"
-#include "ThriftRelevanceServer.h"
-#include "persistence/DocumentDB.h"
-#include "persistence/DocumentDBHandle.h"
 #include "persistence/CentroidDB.h"
 #include "persistence/CentroidDBHandle.h"
-#include "util.h"
+#include "persistence/CollectionDB.h"
+#include "persistence/CollectionDBHandle.h"
+#include "persistence/DocumentDB.h"
+#include "persistence/DocumentDBHandle.h"
+#include "persistence/PersistenceService.h"
+#include "persistence/PrefixedRockHandle.h"
+#include "persistence/RockHandle.h"
+
+#include "ProcessedDocument.h"
 #include "RelevanceScoreWorker.h"
+#include "RelevanceServer.h"
+#include "RelevanceServerOptions.h"
+#include "serialization/serializers.h"
 #include "ServerBuilder.h"
+#include "stemmer/PorterStemmer.h"
+#include "stemmer/StemmerIf.h"
+#include "stopwords/StopwordFilter.h"
+#include "ThriftRelevanceServer.h"
+#include "tokenizer/Tokenizer.h"
+#include "util.h"
+
 #include <wangle/concurrent/CPUThreadPoolExecutor.h>
 #include <wangle/concurrent/FutureExecutor.h>
 #include <folly/futures/Future.h>
@@ -48,7 +51,7 @@ int main() {
     );
     builders::ServerBuilder builder(options);
     builder.buildPersistence<
-      RockHandle, CentroidDBHandle, CentroidDB,
+      RockHandle, PrefixedRockHandle, CentroidDBHandle, CentroidDB,
       CollectionDBHandle, CollectionDB, DocumentDBHandle,
       DocumentDB, PersistenceService
     >();
