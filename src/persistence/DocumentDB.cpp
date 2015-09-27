@@ -8,7 +8,6 @@
 #include <folly/futures/helpers.h>
 #include <folly/Optional.h>
 #include "DocumentDB.h"
-#include "DocumentDBCache.h"
 #include "DocumentDBHandle.h"
 #include "RockHandle.h"
 #include "ProcessedDocument.h"
@@ -20,27 +19,17 @@ using util::UniquePointer;
 namespace persistence {
 
 DocumentDB::DocumentDB(UniquePointer<DocumentDBHandleIf> dbHandle, shared_ptr<FutureExecutor<CPUThreadPoolExecutor>> threadPool)
-  : dbHandle_(std::move(dbHandle)), threadPool_(threadPool){
-    dbCache_ = make_shared<DocumentDBCache>();
-}
+  : dbHandle_(std::move(dbHandle)), threadPool_(threadPool){}
 
 void DocumentDB::initialize() {}
 
 Future<bool> DocumentDB::doesDocumentExist(const string &docId) {
-  if (dbCache_->exists(docId)) {
-    return makeFuture(true);
-  }
   return threadPool_->addFuture([this, docId](){
-    bool exists = dbHandle_->doesDocumentExist(docId);
-    if (exists) {
-      dbCache_->add(docId);
-    }
-    return exists;
+    return dbHandle_->doesDocumentExist(docId);
   });
 }
 
 Future<bool> DocumentDB::deleteDocument(const string &docId) {
-  dbCache_->remove(docId);
   threadPool_->addFuture([this, docId](){
     dbHandle_->deleteDocument(docId);
   });
@@ -48,7 +37,6 @@ Future<bool> DocumentDB::deleteDocument(const string &docId) {
 }
 
 Future<bool> DocumentDB::saveDocument(ProcessedDocument *doc) {
-  dbCache_->add(doc->id);
   threadPool_->addFuture([this, doc](){
     dbHandle_->saveDocument(doc);
   });
@@ -56,7 +44,6 @@ Future<bool> DocumentDB::saveDocument(ProcessedDocument *doc) {
 }
 
 Future<bool> DocumentDB::saveDocument(shared_ptr<ProcessedDocument> doc) {
-  dbCache_->add(doc->id);
   threadPool_->addFuture([this, doc](){
     dbHandle_->saveDocument(doc);
   });

@@ -104,7 +104,7 @@ TEST(CollectionDBHandle, CreateCollectionDoesNotExist) {
   EXPECT_TRUE(listMockRock.get("collection") != "");
 }
 
-TEST(CollectionDBHandle, DoesCollectionHaveDocTrue) {
+TEST(CollectionDBHandle, DoesCollectionHaveDocumentTrue) {
   InMemoryRockHandle docMockRock("doc");
   UniquePointer<RockHandleIf> docRockHandle(
     &docMockRock, NonDeleter<RockHandleIf>()
@@ -121,10 +121,10 @@ TEST(CollectionDBHandle, DoesCollectionHaveDocTrue) {
     std::move(listRockHandle)
   );
 
-  EXPECT_TRUE(dbHandle.doesCollectionHaveDoc("collection_id", "document_id"));
+  EXPECT_TRUE(dbHandle.doesCollectionHaveDocument("collection_id", "document_id"));
 }
 
-TEST(CollectionDBHandle, DoesCollectionHaveDocFalse) {
+TEST(CollectionDBHandle, DoesCollectionHaveDocumentFalse) {
   InMemoryRockHandle docMockRock("doc");
   UniquePointer<RockHandleIf> docRockHandle(
     &docMockRock, NonDeleter<RockHandleIf>()
@@ -139,10 +139,10 @@ TEST(CollectionDBHandle, DoesCollectionHaveDocFalse) {
     std::move(listRockHandle)
   );
 
-  EXPECT_FALSE(dbHandle.doesCollectionHaveDoc("collection_id", "document_id"));
+  EXPECT_FALSE(dbHandle.doesCollectionHaveDocument("collection_id", "document_id"));
 }
 
-TEST(CollectionDBHandle, AddPositiveDocToCollectionHappy) {
+TEST(CollectionDBHandle, AddPositiveDocumentToCollectionHappy) {
   InMemoryRockHandle docMockRock("doc");
   UniquePointer<RockHandleIf> docRockHandle(
     &docMockRock, NonDeleter<RockHandleIf>()
@@ -159,11 +159,11 @@ TEST(CollectionDBHandle, AddPositiveDocToCollectionHappy) {
     std::move(docRockHandle),
     std::move(listRockHandle)
   );
-  EXPECT_TRUE(dbHandle.addPositiveDocToCollection("collection_id", "document_id"));
+  EXPECT_TRUE(dbHandle.addPositiveDocumentToCollection("collection_id", "document_id"));
   EXPECT_EQ("1", docMockRock.get("collection_id:document_id"));
 }
 
-TEST(CollectionDBHandle, AddPositiveDocToCollectionMissingCollection) {
+TEST(CollectionDBHandle, AddPositiveDocumentToCollectionMissingCollection) {
   InMemoryRockHandle docMockRock("doc");
   UniquePointer<RockHandleIf> docRockHandle(
     &docMockRock, NonDeleter<RockHandleIf>()
@@ -178,11 +178,11 @@ TEST(CollectionDBHandle, AddPositiveDocToCollectionMissingCollection) {
     std::move(docRockHandle),
     std::move(listRockHandle)
   );
-  EXPECT_FALSE(dbHandle.addPositiveDocToCollection("collection_id", "document_id"));
+  EXPECT_FALSE(dbHandle.addPositiveDocumentToCollection("collection_id", "document_id"));
   EXPECT_FALSE(docMockRock.exists("collection_id:document_id"));
 }
 
-TEST(CollectionDBHandle, AddPositiveDocToCollectionAlreadyExists) {
+TEST(CollectionDBHandle, AddPositiveDocumentToCollectionAlreadyExists) {
   InMemoryRockHandle docMockRock("doc");
   UniquePointer<RockHandleIf> docRockHandle(
     &docMockRock, NonDeleter<RockHandleIf>()
@@ -201,11 +201,11 @@ TEST(CollectionDBHandle, AddPositiveDocToCollectionAlreadyExists) {
     std::move(docRockHandle),
     std::move(listRockHandle)
   );
-  EXPECT_FALSE(dbHandle.addPositiveDocToCollection("collection_id", "document_id"));
+  EXPECT_FALSE(dbHandle.addPositiveDocumentToCollection("collection_id", "document_id"));
   EXPECT_EQ("existing_value", docMockRock.get("collection_id:document_id"));
 }
 
-TEST(CollectionDBHandle, AddNegativeDocToCollectionHappy) {
+TEST(CollectionDBHandle, AddNegativeDocumentToCollectionHappy) {
   InMemoryRockHandle docMockRock("doc");
   UniquePointer<RockHandleIf> docRockHandle(
     &docMockRock, NonDeleter<RockHandleIf>()
@@ -222,11 +222,11 @@ TEST(CollectionDBHandle, AddNegativeDocToCollectionHappy) {
     std::move(docRockHandle),
     std::move(listRockHandle)
   );
-  EXPECT_TRUE(dbHandle.addNegativeDocToCollection("collection_id", "document_id"));
+  EXPECT_TRUE(dbHandle.addNegativeDocumentToCollection("collection_id", "document_id"));
   EXPECT_EQ("0", docMockRock.get("collection_id:document_id"));
 }
 
-TEST(CollectionDBHandle, AddNegativeDocToCollectionMissingCollection) {
+TEST(CollectionDBHandle, AddNegativeDocumentToCollectionMissingCollection) {
   InMemoryRockHandle docMockRock("doc");
   UniquePointer<RockHandleIf> docRockHandle(
     &docMockRock, NonDeleter<RockHandleIf>()
@@ -241,11 +241,11 @@ TEST(CollectionDBHandle, AddNegativeDocToCollectionMissingCollection) {
     std::move(docRockHandle),
     std::move(listRockHandle)
   );
-  EXPECT_FALSE(dbHandle.addNegativeDocToCollection("collection_id", "document_id"));
+  EXPECT_FALSE(dbHandle.addNegativeDocumentToCollection("collection_id", "document_id"));
   EXPECT_FALSE(docMockRock.exists("collection_id:document_id"));
 }
 
-TEST(CollectionDBHandle, AddNegativeDocToCollectionAlreadyExists) {
+TEST(CollectionDBHandle, AddNegativeDocumentToCollectionAlreadyExists) {
   InMemoryRockHandle docMockRock("doc");
   UniquePointer<RockHandleIf> docRockHandle(
     &docMockRock, NonDeleter<RockHandleIf>()
@@ -264,7 +264,7 @@ TEST(CollectionDBHandle, AddNegativeDocToCollectionAlreadyExists) {
     std::move(docRockHandle),
     std::move(listRockHandle)
   );
-  EXPECT_FALSE(dbHandle.addNegativeDocToCollection("collection_id", "document_id"));
+  EXPECT_FALSE(dbHandle.addNegativeDocumentToCollection("collection_id", "document_id"));
   EXPECT_EQ("existing_value", docMockRock.get("collection_id:document_id"));
 }
 
@@ -285,7 +285,7 @@ TEST(CollectionDBHandle, RemoveDocFromCollectionHappy) {
     std::move(docRockHandle),
     std::move(listRockHandle)
   );
-  EXPECT_TRUE(dbHandle.removeDocFromCollection("collection_id", "document_id"));
+  EXPECT_TRUE(dbHandle.removeDocumentFromCollection("collection_id", "document_id"));
   EXPECT_FALSE(docMockRock.exists("collection_id:document_id"));
 }
 
@@ -303,5 +303,92 @@ TEST(CollectionDBHandle, RemoveDocFromCollectionSadPanda) {
     std::move(docRockHandle),
     std::move(listRockHandle)
   );
-  EXPECT_FALSE(dbHandle.removeDocFromCollection("collection_id", "document_id"));
+  EXPECT_FALSE(dbHandle.removeDocumentFromCollection("collection_id", "document_id"));
+}
+
+TEST(CollectionDBHandle, ListCollections) {
+  InMemoryRockHandle docMockRock("doc");
+  UniquePointer<RockHandleIf> docRockHandle(
+    &docMockRock, NonDeleter<RockHandleIf>()
+  );
+  InMemoryRockHandle listMockRock("list");
+  UniquePointer<RockHandleIf> listRockHandle(
+    &listMockRock, NonDeleter<RockHandleIf>()
+  );
+  string anything {"anything"};
+  listMockRock.put("coll1", anything);
+  listMockRock.put("coll2", anything);
+  listMockRock.put("coll3", anything);
+  CollectionDBHandle dbHandle(
+    std::move(docRockHandle),
+    std::move(listRockHandle)
+  );
+  auto collections = dbHandle.listCollections();
+  EXPECT_EQ(3, collections.size());
+  EXPECT_EQ("coll1", collections.at(0));
+  EXPECT_EQ("coll2", collections.at(1));
+  EXPECT_EQ("coll3", collections.at(2));
+}
+
+TEST(CollectionDBHandle, ListCollectionsEmpty) {
+  InMemoryRockHandle docMockRock("doc");
+  UniquePointer<RockHandleIf> docRockHandle(
+    &docMockRock, NonDeleter<RockHandleIf>()
+  );
+  InMemoryRockHandle listMockRock("list");
+  UniquePointer<RockHandleIf> listRockHandle(
+    &listMockRock, NonDeleter<RockHandleIf>()
+  );
+  CollectionDBHandle dbHandle(
+    std::move(docRockHandle),
+    std::move(listRockHandle)
+  );
+  auto collections = dbHandle.listCollections();
+  EXPECT_EQ(0, collections.size());
+}
+
+TEST(CollectionDBHandle, ListCollectionDocuments) {
+  InMemoryRockHandle docMockRock("doc");
+  UniquePointer<RockHandleIf> docRockHandle(
+    &docMockRock, NonDeleter<RockHandleIf>()
+  );
+  InMemoryRockHandle listMockRock("list");
+  UniquePointer<RockHandleIf> listRockHandle(
+    &listMockRock, NonDeleter<RockHandleIf>()
+  );
+  string anything {"1"};
+  listMockRock.put("coll1", anything);
+  docMockRock.put("coll1:doc1", anything);
+  docMockRock.put("coll1:doc2", anything);
+  docMockRock.put("coll1:doc3", anything);
+  docMockRock.put("coll1:doc4", anything);
+  CollectionDBHandle dbHandle(
+    std::move(docRockHandle),
+    std::move(listRockHandle)
+  );
+  auto documents = dbHandle.listCollectionDocuments("coll1");
+  EXPECT_EQ(4, documents.size());
+  EXPECT_EQ("doc1", documents.at(0));
+  EXPECT_EQ("doc2", documents.at(1));
+  EXPECT_EQ("doc3", documents.at(2));
+  EXPECT_EQ("doc4", documents.at(3));
+}
+
+TEST(CollectionDBHandle, ListCollectionDocumentsEmpty) {
+  InMemoryRockHandle docMockRock("doc");
+  UniquePointer<RockHandleIf> docRockHandle(
+    &docMockRock, NonDeleter<RockHandleIf>()
+  );
+  InMemoryRockHandle listMockRock("list");
+  UniquePointer<RockHandleIf> listRockHandle(
+    &listMockRock, NonDeleter<RockHandleIf>()
+  );
+  string anything {"1"};
+  listMockRock.put("coll1", anything);
+  CollectionDBHandle dbHandle(
+    std::move(docRockHandle),
+    std::move(listRockHandle)
+  );
+  auto documents = dbHandle.listCollectionDocuments("coll1");
+  EXPECT_EQ(0, documents.size());
 }

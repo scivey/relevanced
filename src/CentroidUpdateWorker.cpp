@@ -37,11 +37,11 @@ bool CentroidUpdateWorker::run() {
   vector<shared_ptr<ProcessedDocument>> goodDocs;
   vector<shared_ptr<ProcessedDocument>> allDocs;
   LOG(INFO) << "listing positive docs.";
-  for (auto &id: collectionDb->listPositiveCollectionDocs(collectionId_).get()) {
+  for (auto &id: collectionDb->listPositiveCollectionDocuments(collectionId_).get()) {
     auto doc = documentDb->loadDocumentShared(id).get();
     if (!doc.hasValue()) {
       LOG(INFO) << "missing document: " << id;
-      collectionDb->removeDocFromCollection(collectionId_, id);
+      collectionDb->removeDocumentFromCollection(collectionId_, id);
     } else {
       allDocs.push_back(doc.value());
       goodDocs.push_back(doc.value());
@@ -49,12 +49,12 @@ bool CentroidUpdateWorker::run() {
   }
   LOG(INFO) << "listing negative docs.";
   size_t negCount = 0;
-  for (auto &id: collectionDb->listNegativeCollectionDocs(collectionId_).get()) {
+  for (auto &id: collectionDb->listNegativeCollectionDocuments(collectionId_).get()) {
     negCount++;
     auto doc = documentDb->loadDocumentShared(id).get();
     if (!doc.hasValue()) {
       LOG(INFO) << "missing document: " << id;
-      collectionDb->removeDocFromCollection(collectionId_, id);
+      collectionDb->removeDocumentFromCollection(collectionId_, id);
     } else {
       allDocs.push_back(doc.value());
     }

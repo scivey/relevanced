@@ -18,16 +18,16 @@ class CollectionDBHandleIf {
 public:
   virtual bool doesCollectionExist(const std::string&) = 0;
   virtual bool createCollection(const std::string&) = 0;
-  virtual bool doesCollectionHaveDoc(const std::string&, const std::string&) = 0;
-  virtual bool addPositiveDocToCollection(const std::string &collectionId, const std::string &docId) = 0;
-  virtual bool addNegativeDocToCollection(const std::string &collectionId, const std::string &docId) = 0;
-  virtual bool removeDocFromCollection(const std::string &collectionId, const std::string &docId) = 0;
+  virtual bool doesCollectionHaveDocument(const std::string&, const std::string&) = 0;
+  virtual bool addPositiveDocumentToCollection(const std::string &collectionId, const std::string &docId) = 0;
+  virtual bool addNegativeDocumentToCollection(const std::string &collectionId, const std::string &docId) = 0;
+  virtual bool removeDocumentFromCollection(const std::string &collectionId, const std::string &docId) = 0;
   virtual bool deleteCollection(const std::string &collectionId) = 0;
   virtual std::vector<std::string> listCollections() = 0;
-  virtual int getCollectionDocCount(const std::string &collectionId) = 0;
-  virtual std::vector<std::string> listCollectionDocs(const std::string &collectionId) = 0;
-  virtual std::vector<std::string> listPositiveCollectionDocs(const std::string &collectionId) = 0;
-  virtual std::vector<std::string> listNegativeCollectionDocs(const std::string &collectionId) = 0;
+  virtual int getCollectionDocumentCount(const std::string &collectionId) = 0;
+  virtual std::vector<std::string> listCollectionDocuments(const std::string &collectionId) = 0;
+  virtual std::vector<std::string> listPositiveCollectionDocuments(const std::string &collectionId) = 0;
+  virtual std::vector<std::string> listNegativeCollectionDocuments(const std::string &collectionId) = 0;
   virtual std::vector<std::string> listKnownDocuments() = 0;
   virtual ~CollectionDBHandleIf() = default;
 };
@@ -36,21 +36,21 @@ class CollectionDBHandle: public CollectionDBHandleIf {
 protected:
   util::UniquePointer<RockHandleIf> collectionDocsHandle_;
   util::UniquePointer<RockHandleIf> collectionListHandle_;
-  bool addDocToCollection(const std::string&, const std::string&, bool isPositive);
+  bool addDocumentToCollection(const std::string&, const std::string&, bool isPositive);
 public:
   CollectionDBHandle(util::UniquePointer<RockHandleIf>, util::UniquePointer<RockHandleIf>);
   bool doesCollectionExist(const std::string&) override;
   bool createCollection(const std::string&) override;
-  bool doesCollectionHaveDoc(const std::string&, const std::string&) override;
-  bool addPositiveDocToCollection(const std::string &collectionId, const std::string &docId) override;
-  bool addNegativeDocToCollection(const std::string &collectionId, const std::string &docId) override;
-  bool removeDocFromCollection(const std::string &collectionId, const std::string &docId) override;
+  bool doesCollectionHaveDocument(const std::string&, const std::string&) override;
+  bool addPositiveDocumentToCollection(const std::string &collectionId, const std::string &docId) override;
+  bool addNegativeDocumentToCollection(const std::string &collectionId, const std::string &docId) override;
+  bool removeDocumentFromCollection(const std::string &collectionId, const std::string &docId) override;
   bool deleteCollection(const std::string &collectionId) override;
   std::vector<std::string> listCollections() override;
-  int getCollectionDocCount(const std::string &collectionId) override;
-  std::vector<std::string> listCollectionDocs(const std::string &collectionId) override;
-  std::vector<std::string> listPositiveCollectionDocs(const std::string &collectionId) override;
-  std::vector<std::string> listNegativeCollectionDocs(const std::string &collectionId) override;
+  int getCollectionDocumentCount(const std::string &collectionId) override;
+  std::vector<std::string> listCollectionDocuments(const std::string &collectionId) override;
+  std::vector<std::string> listPositiveCollectionDocuments(const std::string &collectionId) override;
+  std::vector<std::string> listNegativeCollectionDocuments(const std::string &collectionId) override;
   std::vector<std::string> listKnownDocuments() override;
 };
 

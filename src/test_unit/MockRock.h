@@ -16,13 +16,13 @@ public:
   MOCK_METHOD2(get, bool(const string&, string&));
   MOCK_METHOD1(exists, bool(const string&));
   MOCK_METHOD1(del, bool(const string&));
-  bool iterRange(const string &start, const string &end, function<void (rocksdb::Iterator*, function<void()>)> iterFn) override {
+  bool iterRange(const std::string &start, const std::string &end, std::function<void (const std::string&, std::function<void(std::string&)>, std::function<void()>)> iterFn) override {
     return false;
   }
-  bool iterAll(function<void (rocksdb::Iterator*, function<void()>)> iterFn) override {
+  bool iterPrefix(const std::string &prefix, std::function<void (const std::string&, std::function<void(std::string&)>, std::function<void()>)> iterFn) override {
     return false;
   }
-  bool iterPrefix(const string &start, function<void (rocksdb::Iterator*, function<void()>)> iterFn) override {
+  bool iterAll(std::function<void (const std::string&, std::function<void(std::string&)>, std::function<void()>)> iterFn) override {
     return false;
   }
 };

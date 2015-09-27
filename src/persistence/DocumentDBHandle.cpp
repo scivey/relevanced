@@ -79,11 +79,11 @@ Optional<shared_ptr<ProcessedDocument>> DocumentDBHandle::loadDocumentShared(con
 }
 
 vector<string> DocumentDBHandle::listDocuments() {
-  vector<string> output;
-  rockHandle_->iterAll([&output](rocksdb::Iterator *it, function<void()> escape) {
-    output.push_back(it->key().ToString());
+  vector<string> documentIds;
+  rockHandle_->iterAll([&documentIds](const string &key, function<void (string&)> read, function<void()> escape) {
+    documentIds.push_back(key);
   });
-  return output;
+  return documentIds;
 }
 
 } // persistence

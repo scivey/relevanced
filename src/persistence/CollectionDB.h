@@ -8,7 +8,6 @@
 #include <wangle/concurrent/FutureExecutor.h>
 #include <folly/futures/Future.h>
 #include "CollectionDBHandle.h"
-#include "CollectionDBCache.h"
 
 #include "util.h"
 
@@ -25,16 +24,16 @@ public:
     createCollection(const std::string&) = 0;
 
   virtual folly::Future<bool>
-    doesCollectionHaveDoc(const std::string&, const std::string&) = 0;
+    doesCollectionHaveDocument(const std::string&, const std::string&) = 0;
 
   virtual folly::Future<bool>
-    addPositiveDocToCollection(const std::string&, const std::string&) = 0;
+    addPositiveDocumentToCollection(const std::string&, const std::string&) = 0;
 
   virtual folly::Future<bool>
-    addNegativeDocToCollection(const std::string&, const std::string&) = 0;
+    addNegativeDocumentToCollection(const std::string&, const std::string&) = 0;
 
   virtual folly::Future<bool>
-    removeDocFromCollection(const std::string&, const std::string&) = 0;
+    removeDocumentFromCollection(const std::string&, const std::string&) = 0;
 
   virtual folly::Future<bool>
     deleteCollection(const std::string&) = 0;
@@ -43,16 +42,16 @@ public:
     listCollections() = 0;
 
   virtual folly::Future<int>
-    getCollectionDocCount(const std::string &) = 0;
+    getCollectionDocumentCount(const std::string &) = 0;
 
   virtual folly::Future<std::vector<std::string>>
-    listCollectionDocs(const string &collectionId) = 0;
+    listCollectionDocuments(const string &collectionId) = 0;
 
   virtual folly::Future<std::vector<std::string>>
-    listPositiveCollectionDocs(const string &collectionId) = 0;
+    listPositiveCollectionDocuments(const string &collectionId) = 0;
 
   virtual folly::Future<std::vector<std::string>>
-    listNegativeCollectionDocs(const string &collectionId) = 0;
+    listNegativeCollectionDocuments(const string &collectionId) = 0;
 
   virtual folly::Future<std::vector<std::string>>
     listKnownDocuments() = 0;
@@ -63,7 +62,6 @@ public:
 class CollectionDB: public CollectionDBIf {
 protected:
   util::UniquePointer<CollectionDBHandleIf> dbHandle_;
-  std::shared_ptr<CollectionDBCache> dbCache_;
   std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>> threadPool_;
   CollectionDB(CollectionDB const&) = delete;
   void operator=(CollectionDB const&) = delete;
@@ -75,16 +73,16 @@ public:
   void initialize() override;
   folly::Future<bool> doesCollectionExist(const std::string &collectionId);
   folly::Future<bool> createCollection(const std::string &collectionId);
-  folly::Future<bool> doesCollectionHaveDoc(const std::string &collectionId, const std::string &docId);
-  folly::Future<bool> addPositiveDocToCollection(const std::string &collectionId, const std::string &docId);
-  folly::Future<bool> addNegativeDocToCollection(const std::string &collectionId, const std::string &docId);
-  folly::Future<bool> removeDocFromCollection(const std::string &collectionId, const std::string &docId);
+  folly::Future<bool> doesCollectionHaveDocument(const std::string &collectionId, const std::string &docId);
+  folly::Future<bool> addPositiveDocumentToCollection(const std::string &collectionId, const std::string &docId);
+  folly::Future<bool> addNegativeDocumentToCollection(const std::string &collectionId, const std::string &docId);
+  folly::Future<bool> removeDocumentFromCollection(const std::string &collectionId, const std::string &docId);
   folly::Future<bool> deleteCollection(const std::string &collectionId);
   folly::Future<std::vector<std::string>> listCollections();
-  folly::Future<int> getCollectionDocCount(const std::string &collectionId);
-  folly::Future<std::vector<std::string>> listCollectionDocs(const std::string &collectionId);
-  folly::Future<std::vector<std::string>> listPositiveCollectionDocs(const std::string &collectionId);
-  folly::Future<std::vector<std::string>> listNegativeCollectionDocs(const std::string &collectionId);
+  folly::Future<int> getCollectionDocumentCount(const std::string &collectionId);
+  folly::Future<std::vector<std::string>> listCollectionDocuments(const std::string &collectionId);
+  folly::Future<std::vector<std::string>> listPositiveCollectionDocuments(const std::string &collectionId);
+  folly::Future<std::vector<std::string>> listNegativeCollectionDocuments(const std::string &collectionId);
   folly::Future<std::vector<std::string>> listKnownDocuments();
 };
 

@@ -89,8 +89,8 @@ Future<unique_ptr<vector<string>>> RelevanceServer::listCollectionDocuments(uniq
   auto id = *collId;
   LOG(INFO) << "listing documents for: " << id;
   auto collDb = persistence_->getCollectionDb().lock();
-  return collDb->listCollectionDocs(id).then([id](vector<string> docIds) {
-    LOG(INFO) << "listCollectionDocs: returning " << docIds.size() << " for " << id;
+  return collDb->listCollectionDocuments(id).then([id](vector<string> docIds) {
+    LOG(INFO) << "listCollectionDocuments: returning " << docIds.size() << " for " << id;
     return std::move(std::make_unique<vector<string>>(docIds));
   });
 }
@@ -100,7 +100,7 @@ Future<bool> RelevanceServer::addPositiveDocumentToCollection(unique_ptr<string>
   auto doc = *docId;
   LOG(INFO) << "adding positive document to " << coll << " : " << doc;
   auto collDb = persistence_->getCollectionDb().lock();
-  return collDb->addPositiveDocToCollection(coll, doc).then([this, coll](bool added) {
+  return collDb->addPositiveDocumentToCollection(coll, doc).then([this, coll](bool added) {
     if (added) {
       scoreWorker_->triggerUpdate(coll);
     }
@@ -113,7 +113,7 @@ Future<bool> RelevanceServer::addNegativeDocumentToCollection(unique_ptr<string>
   auto doc = *docId;
   LOG(INFO) << "adding negative document to " << coll << " : " << doc;
   auto collDb = persistence_->getCollectionDb().lock();
-  return collDb->addNegativeDocToCollection(coll, doc).then([this, coll](bool added) {
+  return collDb->addNegativeDocumentToCollection(coll, doc).then([this, coll](bool added) {
     if (added) {
       scoreWorker_->triggerUpdate(coll);
     }
@@ -124,7 +124,7 @@ Future<bool> RelevanceServer::removeDocumentFromCollection(unique_ptr<string> co
   auto collDb = persistence_->getCollectionDb().lock();
   auto coll = *collId;
   auto doc = *docId;
-  return collDb->removeDocFromCollection(coll, doc).then([this, coll](bool removed){
+  return collDb->removeDocumentFromCollection(coll, doc).then([this, coll](bool removed){
     if (removed) {
       scoreWorker_->triggerUpdate(coll);
     }
@@ -154,5 +154,5 @@ Future<unique_ptr<vector<string>>> RelevanceServer::listDocuments() {
 
 Future<int> RelevanceServer::getCollectionSize(unique_ptr<string> collId) {
   auto collDb = persistence_->getCollectionDb().lock();
-  return collDb->getCollectionDocCount(*collId);
+  return collDb->getCollectionDocumentCount(*collId);
 }

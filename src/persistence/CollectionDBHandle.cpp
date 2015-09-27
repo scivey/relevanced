@@ -20,7 +20,7 @@ namespace persistence {
 CollectionDBHandle::CollectionDBHandle(UniquePointer<RockHandleIf> collectionDocsHandle, UniquePointer<RockHandleIf> collectionListHandle):
   collectionDocsHandle_(std::move(collectionDocsHandle)), collectionListHandle_(std::move(collectionListHandle)) {}
 
-bool CollectionDBHandle::addDocToCollection(const string &collId, const string &docId, bool isPositive) {
+bool CollectionDBHandle::addDocumentToCollection(const string &collId, const string &docId, bool isPositive) {
   if (!doesCollectionExist(collId)) {
     return false;
   }
@@ -49,19 +49,19 @@ bool CollectionDBHandle::createCollection(const string &collId) {
 bool CollectionDBHandle::doesCollectionExist(const string &collId) {
   return collectionListHandle_->exists(collId);
 }
-bool CollectionDBHandle::doesCollectionHaveDoc(const string &collId, const string &docId) {
+bool CollectionDBHandle::doesCollectionHaveDocument(const string &collId, const string &docId) {
   auto key = sformat("{}:{}", collId, docId);
   return collectionDocsHandle_->exists(key);
 }
-bool CollectionDBHandle::addPositiveDocToCollection(const string &collId, const string &docId) {
+bool CollectionDBHandle::addPositiveDocumentToCollection(const string &collId, const string &docId) {
   bool isPositive = true;
-  return addDocToCollection(collId, docId, isPositive);
+  return addDocumentToCollection(collId, docId, isPositive);
 }
-bool CollectionDBHandle::addNegativeDocToCollection(const string &collId, const string &docId) {
+bool CollectionDBHandle::addNegativeDocumentToCollection(const string &collId, const string &docId) {
   bool isPositive = false;
-  return addDocToCollection(collId, docId, isPositive);
+  return addDocumentToCollection(collId, docId, isPositive);
 }
-bool CollectionDBHandle::removeDocFromCollection(const string &collId, const string &docId) {
+bool CollectionDBHandle::removeDocumentFromCollection(const string &collId, const string &docId) {
   auto key = sformat("{}:{}", collId, docId);
   if (!collectionDocsHandle_->exists(key)) {
     return false;
@@ -74,8 +74,8 @@ bool CollectionDBHandle::deleteCollection(const string &collId) {
     return false;
   }
   vector<string> collectionKeys;
-  collectionDocsHandle_->iterPrefix(collId, [&collectionKeys](rocksdb::Iterator *it, function<void()> escape) {
-    collectionKeys.push_back(it->key().ToString());
+  collectionDocsHandle_->iterPrefix(collId, [&collectionKeys](const string &key, function<void (string&)> read, function<void()> escape) {
+    collectionKeys.push_back(key);
   });
   for (auto &key: collectionKeys) {
     collectionDocsHandle_->del(key);
@@ -83,23 +83,22 @@ bool CollectionDBHandle::deleteCollection(const string &collId) {
   return true;
 }
 vector<string> CollectionDBHandle::listCollections() {
-  vector<string> collections;
-  collectionListHandle_->iterAll([&collections](rocksdb::Iterator *it, function<void()> escape) {
-    collections.push_back(it->key().ToString());
+  vector<string> collectionIds;
+  collectionListHandle_->iterAll([&collectionIds](const string &key, function<void (string&)> read, function<void()> escape) {
+    collectionIds.push_back(key);
   });
-  return collections;
+  return collectionIds;
 }
-int CollectionDBHandle::getCollectionDocCount(const string &collId) {
+int CollectionDBHandle::getCollectionDocumentCount(const string &collId) {
   size_t count = 0;
-  collectionDocsHandle_->iterPrefix(collId, [&count](rocksdb::Iterator *it, function<void()> escape) {
+  collectionDocsHandle_->iterPrefix(collId, [&count](const string &key, function<void (string&)> read, function<void()> escape) {
     count++;
   });
   return count;
 }
-vector<string> CollectionDBHandle::listCollectionDocs(const string &collId) {
+vector<string> CollectionDBHandle::listCollectionDocuments(const string &collId) {
   vector<string> docIds;
-  collectionDocsHandle_->iterPrefix(collId, [&docIds, collId](rocksdb::Iterator *it, function<void()> escape) {
-    auto key = it->key().ToString();
+  collectionDocsHandle_->iterPrefix(collId, [&docIds](const string &key, function<void (string&)> read, function<void()> escape) {
     auto offset = key.find(':');
     assert(offset != string::npos);
     docIds.push_back(key.substr(offset + 1));
@@ -107,12 +106,12 @@ vector<string> CollectionDBHandle::listCollectionDocs(const string &collId) {
   return docIds;
 }
 
-vector<string> CollectionDBHandle::listPositiveCollectionDocs(const string &collId) {
+vector<string> CollectionDBHandle::listPositiveCollectionDocuments(const string &collId) {
   vector<string> docIds;
-  collectionDocsHandle_->iterPrefix(collId, [&docIds](rocksdb::Iterator *it, function<void()> escape) {
-    auto val = it->value().ToString();
+  collectionDocsHandle_->iterPrefix(collId, [&docIds](const string &key, function<void (string&)> read, function<void()> escape) {
+    string val;
+    read(val);
     if (val == "1") {
-      auto key = it->key().ToString();
       auto offset = key.find(':');
       assert(offset != string::npos);
       docIds.push_back(key.substr(offset + 1));
@@ -120,13 +119,12 @@ vector<string> CollectionDBHandle::listPositiveCollectionDocs(const string &coll
   });
   return docIds;
 }
-
-vector<string> CollectionDBHandle::listNegativeCollectionDocs(const string &collId) {
+vector<string> CollectionDBHandle::listNegativeCollectionDocuments(const string &collId) {
   vector<string> docIds;
-  collectionDocsHandle_->iterPrefix(collId, [&docIds](rocksdb::Iterator *it, function<void()> escape) {
-    auto val = it->value().ToString();
+  collectionDocsHandle_->iterPrefix(collId, [&docIds](const string &key, function<void (string&)> read, function<void()> escape) {
+    string val;
+    read(val);
     if (val == "0") {
-      auto key = it->key().ToString();
       auto offset = key.find(':');
       assert(offset != string::npos);
       docIds.push_back(key.substr(offset + 1));

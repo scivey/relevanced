@@ -67,30 +67,35 @@ bool RockHandle::del(const string &key) {
   return true;
 }
 
-bool RockHandle::iterRange(const string &start, const string &end, function<void (rocksdb::Iterator*, function<void()>)> iterFn) {
+bool RockHandle::iterRange(const string &start, const string &end, function<void (const string&, function<void(string&)>, function<void()>)> iterFn) {
   rocksdb::Iterator *it = db_->NewIterator(readOptions_);
-  bool stop = false;
   bool foundAny = false;
-  function<void ()> escapeFn([&stop](){
+  bool stop = false;
+  function<void ()> escapeFunc([&stop](){
     stop = true;
+  });
+  function<void (string &)> readValFunc([&it](string &result){
+    result = it->value().ToString();
   });
   for (it->Seek(start); it->Valid() && it->key().ToString() < end; it->Next()) {
     foundAny = true;
-    iterFn(it, escapeFn);
+    iterFn(it->key().ToString(), readValFunc, escapeFunc);
     if (stop) {
       break;
     }
   }
+  assert(it->status().ok());
+  delete it;
   return foundAny;
 }
 
-bool RockHandle::iterPrefix(const string &prefix, function<void (rocksdb::Iterator*, function<void()>)> iterFn) {
+bool RockHandle::iterPrefix(const string &prefix, function<void (const string&, function<void(string&)>, function<void()>)> iterFn) {
     string start = prefix + ":";
     string end = prefix + ";";
     return iterRange(start, end, iterFn);
 }
 
-bool RockHandle::iterAll(function<void (rocksdb::Iterator*, function<void()>)> iterFn) {
+bool RockHandle::iterAll(function<void (const string&, function<void(string&)>, function<void()>)> iterFn) {
   return iterRange("a", "zzzzz", iterFn);
 }
 } // persistence

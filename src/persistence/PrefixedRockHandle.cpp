@@ -103,16 +103,19 @@ bool PrefixedRockHandle::del(const string &key) {
   return true;
 }
 
-bool PrefixedRockHandle::iterRange(const string &start, const string &end, function<void (rocksdb::Iterator*, function<void()>)> iterFn) {
+bool PrefixedRockHandle::iterRange(const string &start, const string &end, function<void (const string&, function<void(string&)>, function<void()>)> iterFn) {
     rocksdb::Iterator *it = db_->NewIterator(readOptions_);
     bool foundAny = false;
     bool stop = false;
     function<void ()> escapeFunc([&stop](){
       stop = true;
     });
+    function<void (string &)> readValFunc([&it](string &result){
+      result = it->value().ToString();
+    });
     for (it->Seek(start); it->Valid() && it->key().ToString() < end; it->Next()) {
       foundAny = true;
-      iterFn(it, escapeFunc);
+      iterFn(it->key().ToString(), readValFunc, escapeFunc);
       if (stop) {
         break;
       }
@@ -122,13 +125,13 @@ bool PrefixedRockHandle::iterRange(const string &start, const string &end, funct
     return foundAny;
 }
 
-bool PrefixedRockHandle::iterPrefix(const string &prefix, function<void (rocksdb::Iterator*, function<void()>)> iterFn) {
+bool PrefixedRockHandle::iterPrefix(const string &prefix, function<void (const string&, function<void(string&)>, function<void()>)> iterFn) {
     string start = prefix + ":";
     string end = prefix + ";";
     return iterRange(start, end, iterFn);
 }
 
-bool PrefixedRockHandle::iterAll(function<void (rocksdb::Iterator*, function<void()>)> iterFn) {
+bool PrefixedRockHandle::iterAll(function<void (const string&, function<void(string&)>, function<void()>)> iterFn) {
     string start = "a";
     string end = "zzz";
     return iterRange(start, end, iterFn);

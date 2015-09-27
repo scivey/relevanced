@@ -10,7 +10,6 @@
 #include <folly/Optional.h>
 
 #include "DocumentDBHandle.h"
-#include "DocumentDBCache.h"
 
 #include "RockHandle.h"
 #include "ProcessedDocument.h"
@@ -34,7 +33,6 @@ public:
 class DocumentDB: public DocumentDBIf {
 protected:
   util::UniquePointer<DocumentDBHandleIf> dbHandle_;
-  std::shared_ptr<DocumentDBCache> dbCache_;
   std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>> threadPool_ ;
   DocumentDB(DocumentDB const&) = delete;
   void operator=(DocumentDB const&) = delete;
