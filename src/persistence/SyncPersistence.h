@@ -39,6 +39,8 @@ public:
   virtual folly::Try<bool> removeDocumentFromCentroid(const std::string&, const std::string&) = 0;
   virtual folly::Try<bool> doesCentroidHaveDocument(const std::string&, const std::string&) = 0;
   virtual folly::Try<std::vector<std::string>> listAllDocumentsForCentroid(const std::string&) = 0;
+  virtual folly::Optional<std::vector<std::string>> listAllDocumentsForCentroidOption(const std::string&) = 0;
+
   virtual ~SyncPersistenceIf() = default;
 };
 
@@ -48,6 +50,7 @@ class SyncPersistence: public SyncPersistenceIf {
   void operator=(SyncPersistence const&) = delete;
   folly::Optional<ProcessedDocument*> loadDocumentRaw(const std::string &id);
   folly::Optional<Centroid*> loadCentroidRaw(const std::string &id);
+  std::vector<std::string> listAllDocumentsForCentroidRaw(const std::string&);
 
 public:
   SyncPersistence(
@@ -74,7 +77,10 @@ public:
   folly::Try<bool> addDocumentToCentroid(const std::string&, const std::string&) override;
   folly::Try<bool> removeDocumentFromCentroid(const std::string&, const std::string&) override;
   folly::Try<bool> doesCentroidHaveDocument(const std::string&, const std::string&) override;
-  folly::Try<std::vector<std::string>> listAllDocumentsForCentroid(const std::string&) override;
+  folly::Try<std::vector<std::string>>
+    listAllDocumentsForCentroid(const std::string&) override;
+  folly::Optional<std::vector<std::string>>
+    listAllDocumentsForCentroidOption(const std::string&) override;
 };
 
 } // persistence

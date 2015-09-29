@@ -1,8 +1,6 @@
 #pragma once
 #include <string>
 #include <memory>
-#include <eigen3/Eigen/Sparse>
-#include "Vocabulary.h"
 #include "ProcessedDocument.h"
 
 #include <folly/dynamic.h>

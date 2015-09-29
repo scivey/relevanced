@@ -26,8 +26,6 @@ LIB_OBJ=$(addprefix ./src/, \
 		persistence/PrefixedRockHandle.o \
 		persistence/InMemoryRockHandle.o \
 		persistence/RockHandle.o \
-		Vocabulary.o \
-		VocabularyBuilder.o \
 		util.o \
 	)
 

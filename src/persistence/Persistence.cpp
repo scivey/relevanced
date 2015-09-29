@@ -130,4 +130,10 @@ Future<Try<vector<string>>> Persistence::listAllDocumentsForCentroid(const strin
   });
 }
 
+Future<Optional<vector<string>>> Persistence::listAllDocumentsForCentroidOption(const string &centroidId) {
+  return threadPool_->addFuture([this, centroidId](){
+    return syncHandle_->listAllDocumentsForCentroidOption(centroidId);
+  });
+}
+
 } // persistence

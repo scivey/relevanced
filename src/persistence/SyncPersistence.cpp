@@ -218,18 +218,33 @@ Try<bool> SyncPersistence::doesCentroidHaveDocument(const string& centroidId, co
   return Try<bool>(false);
 }
 
-Try<vector<string>> SyncPersistence::listAllDocumentsForCentroid(const string& centroidId) {
+vector<string> SyncPersistence::listAllDocumentsForCentroidRaw(const string& centroidId) {
   vector<string> documentIds;
   auto prefix = sformat("{}__documents", centroidId);
-  bool visitedAny = rockHandle_->iterPrefix(prefix, [&documentIds](const string &key, function<void(string&)> read, function<void()> escape) {
+  rockHandle_->iterPrefix(prefix, [&documentIds](const string &key, function<void(string&)> read, function<void()> escape) {
     auto offset = key.find(':');
     assert(offset != string::npos);
     documentIds.push_back(key.substr(offset + 1));
   });
-  if (!visitedAny && !doesCentroidExist(centroidId)) {
+  return documentIds;
+}
+
+Try<vector<string>> SyncPersistence::listAllDocumentsForCentroid(const string& centroidId) {
+  auto docs = listAllDocumentsForCentroidRaw(centroidId);
+  if (!docs.size() && !doesCentroidExist(centroidId)) {
     return Try<vector<string>>(make_exception_wrapper<CentroidDoesNotExist>());
   }
-  return Try<vector<string>>(documentIds);
+  return Try<vector<string>>(docs);
+}
+
+Optional<vector<string>> SyncPersistence::listAllDocumentsForCentroidOption(const string& centroidId) {
+  Optional<vector<string>> result;
+  auto docs = listAllDocumentsForCentroidRaw(centroidId);
+  if (!docs.size() && !doesCentroidExist(centroidId)) {
+    return result;
+  }
+  result.assign(docs);
+  return result;
 }
 
 } // persistence

@@ -6,7 +6,6 @@
 #include <folly/Conv.h>
 #include <folly/DynamicConverter.h>
 
-#include "Vocabulary.h"
 #include "ProcessedDocument.h"
 #include "Centroid.h"
 #include "util.h"

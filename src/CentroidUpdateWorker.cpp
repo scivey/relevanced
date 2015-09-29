@@ -12,8 +12,6 @@
 #include "util.h"
 #include "ProcessedDocument.h"
 #include "Centroid.h"
-#include "Vocabulary.h"
-#include "VocabularyBuilder.h"
 #include "CentroidUpdateWorker.h"
 #include "persistence/Persistence.h"
 
@@ -34,14 +32,13 @@ bool CentroidUpdateWorker::run() {
     LOG(INFO) << format("centroid '{}' does not exist!", centroidId_);
     return false;
   }
-  VocabularyBuilder vocabBuilder;
-  set<string> vocabulary;
-  LOG(INFO) << format("building vocabulary for centroid '{}'", centroidId_);
-  auto centroidIdsOpt = persistence_->listAllDocumentsForCentroid(centroidId_).get();
+
+  auto centroidIdsOpt = persistence_->listAllDocumentsForCentroidOption(centroidId_).get();
   if (!centroidIdsOpt.hasValue()) {
     LOG(INFO) << format("falsy document list for centroid '{}'; aborting.", centroidId_);
     return false;
   }
+
   auto centroidIds = centroidIdsOpt.value();
   map<string, double> centroidScores;
   for (auto &id: centroidIds) {

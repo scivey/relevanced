@@ -7,10 +7,10 @@
 #include <wangle/concurrent/CPUThreadPoolExecutor.h>
 #include <wangle/concurrent/FutureExecutor.h>
 #include <folly/futures/Future.h>
-
 #include "CentroidUpdater.h"
 #include "CentroidUpdateWorker.h"
 #include "persistence/Persistence.h"
+
 using persistence::PersistenceIf;
 using namespace std;
 using namespace folly;

@@ -101,7 +101,7 @@ Future<unique_ptr<vector<string>>> RelevanceServer::listAllDocumentsForCentroid(
   LOG(INFO) << "listing documents for: " << id;
   return persistence_->listAllDocumentsForCentroid(id).then([id](Try<vector<string>> docIds) {
     if (docIds.hasValue()) {
-      return std::move(std::make_unique<vector<string>>(docIds.value()));
+      return std::move(std::make_unique<vector<string>>(std::move(docIds.value())));
     }
     return std::move(std::make_unique<vector<string>>());
   });

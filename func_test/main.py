@@ -62,8 +62,8 @@ def init_centroids(client):
 
 def main():
     client = get_client()
-    # init_documents(client)
-    # init_centroids(client)
+    init_documents(client)
+    init_centroids(client)
     # time.sleep(5)
     # client.recompute('wiki_math')
     # client.recompute('wiki_poli')
