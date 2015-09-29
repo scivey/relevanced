@@ -2,6 +2,8 @@
 #include <memory>
 #include <vector>
 #include <folly/futures/Future.h>
+#include <folly/Format.h>
+
 #include <glog/logging.h>
 #include "gen-cpp2/Relevance.h"
 #include "ThriftRelevanceServer.h"
@@ -18,8 +20,8 @@ void ThriftRelevanceServer::ping(){
   server_->ping();
 }
 
-Future<unique_ptr<DocumentRelevanceResponse>> ThriftRelevanceServer::future_getRelevanceForDoc(unique_ptr<string> collId, unique_ptr<string> docId) {
-  return server_->getRelevanceForDoc(std::move(collId), std::move(docId)).then([this](double relevance) {
+Future<unique_ptr<DocumentRelevanceResponse>> ThriftRelevanceServer::future_getDocumentSimilarity(unique_ptr<string> centroidId, unique_ptr<string> docId) {
+  return server_->getDocumentSimilarity(std::move(centroidId), std::move(docId)).then([this](double relevance) {
     auto res = std::make_unique<DocumentRelevanceResponse>();
     res->status = RelevanceStatus::OK;
     res->relevance = relevance;
@@ -27,8 +29,8 @@ Future<unique_ptr<DocumentRelevanceResponse>> ThriftRelevanceServer::future_getR
   });
 }
 
-Future<unique_ptr<DocumentRelevanceResponse>> ThriftRelevanceServer::future_getRelevanceForText(unique_ptr<string> collId, unique_ptr<string> text) {
-  return server_->getRelevanceForText(std::move(collId), std::move(text)).then([this](double relevance) {
+Future<unique_ptr<DocumentRelevanceResponse>> ThriftRelevanceServer::future_getTextSimilarity(unique_ptr<string> centroidId, unique_ptr<string> text) {
+  return server_->getTextSimilarity(std::move(centroidId), std::move(text)).then([this](double relevance) {
     auto res = std::make_unique<DocumentRelevanceResponse>();
     res->status = RelevanceStatus::OK;
     res->relevance = relevance;
@@ -70,8 +72,10 @@ Future<unique_ptr<string>> ThriftRelevanceServer::future_getDocument(unique_ptr<
   return server_->getDocument(std::move(id));
 }
 
-Future<unique_ptr<CrudResponse>> ThriftRelevanceServer::future_createClassifier(unique_ptr<string> collId) {
-  return server_->createClassifier(std::move(collId)).then([](bool created) {
+Future<unique_ptr<CrudResponse>> ThriftRelevanceServer::future_createCentroid(unique_ptr<string> centroidId) {
+  LOG(INFO) << "createCentroid";
+  return server_->createCentroid(std::move(centroidId)).then([](bool created) {
+    LOG(INFO) << format("created ? {}", created);
     auto res = std::make_unique<CrudResponse>();
     if (created) {
       res->status = RelevanceStatus::OK;
@@ -82,8 +86,8 @@ Future<unique_ptr<CrudResponse>> ThriftRelevanceServer::future_createClassifier(
   });
 }
 
-Future<unique_ptr<CrudResponse>> ThriftRelevanceServer::future_deleteClassifier(unique_ptr<string> collId) {
-  return server_->deleteClassifier(std::move(collId)).then([](bool deleted) {
+Future<unique_ptr<CrudResponse>> ThriftRelevanceServer::future_deleteCentroid(unique_ptr<string> centroidId) {
+  return server_->deleteCentroid(std::move(centroidId)).then([](bool deleted) {
     auto res = std::make_unique<CrudResponse>();
     if (deleted) {
       res->status = RelevanceStatus::OK;
@@ -94,10 +98,10 @@ Future<unique_ptr<CrudResponse>> ThriftRelevanceServer::future_deleteClassifier(
   });
 }
 
-Future<unique_ptr<ListClassifierDocumentsResponse>> ThriftRelevanceServer::future_listAllClassifierDocuments(unique_ptr<string> collId) {
-  return server_->listAllClassifierDocuments(std::move(collId)).then([](unique_ptr<vector<string>> documentIds) {
+Future<unique_ptr<ListCentroidDocumentsResponse>> ThriftRelevanceServer::future_listAllDocumentsForCentroid(unique_ptr<string> centroidId) {
+  return server_->listAllDocumentsForCentroid(std::move(centroidId)).then([](unique_ptr<vector<string>> documentIds) {
     LOG(INFO) << "response size: " << documentIds->size();
-    auto result = std::make_unique<ListClassifierDocumentsResponse>();
+    auto result = std::make_unique<ListCentroidDocumentsResponse>();
     result->status = RelevanceStatus::OK;
     vector<string> docs = *documentIds;
     result->documents = std::move(docs);
@@ -105,8 +109,8 @@ Future<unique_ptr<ListClassifierDocumentsResponse>> ThriftRelevanceServer::futur
   });
 }
 
-Future<unique_ptr<CrudResponse>> ThriftRelevanceServer::future_addPositiveDocumentToClassifier(unique_ptr<string> collId, unique_ptr<string> docId) {
-  return server_->addPositiveDocumentToClassifier(std::move(collId), std::move(docId)).then([](bool added) {
+Future<unique_ptr<CrudResponse>> ThriftRelevanceServer::future_addDocumentToCentroid(unique_ptr<string> centroidId, unique_ptr<string> docId) {
+  return server_->addDocumentToCentroid(std::move(centroidId), std::move(docId)).then([](bool added) {
     auto res = std::make_unique<CrudResponse>();
     if (added) {
       res->status = RelevanceStatus::OK;
@@ -117,20 +121,8 @@ Future<unique_ptr<CrudResponse>> ThriftRelevanceServer::future_addPositiveDocume
   });
 }
 
-Future<unique_ptr<CrudResponse>> ThriftRelevanceServer::future_addNegativeDocumentToClassifier(unique_ptr<string> collId, unique_ptr<string> docId) {
-  return server_->addNegativeDocumentToClassifier(std::move(collId), std::move(docId)).then([](bool added) {
-    auto res = std::make_unique<CrudResponse>();
-    if (added) {
-      res->status = RelevanceStatus::OK;
-    } else {
-      res->status = RelevanceStatus::DOCUMENT_DOES_NOT_EXIST;
-    }
-    return std::move(res);
-  });
-}
-
-Future<unique_ptr<CrudResponse>> ThriftRelevanceServer::future_removeDocumentFromClassifier(unique_ptr<string> collId, unique_ptr<string> docId) {
-  return server_->removeDocumentFromClassifier(std::move(collId), std::move(docId)).then([](bool removed) {
+Future<unique_ptr<CrudResponse>> ThriftRelevanceServer::future_removeDocumentFromCentroid(unique_ptr<string> centroidId, unique_ptr<string> docId) {
+  return server_->removeDocumentFromCentroid(std::move(centroidId), std::move(docId)).then([](bool removed) {
     auto res = std::make_unique<CrudResponse>();
     if (removed) {
       res->status = RelevanceStatus::OK;
@@ -141,23 +133,14 @@ Future<unique_ptr<CrudResponse>> ThriftRelevanceServer::future_removeDocumentFro
   });
 }
 
-Future<bool> ThriftRelevanceServer::future_recompute(unique_ptr<string> collId) {
-  return server_->recompute(std::move(collId));
+Future<bool> ThriftRelevanceServer::future_recomputeCentroid(unique_ptr<string> centroidId) {
+  return server_->recomputeCentroid(std::move(centroidId));
 }
 
-Future<unique_ptr<vector<string>>> ThriftRelevanceServer::future_listClassifiers() {
-  return server_->listClassifiers();
+Future<unique_ptr<vector<string>>> ThriftRelevanceServer::future_listAllCentroids() {
+  return server_->listAllCentroids();
 }
 
-Future<unique_ptr<vector<string>>> ThriftRelevanceServer::future_listDocuments() {
-  return server_->listDocuments();
-}
-
-Future<unique_ptr<GetClassifierSizeResponse>> ThriftRelevanceServer::future_getClassifierSize(unique_ptr<string> collId) {
-  return server_->getClassifierSize(std::move(collId)).then([](int size) {
-    auto res = std::make_unique<GetClassifierSizeResponse>();
-    res->status = RelevanceStatus::OK;
-    res->size = size;
-    return std::move(res);
-  });
+Future<unique_ptr<vector<string>>> ThriftRelevanceServer::future_listAllDocuments() {
+  return server_->listAllDocuments();
 }

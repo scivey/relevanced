@@ -18,12 +18,8 @@ def load_large_math():
 def load_large_poli():
     return crawl.crawl_urls(urls.POLITICS)
 
-@caching.memoize0
-def load_large_irrelevant():
-    return crawl.crawl_urls(urls.IRRELEVANT)
-
 def init_documents(client):
-    existing_docs = set(client.list_documents())
+    existing_docs = set(client.list_all_documents())
     math_docs = list(load_large_math())
     articles_by_url = {}
     urls_by_length = []
@@ -31,9 +27,6 @@ def init_documents(client):
         articles_by_url[doc['url']] = doc['text']
         urls_by_length.append((len(doc['text']), doc['url']))
     for url, doc in load_large_poli().iteritems():
-        articles_by_url[doc['url']] = doc['text']
-        urls_by_length.append((len(doc['text']), doc['url']))
-    for url, doc in load_large_irrelevant().iteritems():
         articles_by_url[doc['url']] = doc['text']
         urls_by_length.append((len(doc['text']), doc['url']))
 
@@ -47,54 +40,40 @@ def init_documents(client):
             )
             print('created : %s' % res)
 
-def init_classifiers(client):
-    existing_classifiers = set(client.list_classifiers())
+def init_centroids(client):
+    existing_centroids = set(client.list_all_centroids())
     for coll in ('wiki_math', 'wiki_poli'):
-        if coll not in existing_classifiers:
-            client.create_classifier(coll)
-    existing_math_docs = set(client.list_all_classifier_documents('wiki_math'))
-    existing_poli_docs = set(client.list_all_classifier_documents('wiki_poli'))
+        if coll not in existing_centroids:
+            client.create_centroid(coll)
+    existing_math_docs = set(client.list_all_documents_for_centroid('wiki_math'))
+    existing_poli_docs = set(client.list_all_documents_for_centroid('wiki_poli'))
 
     for url in load_large_math().keys():
         if url not in existing_math_docs:
-            client.add_positive_document_to_classifier(
+            client.add_document_to_centroid(
                 'wiki_math', url
-            )
-        if url not in existing_poli_docs:
-            client.add_negative_document_to_classifier(
-                'wiki_poli', url
             )
 
     for url in load_large_poli().keys():
-        if url not in existing_math_docs:
-            client.add_negative_document_to_classifier(
-                'wiki_math', url
-            )
         if url not in existing_poli_docs:
-            client.add_positive_document_to_classifier(
+            client.add_document_to_centroid(
                 'wiki_poli', url
             )
 
-    for url in load_large_irrelevant().keys():
-        if url not in existing_poli_docs:
-            client.add_negative_document_to_classifier('wiki_poli', url)
-        if url not in existing_math_docs:
-            client.add_negative_document_to_classifier('wiki_math', url)
-
 def main():
     client = get_client()
-    init_documents(client)
-    init_classifiers(client)
+    # init_documents(client)
+    # init_centroids(client)
     # time.sleep(5)
     # client.recompute('wiki_math')
     # client.recompute('wiki_poli')
     print('math -> math')
     for doc in load_large_math().values()[:10]:
         print(doc['title'])
-        print(client.get_relevance_for_text('wiki_math', doc['text']))
+        print(client.get_text_similarity('wiki_math', doc['text']))
 
     print('poli -> math')
     for doc in load_large_math().values()[:10]:
         print(doc['title'])
-        print(client.get_relevance_for_text('wiki_poli', doc['text']))
+        print(client.get_text_similarity('wiki_poli', doc['text']))
 

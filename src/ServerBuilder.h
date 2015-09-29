@@ -11,19 +11,14 @@
 #include "stemmer/PorterStemmer.h"
 #include "DocumentProcessor.h"
 #include "DocumentProcessingWorker.h"
-#include "persistence/PersistenceService.h"
+#include "persistence/Persistence.h"
+#include "persistence/SyncPersistence.h"
 #include "persistence/RockHandle.h"
 #include "persistence/PrefixedRockHandle.h"
 #include "ProcessedDocument.h"
 #include "serialization/serializers.h"
-#include "persistence/ClassifierDB.h"
-#include "persistence/ClassifierDBHandle.h"
 #include "RelevanceServer.h"
 #include "ThriftRelevanceServer.h"
-#include "persistence/DocumentDB.h"
-#include "persistence/DocumentDBHandle.h"
-#include "persistence/CentroidDB.h"
-#include "persistence/CentroidDBHandle.h"
 #include "util.h"
 #include "RelevanceScoreWorker.h"
 #include "RelevanceServerOptions.h"
@@ -49,78 +44,32 @@ namespace builders {
 
 namespace detail {
 
-template<typename RockHandleT,
-  typename PrefixedRockT,
-  typename CentroidDBHandleT,
-  typename CentroidDBT,
-  typename ClassifierDBHandleT,
-  typename ClassifierDBT,
-  typename DocumentDBHandleT,
-  typename DocumentDBT,
-  typename PersistenceServiceT
+template<
+  typename RockHandleT,
+  typename SyncPersistenceT,
+  typename PersistenceT
 >
-shared_ptr<PersistenceServiceIf> buildPersistence(const string &dataDir) {
+shared_ptr<PersistenceIf> buildPersistence(const string &dataDir) {
 
-  auto threadPool = std::make_shared<FutureExecutor<CPUThreadPoolExecutor>>(4);
-  string centroidDir = dataDir + "/centroids";
-  UniquePointer<RockHandleIf> centroidRock(
-    (RockHandleIf*) new RockHandleT(centroidDir)
+  string rockDir = dataDir + "/rock";
+  UniquePointer<RockHandleIf> rockHandle(
+    (RockHandleIf*) new RockHandleT(rockDir)
   );
-  UniquePointer<CentroidDBHandleIf> centroidDbHandle(
-    (CentroidDBHandleIf*) new CentroidDBHandleT(std::move(centroidRock))
+  UniquePointer<SyncPersistenceIf> syncPersistence(
+    (SyncPersistenceIf*) new SyncPersistenceT(std::move(rockHandle))
   );
-  shared_ptr<CentroidDBIf> centroidDb(
-    (CentroidDBIf*) new CentroidDBT(
-      std::move(centroidDbHandle),
-      make_shared<FutureExecutor<CPUThreadPoolExecutor>>(1)
+  shared_ptr<PersistenceIf> persistence(
+    (PersistenceIf*) new PersistenceT(
+      std::move(syncPersistence),
+      make_shared<FutureExecutor<CPUThreadPoolExecutor>>(8)
     )
   );
-
-  string docDir = dataDir + "/documents";
-  UniquePointer<RockHandleIf> docRock(
-    (RockHandleIf*) new RockHandleT(docDir)
-  );
-  UniquePointer<DocumentDBHandleIf> docDbHandle(
-    (DocumentDBHandleIf*) new DocumentDBHandleT(std::move(docRock))
-  );
-  shared_ptr<DocumentDBIf> docDb(
-    (DocumentDBIf*) new DocumentDBT(
-      std::move(docDbHandle),
-      make_shared<FutureExecutor<CPUThreadPoolExecutor>>(4)
-    )
-  );
-
-  string classifierDir = dataDir + "/classifiers_rock";
-  UniquePointer<RockHandleIf> classifierListRock(
-    (RockHandleIf*) new RockHandleT(classifierDir)
-  );
-  string classifierDocsDir = dataDir + "/classifier_docs_rock";
-  UniquePointer<RockHandleIf> classifierDocumentsRock(
-    new PrefixedRockT(classifierDocsDir)
-  );
-  UniquePointer<ClassifierDBHandleIf> collDbHandle(
-    (ClassifierDBHandleIf*) new ClassifierDBHandleT(
-      std::move(classifierDocumentsRock), std::move(classifierListRock)
-    )
-  );
-  shared_ptr<ClassifierDBIf> collDb(
-    (ClassifierDBIf*) new ClassifierDBT(
-      std::move(collDbHandle),
-      make_shared<FutureExecutor<CPUThreadPoolExecutor>>(4)
-    )
-  );
-  collDb->initialize();
-
-  shared_ptr<PersistenceServiceIf> persistence(
-    (PersistenceServiceIf*) new PersistenceServiceT(
-      centroidDb, docDb, collDb
-    )
-  );
-  return std::move(persistence);
+  persistence->initialize();
+  return persistence;
 }
 
 template<typename CentroidManagerT, typename CentroidUpdaterT>
-shared_ptr<CentroidManagerIf> buildCentroidManager(shared_ptr<PersistenceServiceIf> persistence) {
+shared_ptr<CentroidManagerIf> buildCentroidManager(shared_ptr<PersistenceIf> persistence) {
   auto threadPool = make_shared<FutureExecutor<CPUThreadPoolExecutor>>(2);
   UniquePointer<CentroidUpdaterIf> updater(
     (CentroidUpdaterIf*) new CentroidUpdaterT(
@@ -157,7 +106,7 @@ shared_ptr<DocumentProcessingWorkerIf> buildDocumentProcessor() {
 
 template<typename WorkerType>
 shared_ptr<RelevanceScoreWorkerIf> buildRelevanceWorker(
-  shared_ptr<PersistenceServiceIf> persistence,
+  shared_ptr<PersistenceIf> persistence,
   shared_ptr<CentroidManagerIf> manager
 ) {
   shared_ptr<RelevanceScoreWorkerIf> result(
@@ -172,7 +121,7 @@ shared_ptr<RelevanceScoreWorkerIf> buildRelevanceWorker(
 } // detail
 
 class ServerBuilder {
-  shared_ptr<PersistenceServiceIf> persistence_;
+  shared_ptr<PersistenceIf> persistence_;
   shared_ptr<DocumentProcessingWorkerIf> processor_;
   shared_ptr<RelevanceScoreWorkerIf> relevanceWorker_;
   shared_ptr<CentroidManagerIf> centroidManager_;
@@ -180,21 +129,14 @@ class ServerBuilder {
 public:
   ServerBuilder(shared_ptr<RelevanceServerOptions> options): options_(options) {}
 
-  template<typename RockHandleT,
-    typename PrefixedRockT,
-    typename CentroidDBHandleT,
-    typename CentroidDBT,
-    typename ClassifierDBHandleT,
-    typename ClassifierDBT,
-    typename DocumentDBHandleT,
-    typename DocumentDBT,
-    typename PersistenceServiceT
+  template<
+    typename RockHandleT,
+    typename SyncPersistenceT,
+    typename PersistenceT
   >
   void buildPersistence() {
     persistence_ = detail::buildPersistence<
-      RockHandleT, PrefixedRockT, CentroidDBHandleT, CentroidDBT,
-      ClassifierDBHandleT, ClassifierDBT,
-      DocumentDBHandleT, DocumentDBT, PersistenceServiceT
+      RockHandleT, SyncPersistenceT, PersistenceT
     >(options_->dataDir);
   }
 

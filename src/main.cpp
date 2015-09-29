@@ -7,16 +7,9 @@
 #include "DocumentProcessor.h"
 #include "DocumentProcessingWorker.h"
 
-#include "persistence/CentroidDB.h"
-#include "persistence/CentroidDBHandle.h"
-#include "persistence/ClassifierDB.h"
-#include "persistence/ClassifierDBHandle.h"
-#include "persistence/DocumentDB.h"
-#include "persistence/DocumentDBHandle.h"
-#include "persistence/PersistenceService.h"
+#include "persistence/Persistence.h"
+#include "persistence/SyncPersistence.h"
 #include "persistence/PrefixedRockHandle.h"
-#include "persistence/RockHandle.h"
-
 #include "ProcessedDocument.h"
 #include "RelevanceScoreWorker.h"
 #include "RelevanceServer.h"
@@ -53,9 +46,7 @@ int main() {
     );
     builders::ServerBuilder builder(options);
     builder.buildPersistence<
-      RockHandle, PrefixedRockHandle, CentroidDBHandle, CentroidDB,
-      ClassifierDBHandle, ClassifierDB, DocumentDBHandle,
-      DocumentDB, PersistenceService
+      PrefixedRockHandle, SyncPersistence, Persistence
     >();
     builder.buildDocumentProcessor<
       DocumentProcessingWorker, DocumentProcessor,

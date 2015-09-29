@@ -12,11 +12,38 @@
 
 class ProcessedDocument {
 public:
-  std::map<std::string, double> normalizedWordCounts;
   std::string id;
+  std::map<std::string, double> normalizedWordCounts;
+  double magnitude;
   ProcessedDocument(const std::string& id): id(id){}
-  ProcessedDocument(const std::string& id, std::map<std::string, double> counts): id(id), normalizedWordCounts(counts){}
+  ProcessedDocument(const std::string& id, std::map<std::string, double> counts, double magnitude)
+    : id(id), normalizedWordCounts(counts), magnitude(magnitude) {}
 };
+
+namespace folly {
+  template<>
+  struct DynamicConstructor<ProcessedDocument> {
+    static folly::dynamic construct(const ProcessedDocument &document) {
+      auto scores = folly::toDynamic(document.normalizedWordCounts);
+      folly::dynamic self = folly::dynamic::object;
+      self["id"] = document.id;
+      self["magnitude"] = document.magnitude;
+      self["scores"] = scores;
+      return self;
+    }
+  };
+
+  template<>
+  struct DynamicConverter<ProcessedDocument> {
+    static ProcessedDocument convert(const folly::dynamic &dyn) {
+      auto scores = folly::convertTo<std::map<std::string, double>>(dyn["scores"]);
+      auto magnitude = folly::convertTo<double>(dyn["magnitude"]);
+      auto id = folly::convertTo<std::string>(dyn["id"]);
+      return ProcessedDocument(id, std::move(scores), magnitude);
+    }
+  };
+}
+
 
 namespace serialization {
   template<>
@@ -67,20 +94,12 @@ namespace serialization {
     }
   };
 
+
   template<>
   struct JsonSerializer<ProcessedDocument> {
     static std::string serialize(ProcessedDocument *doc) {
-      folly::dynamic counts = folly::dynamic::object;
-      for(auto &elem: doc->normalizedWordCounts) {
-        dynamic key = folly::toDynamic(elem.first);
-        dynamic val = folly::toDynamic(elem.second);
-        counts[key] = val;
-      }
-      folly::dynamic self = folly::dynamic::object;
-      folly::dynamic ident = folly::toDynamic(doc->id);
-      self["id"] = ident;
-      self["normalizedWordCounts"] = counts;
-      folly::fbstring js = folly::toJson(self);
+      auto dynSelf = folly::toDynamic<ProcessedDocument>(*doc);
+      folly::fbstring js = folly::toJson(dynSelf);
       return js.toStdString();
     }
   };
@@ -88,17 +107,8 @@ namespace serialization {
   template<>
   struct JsonDeserializer<ProcessedDocument> {
     static ProcessedDocument deserialize(const std::string &js) {
-      auto dyn = folly::parseJson(js);
-      auto counts = dyn["normalizedWordCounts"];
-      ProcessedDocument result(
-        folly::convertTo<std::string>(dyn["id"])
-      );
-      for (auto &k: counts.keys()) {
-        string key = folly::convertTo<string>(k);
-        double val = folly::convertTo<double>(counts[k]);
-        result.normalizedWordCounts[key] = val;
-      }
-      return result;
+      auto dynSelf = folly::parseJson(js);
+      return folly::convertTo<ProcessedDocument>(dynSelf);
     }
   };
 

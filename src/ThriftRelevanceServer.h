@@ -8,7 +8,6 @@
 #include "gen-cpp2/Relevance.h"
 #include "RelevanceScoreWorker.h"
 #include <folly/Optional.h>
-#include "persistence/PersistenceService.h"
 #include "DocumentProcessor.h"
 #include "Document.h"
 #include "util.h"
@@ -22,10 +21,10 @@ public:
   );
   void ping();
   folly::Future<unique_ptr<services::DocumentRelevanceResponse>>
-    future_getRelevanceForDoc(std::unique_ptr<std::string> collId, std::unique_ptr<std::string> docId) override;
+    future_getDocumentSimilarity(std::unique_ptr<std::string> centroidId, std::unique_ptr<std::string> docId) override;
 
   folly::Future<unique_ptr<services::DocumentRelevanceResponse>>
-    future_getRelevanceForText(std::unique_ptr<std::string> collId, std::unique_ptr<std::string> text) override;
+    future_getTextSimilarity(std::unique_ptr<std::string> centroidId, std::unique_ptr<std::string> text) override;
 
   folly::Future<unique_ptr<services::CrudResponse>>
     future_createDocument(std::unique_ptr<std::string> text) override;
@@ -40,28 +39,23 @@ public:
     future_getDocument(std::unique_ptr<std::string> id) override;
 
   folly::Future<unique_ptr<services::CrudResponse>>
-    future_createClassifier(std::unique_ptr<std::string> collId) override;
+    future_createCentroid(std::unique_ptr<std::string> centroidId) override;
 
   folly::Future<unique_ptr<services::CrudResponse>>
-    future_deleteClassifier(std::unique_ptr<std::string> collId) override;
+    future_deleteCentroid(std::unique_ptr<std::string> centroidId) override;
 
-  folly::Future<unique_ptr<services::ListClassifierDocumentsResponse>>
-    future_listAllClassifierDocuments(std::unique_ptr<std::string> collId) override;
-
-  folly::Future<unique_ptr<services::CrudResponse>>
-    future_addPositiveDocumentToClassifier(std::unique_ptr<std::string> collId, std::unique_ptr<std::string> docId) override;
+  folly::Future<unique_ptr<services::ListCentroidDocumentsResponse>>
+    future_listAllDocumentsForCentroid(std::unique_ptr<std::string> centroidId) override;
 
   folly::Future<unique_ptr<services::CrudResponse>>
-    future_addNegativeDocumentToClassifier(std::unique_ptr<std::string> collId, std::unique_ptr<std::string> docId) override;
+    future_addDocumentToCentroid(std::unique_ptr<std::string> centroidId, std::unique_ptr<std::string> docId) override;
 
   folly::Future<unique_ptr<services::CrudResponse>>
-    future_removeDocumentFromClassifier(std::unique_ptr<std::string> collId, std::unique_ptr<std::string> docId) override;
+    future_removeDocumentFromCentroid(std::unique_ptr<std::string> centroidId, std::unique_ptr<std::string> docId) override;
 
-  folly::Future<bool> future_recompute(std::unique_ptr<std::string> collId) override;
+  folly::Future<bool> future_recomputeCentroid(std::unique_ptr<std::string> centroidId) override;
 
-  folly::Future<std::unique_ptr<std::vector<std::string>>> future_listClassifiers() override;
-  folly::Future<std::unique_ptr<std::vector<std::string>>> future_listDocuments() override;
+  folly::Future<std::unique_ptr<std::vector<std::string>>> future_listAllCentroids() override;
+  folly::Future<std::unique_ptr<std::vector<std::string>>> future_listAllDocuments() override;
 
-  folly::Future<unique_ptr<services::GetClassifierSizeResponse>>
-    future_getClassifierSize(std::unique_ptr<std::string> collId) override;
 };

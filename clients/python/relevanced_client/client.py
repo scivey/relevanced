@@ -26,52 +26,44 @@ class Client(object):
             transport.open()
         return self._thrift_client
 
-    def list_classifiers(self):
-        return self.thrift_client.listClassifiers()
+    def list_all_centroids(self):
+        return self.thrift_client.listAllCentroids()
 
-    def create_classifier(self, name):
-        res = self.thrift_client.createClassifier(name)
+    def create_centroid(self, name):
+        res = self.thrift_client.createCentroid(name)
         if res.status != RelevanceStatus.OK:
-            if res.status == RelevanceStatus.CLASSIFIER_ALREADY_EXISTS:
-                raise exceptions.ClassifierAlreadyExists(name)
+            if res.status == RelevanceStatus.CENTROID_ALREADY_EXISTS:
+                raise exceptions.CentroidAlreadyExists(name)
             raise_unexpected(res.status)
         return True
 
-    def list_documents(self):
-        return self.thrift_client.listDocuments()
+    def list_all_documents(self):
+        return self.thrift_client.listAllDocuments()
 
-    def _handle_classifier_document_crud_response(self, res, classifier_id, doc_id):
+    def _handle_centroid_document_crud_response(self, res, centroid_id, doc_id):
         if res.status != RelevanceStatus.OK:
-            if res.status == RelevanceStatus.CLASSIFIER_DOES_NOT_EXIST:
-                raise exceptions.ClassifierDoesNotExist(classifier_id)
+            if res.status == RelevanceStatus.CENTROID_DOES_NOT_EXIST:
+                raise exceptions.CentroidDoesNotExist(centroid_id)
             elif res.status == RelevanceStatus.DOCUMENT_DOES_NOT_EXIST:
                 raise exceptions.DocumentDoesNotExist(doc_id)
             else:
                 raise_unexpected(res.status)
         return True
 
-    def add_positive_document_to_classifier(self, classifier_id, doc_id):
-        res = self.thrift_client.addPositiveDocumentToClassifier(
-            classifier_id, doc_id
+    def add_document_to_centroid(self, centroid_id, doc_id):
+        res = self.thrift_client.addDocumentToCentroid(
+            centroid_id, doc_id
         )
-        return self._handle_classifier_document_crud_response(
-            res, classifier_id, doc_id
-        )
-
-    def add_negative_document_to_classifier(self, classifier_id, doc_id):
-        res = self.thrift_client.addNegativeDocumentToClassifier(
-            classifier_id, doc_id
-        )
-        return self._handle_classifier_document_crud_response(
-            res, classifier_id, doc_id
+        return self._handle_centroid_document_crud_response(
+            res, centroid_id, doc_id
         )
 
-    def remove_document_from_classifier(self, classifier_id, doc_id):
-        res = self.thrift_client.removeDocumentFromClassifier(
-            classifier_id, doc_id
+    def remove_document_from_centroid(self, centroid_id, doc_id):
+        res = self.thrift_client.removeDocumentFromCentroid(
+            centroid_id, doc_id
         )
-        return self._handle_classifier_document_crud_response(
-            res, classifier_id, doc_id
+        return self._handle_centroid_document_crud_response(
+            res, centroid_id, doc_id
         )
 
     def create_document_with_id(self, ident, doc_text):
@@ -102,50 +94,42 @@ class Client(object):
             raise_unexpected(res.status)
         return True
 
-    def delete_classifier(self, classifier_id):
-        res = self.thrift_client.deleteClassifier(classifier_id)
+    def delete_centroid(self, centroid_id):
+        res = self.thrift_client.deleteCentroid(centroid_id)
         if res.status != RelevanceStatus.OK:
-            if res.status == RelevanceStatus.CLASSIFIER_DOES_NOT_EXIST:
-                raise exceptions.ClassifierDoesNotExist(classifier_id)
+            if res.status == RelevanceStatus.CENTROID_DOES_NOT_EXIST:
+                raise exceptions.CentroidDoesNotExist(centroid_id)
             raise_unexpected(res.status)
         return True
 
-    def recompute(self, classifier_id):
-        return self.thrift_client.recompute(classifier_id)
+    def recompute_centroid(self, centroid_id):
+        return self.thrift_client.recomputeCentroid(centroid_id)
 
-    def list_all_classifier_documents(self, classifier_id):
-        res = self.thrift_client.listAllClassifierDocuments(classifier_id)
+    def list_all_documents_for_centroid(self, centroid_id):
+        res = self.thrift_client.listAllDocumentsForCentroid(centroid_id)
         if res.status != RelevanceStatus.OK:
-            if res.status == RelevanceStatus.CLASSIFIER_DOES_NOT_EXIST:
-                raise exceptions.ClassifierDoesNotExist(classifier_id)
+            if res.status == RelevanceStatus.CENTROID_DOES_NOT_EXIST:
+                raise exceptions.CentroidDoesNotExist(centroid_id)
             raise_unexpected(res.status)
         return res.documents
 
-    def get_classifier_size(self, classifier_id):
-        res = self.thrift_client.getClassifierSize(classifier_id)
-        if res.status != RelevanceStatus.OK:
-            if res.status == RelevanceStatus.CLASSIFIER_DOES_NOT_EXIST:
-                raise exceptions.ClassifierDoesNotExist(classifier_id)
-            raise_unexpected(res.status)
-        return res.size
-
-    def get_relevance_for_text(self, classifier_id, text):
-        res = self.thrift_client.getRelevanceForText(
-            classifier_id, text.encode('utf-8')
+    def get_text_similarity(self, centroid_id, text):
+        res = self.thrift_client.getTextSimilarity(
+            centroid_id, text.encode('utf-8')
         )
         if res.status != RelevanceStatus.OK:
-            if res.status == RelevanceStatus.CLASSIFIER_DOES_NOT_EXIST:
-                raise exceptions.ClassifierDoesNotExist(classifier_id)
+            if res.status == RelevanceStatus.CENTROID_DOES_NOT_EXIST:
+                raise exceptions.CentroidDoesNotExist(centroid_id)
             raise_unexpected(res.status)
         return res.relevance
 
-    def get_relevance_for_doc(self, classifier_id, doc_id):
-        res = self.thrift_client.getRelevanceForDoc(
-            classifier_id, doc_id
+    def get_document_similarity(self, centroid_id, doc_id):
+        res = self.thrift_client.getDocumentSimilarity(
+            centroid_id, doc_id
         )
         if res.status != RelevanceStatus.OK:
-            if res.status == RelevanceStatus.CLASSIFIER_DOES_NOT_EXIST:
-                raise exceptions.ClassifierDoesNotExist(classifier_id)
+            if res.status == RelevanceStatus.CENTROID_DOES_NOT_EXIST:
+                raise exceptions.CentroidDoesNotExist(centroid_id)
             elif res.status == RelevanceStatus.DOCUMENT_DOES_NOT_EXIST:
                 raise exceptions.DocumentDoesNotExist(doc_id)
             raise_unexpected(res.status)

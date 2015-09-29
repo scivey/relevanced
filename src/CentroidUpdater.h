@@ -12,7 +12,7 @@
 
 #include "DebouncedQueue.h"
 #include "CentroidUpdateWorker.h"
-#include "persistence/PersistenceService.h"
+#include "persistence/Persistence.h"
 
 class CentroidUpdaterIf {
 public:
@@ -26,7 +26,7 @@ public:
 
 class CentroidUpdater: public CentroidUpdaterIf {
 protected:
-  std::shared_ptr<persistence::PersistenceServiceIf> persistence_;
+  std::shared_ptr<persistence::PersistenceIf> persistence_;
   std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>> threadPool_;
   std::shared_ptr<DebouncedQueue<std::string>> updateQueue_;
   std::shared_ptr<std::thread> dequeueThread_;
@@ -35,7 +35,7 @@ protected:
   folly::Synchronized<std::vector<std::function<void(const std::string&)>>> updateCallbacks_;
 public:
   CentroidUpdater(
-    std::shared_ptr<persistence::PersistenceServiceIf>,
+    std::shared_ptr<persistence::PersistenceIf>,
     std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>>
   );
   void initialize() override;

@@ -1,6 +1,7 @@
 #include <memory>
 #include <string>
 #include <map>
+#include <cmath>
 #include "DocumentProcessor.h"
 #include "ProcessedDocument.h"
 #include "Document.h"
@@ -26,9 +27,15 @@ void DocumentProcessor::process_(const Document &doc, ProcessedDocument *result)
     }
   }
   double dTotal = (double) totalWords;
+  double magnitude = 0.0;
   for (auto &elem: wordCounts) {
-    wordCounts[elem.first] = elem.second / dTotal;
+    double normalized = elem.second / dTotal;
+    wordCounts[elem.first] = normalized;
+    magnitude += pow(normalized, 2);
   }
+  magnitude = sqrt(magnitude);
+  result->id = doc.id;
+  result->magnitude = magnitude;
   result->normalizedWordCounts = std::move(wordCounts);
 }
 

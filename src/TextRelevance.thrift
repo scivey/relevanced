@@ -13,12 +13,12 @@ struct DocumentRelevanceResponse {
     2: required double relevance;
 }
 
-struct GetClassifierSizeResponse {
+struct GetCentroidSizeResponse {
     1: required RelevanceStatus status;
     2: required i32 size;
 }
 
-struct ListClassifierDocumentsResponse {
+struct ListCentroidDocumentsResponse {
     1: required RelevanceStatus status;
     2: required list<string> documents;
 }
@@ -30,20 +30,18 @@ struct CrudResponse {
 
 service Relevance {
     void ping(),
-    DocumentRelevanceResponse getRelevanceForDoc(1: string classifierId, 2: string docId),
-    DocumentRelevanceResponse getRelevanceForText(1: string classifierId, 2: string text),
+    DocumentRelevanceResponse getDocumentSimilarity(1: string centroidId, 2: string docId),
+    DocumentRelevanceResponse getTextSimilarity(1: string centroidId, 2: string text),
     CrudResponse createDocument(1: string text),
     CrudResponse createDocumentWithID(1: string id, 2: string text),
     CrudResponse deleteDocument(1: string id),
     string getDocument(1: string id),
-    CrudResponse createClassifier(1: string classifierId),
-    CrudResponse deleteClassifier(1: string classifierId),
-    ListClassifierDocumentsResponse listAllClassifierDocuments(1: string classifierId),
-    CrudResponse addPositiveDocumentToClassifier(1: string classifierId, 2: string docId)
-    CrudResponse addNegativeDocumentToClassifier(1: string classifierId, 2: string docId)
-    CrudResponse removeDocumentFromClassifier(1: string classifierId, 2: string docId)
-    bool recompute(1: string classifierId),
-    list<string> listClassifiers(),
-    list<string> listDocuments(),
-    GetClassifierSizeResponse getClassifierSize(1: string classifierId)
+    CrudResponse createCentroid(1: string centroidId),
+    CrudResponse deleteCentroid(1: string centroidId),
+    ListCentroidDocumentsResponse listAllDocumentsForCentroid(1: string centroidId),
+    CrudResponse addDocumentToCentroid(1: string centroidId, 2: string docId),
+    CrudResponse removeDocumentFromCentroid(1: string centroidId, 2: string docId),
+    bool recomputeCentroid(1: string centroidId),
+    list<string> listAllCentroids(),
+    list<string> listAllDocuments()
 }

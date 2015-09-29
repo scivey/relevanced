@@ -9,9 +9,7 @@
 #include <vector>
 #include <cassert>
 
-#include "persistence/DocumentDB.h"
-#include "persistence/CentroidDB.h"
-#include "persistence/ClassifierDB.h"
+#include "persistence/Persistence.h"
 #include "CentroidManager.h"
 #include "Centroid.h"
 #include "DocumentProcessor.h"
@@ -24,7 +22,7 @@ using namespace folly;
 using namespace std;
 
 RelevanceScoreWorker::RelevanceScoreWorker(
-  shared_ptr<persistence::PersistenceServiceIf> persistence,
+  shared_ptr<persistence::PersistenceIf> persistence,
   shared_ptr<CentroidManagerIf> centroidManager
 ): persistence_(persistence),
    centroidManager_(centroidManager){}
@@ -32,10 +30,9 @@ RelevanceScoreWorker::RelevanceScoreWorker(
 // run synchronously on startup
 void RelevanceScoreWorker::initialize() {
   LOG(INFO) << "[ loading... ]";
-  auto classifierDb = persistence_->getClassifierDb().lock();
-  auto classifierIds = classifierDb->listClassifiers().get();
+  auto centroidIds = persistence_->listAllCentroids().get();
   SYNCHRONIZED(centroids_) {
-    for (auto &id: classifierIds) {
+    for (auto &id: centroidIds) {
       LOG(INFO) << "[ loading centroid: " << id << " ... ]";
       auto centroid = centroidManager_->getCentroid(id).get();
       if (centroid.hasValue()) {
@@ -76,31 +73,31 @@ Optional<shared_ptr<Centroid>> RelevanceScoreWorker::getLoadedCentroid_(const st
   return center;
 }
 
-Future<double> RelevanceScoreWorker::getRelevanceForDoc(string classifierId, ProcessedDocument *doc) {
-  return threadPool_.addFuture([this, classifierId, doc](){
-    auto centroid = getLoadedCentroid_(classifierId);
+Future<double> RelevanceScoreWorker::getDocumentSimilarity(string centroidId, ProcessedDocument *doc) {
+  return threadPool_.addFuture([this, centroidId, doc](){
+    auto centroid = getLoadedCentroid_(centroidId);
     if (!centroid.hasValue()) {
-      LOG(INFO) << "relevance request against null centroid: " << classifierId;
+      LOG(INFO) << "relevance request against null centroid: " << centroidId;
       return 0.0;
     }
     return centroid.value()->score(doc);
   });
 }
 
-Future<double> RelevanceScoreWorker::getRelevanceForDoc(string classifierId, shared_ptr<ProcessedDocument> doc) {
-  return getRelevanceForDoc(classifierId, doc.get());
+Future<double> RelevanceScoreWorker::getDocumentSimilarity(string centroidId, shared_ptr<ProcessedDocument> doc) {
+  return getDocumentSimilarity(centroidId, doc.get());
 }
 
-Future<bool> RelevanceScoreWorker::recompute(string classifierId) {
-  return centroidManager_->update(classifierId).then([this, classifierId] (bool updated) {
+Future<bool> RelevanceScoreWorker::recomputeCentroid(string centroidId) {
+  return centroidManager_->update(centroidId).then([this, centroidId] (bool updated) {
     LOG(INFO) << "updated ? " << updated;
     if (updated) {
-      return reloadCentroid(classifierId);
+      return reloadCentroid(centroidId);
     }
     return makeFuture(false);
   });
 }
 
-void RelevanceScoreWorker::triggerUpdate(string classifierId) {
-  centroidManager_->triggerUpdate(classifierId);
+void RelevanceScoreWorker::triggerUpdate(string centroidId) {
+  centroidManager_->triggerUpdate(centroidId);
 }

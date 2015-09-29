@@ -7,7 +7,7 @@
 #include <folly/futures/Future.h>
 #include <folly/Optional.h>
 #include <folly/Synchronized.h>
-#include "persistence/PersistenceService.h"
+#include "persistence/Persistence.h"
 #include "CentroidUpdater.h"
 #include "util.h"
 
@@ -24,7 +24,7 @@ public:
 
 class CentroidManager: public CentroidManagerIf {
 protected:
-  std::shared_ptr<persistence::PersistenceServiceIf> persistence_;
+  std::shared_ptr<persistence::PersistenceIf> persistence_;
   util::UniquePointer<CentroidUpdaterIf> updater_;
   CentroidManager(CentroidManager const&) = delete;
   void operator=(CentroidManager const&) = delete;
@@ -32,7 +32,7 @@ protected:
 public:
   CentroidManager(
     util::UniquePointer<CentroidUpdaterIf>,
-    std::shared_ptr<persistence::PersistenceServiceIf>
+    std::shared_ptr<persistence::PersistenceIf>
   );
   folly::Future<folly::Optional<std::shared_ptr<Centroid>>>
     getCentroid(const std::string &id) override;

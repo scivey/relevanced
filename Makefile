@@ -21,13 +21,8 @@ LIB_OBJ=$(addprefix ./src/, \
 		stemmer/PorterStemmer.o \
 		stopwords/StopwordFilter.o \
 		stopwords/english_stopwords.o \
-		persistence/PersistenceService.o \
-		persistence/CentroidDB.o \
-		persistence/CentroidDBHandle.o \
-		persistence/DocumentDB.o \
-		persistence/DocumentDBHandle.o \
-		persistence/ClassifierDB.o \
-		persistence/ClassifierDBHandle.o \
+		persistence/Persistence.o \
+		persistence/SyncPersistence.o \
 		persistence/PrefixedRockHandle.o \
 		persistence/InMemoryRockHandle.o \
 		persistence/RockHandle.o \
