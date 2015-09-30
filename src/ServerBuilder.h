@@ -68,18 +68,14 @@ shared_ptr<PersistenceIf> buildPersistence(const string &dataDir) {
   return persistence;
 }
 
-template<typename CentroidManagerT, typename CentroidUpdaterT>
-shared_ptr<CentroidManagerIf> buildCentroidManager(shared_ptr<PersistenceIf> persistence) {
-  auto threadPool = make_shared<FutureExecutor<CPUThreadPoolExecutor>>(2);
-  UniquePointer<CentroidUpdaterIf> updater(
-    (CentroidUpdaterIf*) new CentroidUpdaterT(
+template<typename CentroidUpdateWorkerT>
+shared_ptr<CentroidUpdateWorkerIf> buildCentroidUpdateWorker(shared_ptr<PersistenceIf> persistence) {
+  auto threadPool = make_shared<FutureExecutor<CPUThreadPoolExecutor>>(4);
+  return shared_ptr<CentroidUpdateWorkerIf> (
+    (CentroidUpdateWorkerIf*) new CentroidUpdateWorkerT(
       persistence,
       threadPool
     )
-  );
-  updater->initialize();
-  return shared_ptr<CentroidManagerIf>(
-    (CentroidManagerIf*) new CentroidManagerT(std::move(updater), persistence)
   );
 }
 
@@ -106,15 +102,13 @@ shared_ptr<DocumentProcessingWorkerIf> buildDocumentProcessor() {
 
 template<typename WorkerType>
 shared_ptr<RelevanceScoreWorkerIf> buildRelevanceWorker(
-  shared_ptr<PersistenceIf> persistence,
-  shared_ptr<CentroidManagerIf> manager
+  shared_ptr<PersistenceIf> persistence
 ) {
   shared_ptr<RelevanceScoreWorkerIf> result(
     (RelevanceScoreWorkerIf*) new WorkerType(
-      persistence, manager
+      persistence
     )
   );
-  result->initialize();
   return result;
 }
 
@@ -124,7 +118,7 @@ class ServerBuilder {
   shared_ptr<PersistenceIf> persistence_;
   shared_ptr<DocumentProcessingWorkerIf> processor_;
   shared_ptr<RelevanceScoreWorkerIf> relevanceWorker_;
-  shared_ptr<CentroidManagerIf> centroidManager_;
+  shared_ptr<CentroidUpdateWorkerIf> centroidUpdater_;
   shared_ptr<RelevanceServerOptions> options_;
 public:
   ServerBuilder(shared_ptr<RelevanceServerOptions> options): options_(options) {}
@@ -147,22 +141,19 @@ public:
     >();
   }
 
-  template<typename CentroidManagerT, typename CentroidUpdaterT>
-  void buildCentroidManager() {
+  template<typename CentroidUpdaterT>
+  void buildCentroidUpdateWorker() {
     assert(persistence_.get() != nullptr);
-    centroidManager_ = detail::buildCentroidManager<
-      CentroidManagerT, CentroidUpdaterT
+    centroidUpdater_ = detail::buildCentroidUpdateWorker<
+      CentroidUpdaterT
     >(persistence_);
   }
 
-  template<typename RelevanceScoreWorkerT, typename CentroidManagerT, typename CentroidUpdaterT>
+  template<typename RelevanceScoreWorkerT>
   void buildRelevanceWorker() {
     assert(persistence_.get() != nullptr);
-    centroidManager_ = detail::buildCentroidManager<
-      CentroidManagerT, CentroidUpdaterT
-    >(persistence_);
     relevanceWorker_ = detail::buildRelevanceWorker<RelevanceScoreWorkerT>(
-      persistence_, centroidManager_
+      persistence_
     );
   }
 
@@ -171,9 +162,12 @@ public:
     assert(persistence_.get() != nullptr);
     assert(processor_.get() != nullptr);
     assert(relevanceWorker_.get() != nullptr);
-    return make_shared<RelevanceServerT>(
-      relevanceWorker_, processor_, persistence_
+    assert(centroidUpdater_.get() != nullptr);
+    auto server = make_shared<RelevanceServerT>(
+      persistence_, relevanceWorker_, processor_, centroidUpdater_
     );
+    server->initialize();
+    return server;
   }
 
   template<typename RelevanceServerT>

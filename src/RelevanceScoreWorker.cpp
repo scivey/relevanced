@@ -10,7 +10,7 @@
 #include <cassert>
 
 #include "persistence/Persistence.h"
-#include "CentroidManager.h"
+#include "CentroidUpdateWorker.h"
 #include "Centroid.h"
 #include "DocumentProcessor.h"
 #include "ProcessedDocument.h"
@@ -22,42 +22,37 @@ using namespace folly;
 using namespace std;
 
 RelevanceScoreWorker::RelevanceScoreWorker(
-  shared_ptr<persistence::PersistenceIf> persistence,
-  shared_ptr<CentroidManagerIf> centroidManager
-): persistence_(persistence),
-   centroidManager_(centroidManager){}
+  shared_ptr<persistence::PersistenceIf> persistence
+): persistence_(persistence) {}
 
 // run synchronously on startup
 void RelevanceScoreWorker::initialize() {
-  LOG(INFO) << "[ loading... ]";
+  LOG(INFO) << "RelevanceScoreWorker initializing...";
   auto centroidIds = persistence_->listAllCentroids().get();
   SYNCHRONIZED(centroids_) {
     for (auto &id: centroidIds) {
-      LOG(INFO) << "[ loading centroid: " << id << " ... ]";
-      auto centroid = centroidManager_->getCentroid(id).get();
+      LOG(INFO) << format("loading centroid '{}' ...", id);;
+      auto centroid = persistence_->loadCentroidOption(id).get();
       if (centroid.hasValue()) {
         centroids_[id] = centroid.value();
       } else {
-        LOG(INFO) << "no existing centroid for classifier " << id;
+        LOG(INFO) << format("centroid '{}' doesn't seem to exist...", id);
       }
     }
   }
-  centroidManager_->onUpdate([this](const string &id) {
-    reloadCentroid(id);
-  });
-  LOG(INFO) << "[ done loading ]";
+  LOG(INFO) << "RelevanceScoreWorker initialized.";
 }
 
 Future<bool> RelevanceScoreWorker::reloadCentroid(string id) {
-  return centroidManager_->getCentroid(id).then([id, this](Optional<shared_ptr<Centroid>> centroid) {
+  return persistence_->loadCentroidOption(id).then([id, this](Optional<shared_ptr<Centroid>> centroid) {
     if (!centroid.hasValue()) {
-      LOG(INFO) << "tried to reload null centroid: " << id;
+      LOG(INFO) << format("tried to reload null centroid '{}'", id);
       return false;
     }
     SYNCHRONIZED(centroids_) {
       centroids_[id] = centroid.value();
     }
-    LOG(INFO) << "inserted";
+    LOG(INFO) << format("inserted reloaded centroid '{}'", id);
     return true;
   });
 }
@@ -86,18 +81,4 @@ Future<double> RelevanceScoreWorker::getDocumentSimilarity(string centroidId, Pr
 
 Future<double> RelevanceScoreWorker::getDocumentSimilarity(string centroidId, shared_ptr<ProcessedDocument> doc) {
   return getDocumentSimilarity(centroidId, doc.get());
-}
-
-Future<bool> RelevanceScoreWorker::recomputeCentroid(string centroidId) {
-  return centroidManager_->update(centroidId).then([this, centroidId] (bool updated) {
-    LOG(INFO) << "updated ? " << updated;
-    if (updated) {
-      return reloadCentroid(centroidId);
-    }
-    return makeFuture(false);
-  });
-}
-
-void RelevanceScoreWorker::triggerUpdate(string centroidId) {
-  centroidManager_->triggerUpdate(centroidId);
 }

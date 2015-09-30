@@ -11,7 +11,7 @@
 
 #include "gen-cpp2/Relevance.h"
 #include "RelevanceScoreWorker.h"
-
+#include "CentroidUpdateWorker.h"
 #include "persistence/Persistence.h"
 #include "DocumentProcessor.h"
 #include "Document.h"
@@ -25,20 +25,30 @@ using namespace folly;
 using util::UniquePointer;
 
 RelevanceServer::RelevanceServer(
+  shared_ptr<persistence::PersistenceIf> persistenceSv,
   shared_ptr<RelevanceScoreWorkerIf> scoreWorker,
   shared_ptr<DocumentProcessingWorkerIf> docProcessor,
-  shared_ptr<persistence::PersistenceIf> persistenceSv
-): scoreWorker_(scoreWorker), processingWorker_(docProcessor), persistence_(persistenceSv) {}
+  shared_ptr<CentroidUpdateWorkerIf> centroidUpdater
+): persistence_(persistenceSv), scoreWorker_(scoreWorker),
+   processingWorker_(docProcessor), centroidUpdateWorker_(centroidUpdater) {}
 
 void RelevanceServer::ping() {}
 
+void RelevanceServer::initialize() {
+  centroidUpdateWorker_->initialize();
+  scoreWorker_->initialize();
+  centroidUpdateWorker_->onUpdate([this](const string &id) {
+    scoreWorker_->reloadCentroid(id);
+  });
+}
+
 Future<double> RelevanceServer::getDocumentSimilarity(unique_ptr<string> centroidId, unique_ptr<string> docId) {
-  string coll = *centroidId;
-  return persistence_->loadDocumentOption(*docId).then([this, coll](Optional<shared_ptr<ProcessedDocument>> doc) {
+  string cId = *centroidId;
+  return persistence_->loadDocumentOption(*docId).then([this, cId](Optional<shared_ptr<ProcessedDocument>> doc) {
     if (!doc.hasValue()) {
       return makeFuture(0.0);
     }
-    return scoreWorker_->getDocumentSimilarity(coll, doc.value());
+    return scoreWorker_->getDocumentSimilarity(cId, doc.value());
   });
 }
 
@@ -85,14 +95,16 @@ Future<unique_ptr<string>> RelevanceServer::getDocument(unique_ptr<string> id) {
 
 Future<bool> RelevanceServer::createCentroid(unique_ptr<string> centroidId) {
   auto id = *centroidId;
-  LOG(INFO) << format("createCentroid: {}", id);
+  LOG(INFO) << format("creating centroid '{}'", id);
   return persistence_->createNewCentroid(id).then([id](Try<bool> result) {
     return true;
   });
 }
 
 Future<bool> RelevanceServer::deleteCentroid(unique_ptr<string> centroidId) {
-  persistence_->deleteCentroid(*centroidId);
+  auto cId = *centroidId;
+  LOG(INFO) << format("deleting centroid '{}'", cId);
+  persistence_->deleteCentroid(cId);
   return makeFuture(true);
 }
 
@@ -110,12 +122,12 @@ Future<unique_ptr<vector<string>>> RelevanceServer::listAllDocumentsForCentroid(
 Future<bool> RelevanceServer::addDocumentToCentroid(unique_ptr<string> centroidId, unique_ptr<string> docId) {
   auto cId = *centroidId;
   auto dId = *docId;
-  LOG(INFO) << "adding document to " << cId << " : " << dId;
+  LOG(INFO) << format("adding document '{}' to centroid '{}'", dId, cId);
   return persistence_->addDocumentToCentroid(cId, dId).then([this, cId](Try<bool> result) {
     if (result.hasException()) {
       return false;
     }
-    scoreWorker_->triggerUpdate(cId);
+    centroidUpdateWorker_->triggerUpdate(cId);
     return true;
   });
 }
@@ -126,7 +138,7 @@ Future<bool> RelevanceServer::removeDocumentFromCentroid(unique_ptr<string> cent
     if (result.hasException()) {
       return false;
     }
-    scoreWorker_->triggerUpdate(cId);
+    centroidUpdateWorker_->triggerUpdate(cId);
     return true;
   });
 }
@@ -134,7 +146,7 @@ Future<bool> RelevanceServer::removeDocumentFromCentroid(unique_ptr<string> cent
 Future<bool> RelevanceServer::recomputeCentroid(unique_ptr<string> centroidId) {
   auto cId = *centroidId;
   LOG(INFO) << "recomputing centroid: " << cId;
-  return scoreWorker_->recomputeCentroid(cId);
+  return centroidUpdateWorker_->update(cId);
 }
 
 Future<unique_ptr<vector<string>>> RelevanceServer::listAllCentroids() {

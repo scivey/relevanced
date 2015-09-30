@@ -12,7 +12,6 @@ LIB_OBJ=$(addprefix ./src/, \
 		DocumentProcessor.o \
 		ThriftRelevanceServer.o \
 		RelevanceServer.o \
-		CentroidManager.o \
 		CentroidUpdateWorker.o \
 		CentroidUpdater.o \
 		Centroid.o \

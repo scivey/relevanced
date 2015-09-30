@@ -1,69 +1,71 @@
-#include <string>
-#include <memory>
+#include <map>
+#include <set>
 #include <vector>
-#include <functional>
+#include <memory>
+#include <string>
 #include <thread>
 #include <chrono>
-#include <wangle/concurrent/CPUThreadPoolExecutor.h>
-#include <wangle/concurrent/FutureExecutor.h>
-#include <folly/futures/Future.h>
+#include <cmath>
+#include <glog/logging.h>
+#include <folly/Format.h>
+#include <folly/Optional.h>
+#include "util.h"
+#include "ProcessedDocument.h"
+#include "Centroid.h"
 #include "CentroidUpdater.h"
-#include "CentroidUpdateWorker.h"
 #include "persistence/Persistence.h"
 
-using persistence::PersistenceIf;
+using namespace persistence;
 using namespace std;
 using namespace folly;
-using namespace wangle;
+using util::UniquePointer;
 
 CentroidUpdater::CentroidUpdater(
-  shared_ptr<PersistenceIf> persistence,
-  shared_ptr<FutureExecutor<CPUThreadPoolExecutor>> threadPool
-): persistence_(persistence), threadPool_(threadPool) {}
+  shared_ptr<persistence::PersistenceIf> persistence,
+  string centroidId
+): persistence_(persistence), centroidId_(centroidId) {}
 
-void CentroidUpdater::initialize() {
-  evThread_ = make_shared<thread>([this](){
-    base_.loopForever();
-  });
-  chrono::milliseconds initialDelay(5000);
-  chrono::milliseconds debounceInterval(30000);
-  updateQueue_ = make_shared<DebouncedQueue<string>>(
-    &base_, 100, initialDelay, debounceInterval
-  );
-  dequeueThread_ = make_shared<thread>([this](){
-    string elem;
-    for (;;) {
-      this_thread::sleep_for(chrono::milliseconds(1000));
-      while (updateQueue_->read(elem)) {
-        update(elem);
+
+bool CentroidUpdater::run() {
+  LOG(INFO) << "CentroidUpdater::run";
+  if (!persistence_->doesCentroidExist(centroidId_).get()) {
+    LOG(INFO) << format("centroid '{}' does not exist!", centroidId_);
+    return false;
+  }
+
+  auto centroidIdsOpt = persistence_->listAllDocumentsForCentroidOption(centroidId_).get();
+  if (!centroidIdsOpt.hasValue()) {
+    LOG(INFO) << format("falsy document list for centroid '{}'; aborting.", centroidId_);
+    return false;
+  }
+
+  auto centroidIds = centroidIdsOpt.value();
+  map<string, double> centroidScores;
+  for (auto &id: centroidIds) {
+    auto doc = persistence_->loadDocumentOption(id).get();
+    if (!doc.hasValue()) {
+      LOG(INFO) << "missing document: " << id;
+      persistence_->removeDocumentFromCentroid(centroidId_, id);
+    } else {
+      auto docPtr = doc.value();
+      for (auto &elem: docPtr->normalizedWordCounts) {
+        if (centroidScores.find(elem.first) == centroidScores.end()) {
+          centroidScores[elem.first] = elem.second;
+        } else {
+          centroidScores[elem.first] += elem.second;
+        }
       }
     }
-  });
-}
-
-Future<bool> CentroidUpdater::update(const string &classifierId) {
-  return threadPool_->addFuture([this, classifierId](){
-    CentroidUpdateWorker worker(persistence_, classifierId);
-    bool result = worker.run();
-    makeFuture(classifierId).delayed(chrono::milliseconds(50)).then([this](string collId) {
-      this->echoUpdated(collId);
-    });
-    return result;
-  });
-}
-
-void CentroidUpdater::echoUpdated(const string &classifierId) {
-  SYNCHRONIZED(updateCallbacks_) {
-    for (auto &cb: updateCallbacks_) {
-      cb(classifierId);
-    }
   }
-}
+  double centroidMagnitude = 0.0;
+  for (auto &elem: centroidScores) {
+    centroidMagnitude += pow(elem.second, 2);
+  }
+  centroidMagnitude = sqrt(centroidMagnitude);
 
-void CentroidUpdater::onUpdate(function<void (const string&)> callback) {
-  updateCallbacks_->push_back(std::move(callback));
-}
-
-void CentroidUpdater::triggerUpdate(const string &classifierId) {
-  updateQueue_->write(classifierId);
+  auto centroid = make_shared<Centroid>(centroidId_, centroidScores, centroidMagnitude);
+  LOG(INFO) << "persisting...";
+  persistence_->saveCentroid(centroidId_, centroid).get();
+  LOG(INFO) << "persisted..";
+  return true;
 }

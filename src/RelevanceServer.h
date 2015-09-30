@@ -10,6 +10,8 @@
 #include <folly/Optional.h>
 #include "persistence/Persistence.h"
 #include "DocumentProcessingWorker.h"
+#include "CentroidUpdateWorker.h"
+
 #include "Document.h"
 #include "util.h"
 
@@ -22,6 +24,7 @@ namespace {
 class RelevanceServerIf {
 public:
   virtual void ping() = 0;
+  virtual void initialize() = 0;
   virtual folly::Future<double> getDocumentSimilarity(std::unique_ptr<std::string> centroidId, std::unique_ptr<std::string> docId) = 0;
   virtual folly::Future<double> getTextSimilarity(std::unique_ptr<std::string> centroidId, std::unique_ptr<std::string> text) = 0;
   virtual folly::Future<std::unique_ptr<std::string>> createDocument(std::unique_ptr<std::string> text) = 0;
@@ -42,15 +45,18 @@ public:
 
 class RelevanceServer: public RelevanceServerIf {
   shared_ptr<persistence::PersistenceIf> persistence_;
-  shared_ptr<DocumentProcessingWorkerIf> processingWorker_;
   shared_ptr<RelevanceScoreWorkerIf> scoreWorker_;
+  shared_ptr<DocumentProcessingWorkerIf> processingWorker_;
+  shared_ptr<CentroidUpdateWorkerIf> centroidUpdateWorker_;
   folly::Future<std::unique_ptr<std::string>> internalCreateDocumentWithID(std::string id, std::string text);
 public:
   RelevanceServer(
+    shared_ptr<persistence::PersistenceIf> persistenceSv,
     shared_ptr<RelevanceScoreWorkerIf> scoreWorker,
     shared_ptr<DocumentProcessingWorkerIf> docProcessingWorker,
-    shared_ptr<persistence::PersistenceIf> persistenceSv
+    shared_ptr<CentroidUpdateWorkerIf> centroidUpdateWorker
   );
+  void initialize() override;
   void ping() override;
   folly::Future<double> getDocumentSimilarity(std::unique_ptr<std::string> centroidId, std::unique_ptr<std::string> docId) override;
   folly::Future<double> getTextSimilarity(std::unique_ptr<std::string> centroidId, std::unique_ptr<std::string> text) override;

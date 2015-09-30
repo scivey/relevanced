@@ -1,12 +1,10 @@
 #include <string>
 #include <memory>
 #include <chrono>
-
 #include <glog/logging.h>
 
 #include "DocumentProcessor.h"
 #include "DocumentProcessingWorker.h"
-
 #include "persistence/Persistence.h"
 #include "persistence/SyncPersistence.h"
 #include "persistence/PrefixedRockHandle.h"
@@ -14,7 +12,7 @@
 #include "RelevanceScoreWorker.h"
 #include "RelevanceServer.h"
 #include "RelevanceServerOptions.h"
-#include "serialization/serializers.h"
+#include "CentroidUpdateWorker.h"
 #include "ServerBuilder.h"
 #include "stemmer/PorterStemmer.h"
 #include "stemmer/StemmerIf.h"
@@ -22,12 +20,6 @@
 #include "ThriftRelevanceServer.h"
 #include "tokenizer/Tokenizer.h"
 #include "util.h"
-
-#include <wangle/concurrent/CPUThreadPoolExecutor.h>
-#include <wangle/concurrent/FutureExecutor.h>
-#include <folly/futures/Future.h>
-#include <thrift/lib/cpp2/server/ThriftServer.h>
-#include <thrift/lib/cpp2/async/AsyncProcessor.h>
 
 using namespace std;
 using namespace persistence;
@@ -39,8 +31,8 @@ using tokenizer::TokenizerIf;
 using tokenizer::Tokenizer;
 
 int main() {
-  LOG(INFO) << "start";
   thread t1([](){
+    LOG(INFO) << "building...";
     auto options = make_shared<RelevanceServerOptions>(
       "data", 8097
     );
@@ -52,11 +44,14 @@ int main() {
       DocumentProcessingWorker, DocumentProcessor,
       Tokenizer, PorterStemmer, StopwordFilter
     >();
+    builder.buildCentroidUpdateWorker<
+      CentroidUpdateWorker
+    >();
     builder.buildRelevanceWorker<
-      RelevanceScoreWorker, CentroidManager, CentroidUpdater
+      RelevanceScoreWorker
     >();
     auto server = builder.buildThriftServer<RelevanceServer>();
-    LOG(INFO) << "listening on: " << options->thriftPort;
+    LOG(INFO) << format("listening on port: {}", options->thriftPort);
     server->serve();
   });
   t1.join();
