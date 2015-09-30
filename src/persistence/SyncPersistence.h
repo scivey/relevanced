@@ -19,7 +19,6 @@ namespace persistence {
 
 class SyncPersistenceIf {
 public:
-  virtual void initialize() = 0;
   virtual bool doesDocumentExist(const std::string &id) = 0;
   virtual folly::Try<bool> saveDocument(std::shared_ptr<ProcessedDocument> doc) = 0;
   virtual folly::Try<bool> deleteDocument(const std::string &id) = 0;
@@ -56,7 +55,6 @@ public:
   SyncPersistence(
     util::UniquePointer<RockHandleIf> rockHandle
   );
-  void initialize() override;
   bool doesDocumentExist(const std::string &id) override;
   folly::Try<bool> saveDocument(ProcessedDocument *doc);
   folly::Try<bool> saveDocument(std::shared_ptr<ProcessedDocument> doc) override;

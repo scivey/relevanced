@@ -23,10 +23,6 @@ Persistence::Persistence(
   shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>> threadPool
 ): syncHandle_(std::move(syncHandle)), threadPool_(threadPool) {}
 
-void Persistence::initialize() {
-  syncHandle_->initialize();
-}
-
 Future<bool> Persistence::doesDocumentExist(const string &id) {
   return threadPool_->addFuture([this, id](){
     return syncHandle_->doesDocumentExist(id);

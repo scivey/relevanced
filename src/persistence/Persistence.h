@@ -15,7 +15,6 @@ namespace persistence {
 
 class PersistenceIf {
 public:
-  virtual void initialize() = 0;
   virtual folly::Future<bool> doesDocumentExist(const std::string &id) = 0;
   virtual folly::Future<folly::Try<bool>> saveDocument(std::shared_ptr<ProcessedDocument> doc) = 0;
   virtual folly::Future<folly::Try<bool>> deleteDocument(const std::string &id) = 0;
@@ -50,7 +49,6 @@ public:
     util::UniquePointer<SyncPersistenceIf> syncHandle,
     std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>> threadPool
   );
-  void initialize() override;
   folly::Future<bool> doesDocumentExist(const std::string &id) override;
   folly::Future<folly::Try<bool>> saveDocument(std::shared_ptr<ProcessedDocument> doc) override;
   folly::Future<folly::Try<bool>> deleteDocument(const std::string &id) override;

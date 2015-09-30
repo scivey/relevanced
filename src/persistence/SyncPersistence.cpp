@@ -28,8 +28,6 @@ SyncPersistence::SyncPersistence(
   util::UniquePointer<RockHandleIf> rockHandle
 ): rockHandle_(std::move(rockHandle)) {}
 
-void SyncPersistence::initialize() {}
-
 bool SyncPersistence::doesDocumentExist(const string &id) {
   auto key = sformat("documents:{}", id);
   return rockHandle_->exists(key);

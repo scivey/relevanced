@@ -38,81 +38,7 @@ using wangle::CPUThreadPoolExecutor;
 using wangle::FutureExecutor;
 using util::UniquePointer;
 
-
 namespace builders {
-
-
-namespace detail {
-
-template<
-  typename RockHandleT,
-  typename SyncPersistenceT,
-  typename PersistenceT
->
-shared_ptr<PersistenceIf> buildPersistence(const string &dataDir) {
-
-  string rockDir = dataDir + "/rock";
-  UniquePointer<RockHandleIf> rockHandle(
-    (RockHandleIf*) new RockHandleT(rockDir)
-  );
-  UniquePointer<SyncPersistenceIf> syncPersistence(
-    (SyncPersistenceIf*) new SyncPersistenceT(std::move(rockHandle))
-  );
-  shared_ptr<PersistenceIf> persistence(
-    (PersistenceIf*) new PersistenceT(
-      std::move(syncPersistence),
-      make_shared<FutureExecutor<CPUThreadPoolExecutor>>(8)
-    )
-  );
-  persistence->initialize();
-  return persistence;
-}
-
-template<typename CentroidUpdateWorkerT>
-shared_ptr<CentroidUpdateWorkerIf> buildCentroidUpdateWorker(shared_ptr<PersistenceIf> persistence) {
-  auto threadPool = make_shared<FutureExecutor<CPUThreadPoolExecutor>>(4);
-  return shared_ptr<CentroidUpdateWorkerIf> (
-    (CentroidUpdateWorkerIf*) new CentroidUpdateWorkerT(
-      persistence,
-      threadPool
-    )
-  );
-}
-
-template<typename ProcessWorkerT, typename ProcessorT, typename TokenizerT, typename StemmerT, typename StopwordFilterT>
-shared_ptr<DocumentProcessingWorkerIf> buildDocumentProcessor() {
-  shared_ptr<TokenizerIf> tokenizer(
-    (TokenizerIf*) new TokenizerT
-  );
-  shared_ptr<StemmerIf> stemmer(
-    (StemmerIf*) new StemmerT
-  );
-  shared_ptr<StopwordFilterIf> stopwordFilter(
-    (StopwordFilterIf*) new StopwordFilterT
-  );
-  shared_ptr<DocumentProcessorIf> processor(
-    (DocumentProcessorIf*) new ProcessorT(
-      tokenizer, stemmer, stopwordFilter
-    )
-  );
-  return shared_ptr<DocumentProcessingWorkerIf>(
-    new ProcessWorkerT(processor)
-  );
-}
-
-template<typename WorkerType>
-shared_ptr<RelevanceScoreWorkerIf> buildRelevanceWorker(
-  shared_ptr<PersistenceIf> persistence
-) {
-  shared_ptr<RelevanceScoreWorkerIf> result(
-    (RelevanceScoreWorkerIf*) new WorkerType(
-      persistence
-    )
-  );
-  return result;
-}
-
-} // detail
 
 class ServerBuilder {
   shared_ptr<PersistenceIf> persistence_;
@@ -129,31 +55,56 @@ public:
     typename PersistenceT
   >
   void buildPersistence() {
-    persistence_ = detail::buildPersistence<
-      RockHandleT, SyncPersistenceT, PersistenceT
-    >(options_->dataDir);
+    string rockDir = options_->dataDir + "/rock";
+    UniquePointer<RockHandleIf> rockHandle(
+      (RockHandleIf*) new RockHandleT(rockDir)
+    );
+    UniquePointer<SyncPersistenceIf> syncPersistence(
+      (SyncPersistenceIf*) new SyncPersistenceT(std::move(rockHandle))
+    );
+    persistence_.reset(new PersistenceT(
+        std::move(syncPersistence),
+        make_shared<FutureExecutor<CPUThreadPoolExecutor>>(
+          options_->getRocksDbThreadCount()
+        )
+    ));
   }
 
   template<typename ProcessWorkerT, typename ProcessorT, typename TokenizerT, typename StemmerT, typename StopwordFilterT>
   void buildDocumentProcessor() {
-    processor_ = detail::buildDocumentProcessor<
-      ProcessWorkerT, ProcessorT, TokenizerT, StemmerT, StopwordFilterT
-    >();
+    shared_ptr<TokenizerIf> tokenizer(
+      (TokenizerIf*) new TokenizerT
+    );
+    shared_ptr<StemmerIf> stemmer(
+      (StemmerIf*) new StemmerT
+    );
+    shared_ptr<StopwordFilterIf> stopwordFilter(
+      (StopwordFilterIf*) new StopwordFilterT
+    );
+    shared_ptr<DocumentProcessorIf> processor(
+      (DocumentProcessorIf*) new ProcessorT(
+        tokenizer, stemmer, stopwordFilter
+      )
+    );
+    processor_.reset(new ProcessWorkerT(processor));
   }
 
-  template<typename CentroidUpdaterT>
+  template<typename CentroidUpdateWorkerT>
   void buildCentroidUpdateWorker() {
     assert(persistence_.get() != nullptr);
-    centroidUpdater_ = detail::buildCentroidUpdateWorker<
-      CentroidUpdaterT
-    >(persistence_);
+    auto threadPool = make_shared<FutureExecutor<CPUThreadPoolExecutor>>(
+      options_->getCentroidUpdateThreadCount()
+    );
+    centroidUpdater_.reset(new CentroidUpdateWorkerT(
+      persistence_, threadPool
+    ));
   }
 
   template<typename RelevanceScoreWorkerT>
   void buildRelevanceWorker() {
     assert(persistence_.get() != nullptr);
-    relevanceWorker_ = detail::buildRelevanceWorker<RelevanceScoreWorkerT>(
-      persistence_
+    relevanceWorker_.reset(
+      new RelevanceScoreWorkerT(persistence_)
     );
   }
 
