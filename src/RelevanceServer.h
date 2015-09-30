@@ -6,7 +6,7 @@
 
 #include <glog/logging.h>
 #include "gen-cpp2/Relevance.h"
-#include "RelevanceScoreWorker.h"
+#include "SimilarityScoreWorker.h"
 #include <folly/Optional.h>
 #include "persistence/Persistence.h"
 #include "DocumentProcessingWorker.h"
@@ -45,14 +45,14 @@ public:
 
 class RelevanceServer: public RelevanceServerIf {
   shared_ptr<persistence::PersistenceIf> persistence_;
-  shared_ptr<RelevanceScoreWorkerIf> scoreWorker_;
+  shared_ptr<SimilarityScoreWorkerIf> scoreWorker_;
   shared_ptr<DocumentProcessingWorkerIf> processingWorker_;
   shared_ptr<CentroidUpdateWorkerIf> centroidUpdateWorker_;
   folly::Future<std::unique_ptr<std::string>> internalCreateDocumentWithID(std::string id, std::string text);
 public:
   RelevanceServer(
     shared_ptr<persistence::PersistenceIf> persistenceSv,
-    shared_ptr<RelevanceScoreWorkerIf> scoreWorker,
+    shared_ptr<SimilarityScoreWorkerIf> scoreWorker,
     shared_ptr<DocumentProcessingWorkerIf> docProcessingWorker,
     shared_ptr<CentroidUpdateWorkerIf> centroidUpdateWorker
   );

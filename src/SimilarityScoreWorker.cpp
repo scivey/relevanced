@@ -14,20 +14,21 @@
 #include "Centroid.h"
 #include "DocumentProcessor.h"
 #include "ProcessedDocument.h"
-#include "RelevanceScoreWorker.h"
+#include "SimilarityScoreWorker.h"
 #include "util.h"
 
 using namespace wangle;
 using namespace folly;
 using namespace std;
 
-RelevanceScoreWorker::RelevanceScoreWorker(
-  shared_ptr<persistence::PersistenceIf> persistence
-): persistence_(persistence) {}
+SimilarityScoreWorker::SimilarityScoreWorker(
+  shared_ptr<persistence::PersistenceIf> persistence,
+  shared_ptr<FutureExecutor<CPUThreadPoolExecutor>> threadPool
+): persistence_(persistence), threadPool_(threadPool) {}
 
 // run synchronously on startup
-void RelevanceScoreWorker::initialize() {
-  LOG(INFO) << "RelevanceScoreWorker initializing...";
+void SimilarityScoreWorker::initialize() {
+  LOG(INFO) << "SimilarityScoreWorker initializing...";
   auto centroidIds = persistence_->listAllCentroids().get();
   SYNCHRONIZED(centroids_) {
     for (auto &id: centroidIds) {
@@ -40,10 +41,10 @@ void RelevanceScoreWorker::initialize() {
       }
     }
   }
-  LOG(INFO) << "RelevanceScoreWorker initialized.";
+  LOG(INFO) << "SimilarityScoreWorker initialized.";
 }
 
-Future<bool> RelevanceScoreWorker::reloadCentroid(string id) {
+Future<bool> SimilarityScoreWorker::reloadCentroid(string id) {
   return persistence_->loadCentroidOption(id).then([id, this](Optional<shared_ptr<Centroid>> centroid) {
     if (!centroid.hasValue()) {
       LOG(INFO) << format("tried to reload null centroid '{}'", id);
@@ -57,7 +58,7 @@ Future<bool> RelevanceScoreWorker::reloadCentroid(string id) {
   });
 }
 
-Optional<shared_ptr<Centroid>> RelevanceScoreWorker::getLoadedCentroid_(const string &id) {
+Optional<shared_ptr<Centroid>> SimilarityScoreWorker::getLoadedCentroid_(const string &id) {
   Optional<shared_ptr<Centroid>> center;
   SYNCHRONIZED(centroids_) {
     auto elem = centroids_.find(id);
@@ -68,8 +69,8 @@ Optional<shared_ptr<Centroid>> RelevanceScoreWorker::getLoadedCentroid_(const st
   return center;
 }
 
-Future<double> RelevanceScoreWorker::getDocumentSimilarity(string centroidId, ProcessedDocument *doc) {
-  return threadPool_.addFuture([this, centroidId, doc](){
+Future<double> SimilarityScoreWorker::getDocumentSimilarity(string centroidId, ProcessedDocument *doc) {
+  return threadPool_->addFuture([this, centroidId, doc](){
     auto centroid = getLoadedCentroid_(centroidId);
     if (!centroid.hasValue()) {
       LOG(INFO) << "relevance request against null centroid: " << centroidId;
@@ -79,6 +80,6 @@ Future<double> RelevanceScoreWorker::getDocumentSimilarity(string centroidId, Pr
   });
 }
 
-Future<double> RelevanceScoreWorker::getDocumentSimilarity(string centroidId, shared_ptr<ProcessedDocument> doc) {
+Future<double> SimilarityScoreWorker::getDocumentSimilarity(string centroidId, shared_ptr<ProcessedDocument> doc) {
   return getDocumentSimilarity(centroidId, doc.get());
 }

@@ -9,7 +9,7 @@
 #include "persistence/SyncPersistence.h"
 #include "persistence/PrefixedRockHandle.h"
 #include "ProcessedDocument.h"
-#include "RelevanceScoreWorker.h"
+#include "SimilarityScoreWorker.h"
 #include "RelevanceServer.h"
 #include "RelevanceServerOptions.h"
 #include "CentroidUpdateWorker.h"
@@ -47,8 +47,8 @@ int main() {
     builder.buildCentroidUpdateWorker<
       CentroidUpdateWorker
     >();
-    builder.buildRelevanceWorker<
-      RelevanceScoreWorker
+    builder.buildSimilarityWorker<
+      SimilarityScoreWorker
     >();
     auto server = builder.buildThriftServer<RelevanceServer>();
     LOG(INFO) << format("listening on port: {}", options->thriftPort);

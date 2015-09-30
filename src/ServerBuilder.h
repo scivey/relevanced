@@ -20,7 +20,7 @@
 #include "RelevanceServer.h"
 #include "ThriftRelevanceServer.h"
 #include "util.h"
-#include "RelevanceScoreWorker.h"
+#include "SimilarityScoreWorker.h"
 #include "RelevanceServerOptions.h"
 
 using namespace std;
@@ -43,7 +43,7 @@ namespace builders {
 class ServerBuilder {
   shared_ptr<PersistenceIf> persistence_;
   shared_ptr<DocumentProcessingWorkerIf> processor_;
-  shared_ptr<RelevanceScoreWorkerIf> relevanceWorker_;
+  shared_ptr<SimilarityScoreWorkerIf> similarityWorker_;
   shared_ptr<CentroidUpdateWorkerIf> centroidUpdater_;
   shared_ptr<RelevanceServerOptions> options_;
 public:
@@ -57,10 +57,10 @@ public:
   void buildPersistence() {
     string rockDir = options_->dataDir + "/rock";
     UniquePointer<RockHandleIf> rockHandle(
-      (RockHandleIf*) new RockHandleT(rockDir)
+      new RockHandleT(rockDir)
     );
     UniquePointer<SyncPersistenceIf> syncPersistence(
-      (SyncPersistenceIf*) new SyncPersistenceT(std::move(rockHandle))
+      new SyncPersistenceT(std::move(rockHandle))
     );
     persistence_.reset(new PersistenceT(
         std::move(syncPersistence),
@@ -72,21 +72,18 @@ public:
 
   template<typename ProcessWorkerT, typename ProcessorT, typename TokenizerT, typename StemmerT, typename StopwordFilterT>
   void buildDocumentProcessor() {
-    shared_ptr<TokenizerIf> tokenizer(
-      (TokenizerIf*) new TokenizerT
-    );
-    shared_ptr<StemmerIf> stemmer(
-      (StemmerIf*) new StemmerT
-    );
-    shared_ptr<StopwordFilterIf> stopwordFilter(
-      (StopwordFilterIf*) new StopwordFilterT
-    );
-    shared_ptr<DocumentProcessorIf> processor(
-      (DocumentProcessorIf*) new ProcessorT(
+    shared_ptr<TokenizerIf> tokenizer(new TokenizerT);
+    shared_ptr<StemmerIf> stemmer(new StemmerT);
+    shared_ptr<StopwordFilterIf> stopwordFilter(new StopwordFilterT);
+    shared_ptr<DocumentProcessorIf> processor(new ProcessorT(
         tokenizer, stemmer, stopwordFilter
-      )
+    ));
+    auto threadPool = make_shared<FutureExecutor<CPUThreadPoolExecutor>>(
+      options_->getDocumentProcessingThreadCount()
     );
-    processor_.reset(new ProcessWorkerT(processor));
+    processor_.reset(new ProcessWorkerT(
+      processor, threadPool
+    ));
   }
 
   template<typename CentroidUpdateWorkerT>
@@ -100,11 +97,14 @@ public:
     ));
   }
 
-  template<typename RelevanceScoreWorkerT>
-  void buildRelevanceWorker() {
+  template<typename SimilarityScoreWorkerT>
+  void buildSimilarityWorker() {
     assert(persistence_.get() != nullptr);
-    relevanceWorker_.reset(
-      new RelevanceScoreWorkerT(persistence_)
+    auto threadPool = make_shared<FutureExecutor<CPUThreadPoolExecutor>>(
+      options_->getSimilarityScoreThreadCount()
+    );
+    similarityWorker_.reset(
+      new SimilarityScoreWorkerT(persistence_, threadPool)
     );
   }
 
@@ -112,10 +112,10 @@ public:
   shared_ptr<RelevanceServerIf> buildServer(){
     assert(persistence_.get() != nullptr);
     assert(processor_.get() != nullptr);
-    assert(relevanceWorker_.get() != nullptr);
+    assert(similarityWorker_.get() != nullptr);
     assert(centroidUpdater_.get() != nullptr);
     auto server = make_shared<RelevanceServerT>(
-      persistence_, relevanceWorker_, processor_, centroidUpdater_
+      persistence_, similarityWorker_, processor_, centroidUpdater_
     );
     server->initialize();
     return server;

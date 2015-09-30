@@ -15,7 +15,7 @@ LIB_OBJ=$(addprefix ./src/, \
 		CentroidUpdateWorker.o \
 		CentroidUpdater.o \
 		Centroid.o \
-		RelevanceScoreWorker.o \
+		SimilarityScoreWorker.o \
 		tokenizer/Tokenizer.o \
 		stemmer/PorterStemmer.o \
 		stopwords/StopwordFilter.o \

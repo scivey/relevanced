@@ -9,13 +9,17 @@
 
 using namespace std;
 using namespace folly;
+using wangle::FutureExecutor;
+using wangle::CPUThreadPoolExecutor;
 
-DocumentProcessingWorker::DocumentProcessingWorker(shared_ptr<DocumentProcessorIf> processor)
-  : processor_(processor){}
+DocumentProcessingWorker::DocumentProcessingWorker(
+  shared_ptr<DocumentProcessorIf> processor,
+  shared_ptr<FutureExecutor<CPUThreadPoolExecutor>> threadPool
+) : processor_(processor), threadPool_(threadPool) {}
 
 
 Future<shared_ptr<ProcessedDocument>> DocumentProcessingWorker::processNew(shared_ptr<Document> doc) {
-  return threadPool_.addFuture([this, doc](){
+  return threadPool_->addFuture([this, doc](){
     return processor_->processNew(*doc);
   });
 }

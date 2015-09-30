@@ -3,14 +3,7 @@
 #include <memory>
 #include <folly/futures/Future.h>
 #include <folly/futures/helpers.h>
-
-#include <glog/logging.h>
 #include "gen-cpp2/Relevance.h"
-#include "RelevanceScoreWorker.h"
-#include <folly/Optional.h>
-#include "DocumentProcessor.h"
-#include "Document.h"
-#include "util.h"
 #include "RelevanceServer.h"
 
 class ThriftRelevanceServer: public services::RelevanceSvIf {

@@ -15,8 +15,11 @@ public:
 
 class DocumentProcessingWorker: public DocumentProcessingWorkerIf {
   std::shared_ptr<DocumentProcessorIf> processor_;
-  wangle::FutureExecutor<wangle::CPUThreadPoolExecutor> threadPool_ {2};
+  std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>> threadPool_;
 public:
-  DocumentProcessingWorker(std::shared_ptr<DocumentProcessorIf>);
+  DocumentProcessingWorker(
+    std::shared_ptr<DocumentProcessorIf>,
+    std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>> threadPool
+  );
   folly::Future<std::shared_ptr<ProcessedDocument>> processNew(std::shared_ptr<Document>) override;
 };

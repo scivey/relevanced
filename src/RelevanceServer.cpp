@@ -10,7 +10,7 @@
 #include <glog/logging.h>
 
 #include "gen-cpp2/Relevance.h"
-#include "RelevanceScoreWorker.h"
+#include "SimilarityScoreWorker.h"
 #include "CentroidUpdateWorker.h"
 #include "persistence/Persistence.h"
 #include "DocumentProcessor.h"
@@ -26,7 +26,7 @@ using util::UniquePointer;
 
 RelevanceServer::RelevanceServer(
   shared_ptr<persistence::PersistenceIf> persistenceSv,
-  shared_ptr<RelevanceScoreWorkerIf> scoreWorker,
+  shared_ptr<SimilarityScoreWorkerIf> scoreWorker,
   shared_ptr<DocumentProcessingWorkerIf> docProcessor,
   shared_ptr<CentroidUpdateWorkerIf> centroidUpdater
 ): persistence_(persistenceSv), scoreWorker_(scoreWorker),
