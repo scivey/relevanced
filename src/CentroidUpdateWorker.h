@@ -24,8 +24,8 @@ public:
   virtual void echoUpdated(const std::string&) = 0;
   virtual void onUpdate(std::function<void (const std::string&)>) = 0;
   virtual void triggerUpdate(const std::string &centroidId) = 0;
-  virtual folly::Future<bool> update(const std::string &centroidId) = 0;
-  virtual folly::Future<bool> update(const std::string &centroidId, std::chrono::milliseconds updateDelay) = 0;
+  virtual folly::Future<folly::Try<bool>> update(const std::string &centroidId) = 0;
+  virtual folly::Future<folly::Try<bool>> update(const std::string &centroidId, std::chrono::milliseconds updateDelay) = 0;
   virtual ~CentroidUpdateWorkerIf() = default;
 };
 
@@ -46,7 +46,7 @@ public:
   void echoUpdated(const std::string&) override;
   void onUpdate(std::function<void (const std::string&)>) override;
   void triggerUpdate(const std::string &centroidId) override;
-  folly::Future<bool> update(const std::string &centroidId) override;
-  folly::Future<bool> update(const std::string &centroidId, std::chrono::milliseconds updateDelay) override;
+  folly::Future<folly::Try<bool>> update(const std::string &centroidId) override;
+  folly::Future<folly::Try<bool>> update(const std::string &centroidId, std::chrono::milliseconds updateDelay) override;
 };
 

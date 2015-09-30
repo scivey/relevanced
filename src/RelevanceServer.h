@@ -51,7 +51,7 @@ class RelevanceServer: public RelevanceServerIf {
   shared_ptr<SimilarityScoreWorkerIf> scoreWorker_;
   shared_ptr<DocumentProcessingWorkerIf> processingWorker_;
   shared_ptr<CentroidUpdateWorkerIf> centroidUpdateWorker_;
-  folly::Future<std::unique_ptr<std::string>> internalCreateDocumentWithID(std::string id, std::string text);
+  folly::Future<folly::Try<std::unique_ptr<std::string>>> internalCreateDocumentWithID(std::string id, std::string text);
 public:
   RelevanceServer(
     shared_ptr<persistence::PersistenceIf> persistenceSv,

@@ -7,6 +7,8 @@
 #include <wangle/concurrent/CPUThreadPoolExecutor.h>
 #include <wangle/concurrent/FutureExecutor.h>
 #include <folly/futures/Future.h>
+#include <folly/futures/Try.h>
+
 #include "CentroidUpdateWorker.h"
 #include "CentroidUpdaterFactory.h"
 #include "persistence/Persistence.h"
@@ -36,17 +38,17 @@ void CentroidUpdateWorker::stop() {
   updateQueue_->stop();
 }
 
-Future<bool> CentroidUpdateWorker::update(const string &centroidId) {
+Future<Try<bool>> CentroidUpdateWorker::update(const string &centroidId) {
   return update(centroidId, chrono::milliseconds(50));
 }
 
-Future<bool> CentroidUpdateWorker::update(const string &centroidId, chrono::milliseconds updateDelay) {
+Future<Try<bool>> CentroidUpdateWorker::update(const string &centroidId, chrono::milliseconds updateDelay) {
   return threadPool_->addFuture([this, centroidId, updateDelay](){
     auto updater = updaterFactory_->makeForCentroidId(centroidId);
     bool result = updater->run();
     return makeFuture(centroidId).delayed(updateDelay).then([this, result](string centroidId) {
       this->echoUpdated(centroidId);
-      return result;
+      return Try<bool>(result);
     });
   });
 }

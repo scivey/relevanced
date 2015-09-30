@@ -9,6 +9,11 @@ enum RelevanceStatus {
     UNKNOWN_EXCEPTION = 5
 }
 
+struct GetDocumentResponse {
+    1: required RelevanceStatus status;
+    2: required string document;
+}
+
 struct DocumentRelevanceResponse {
     1: required RelevanceStatus status;
     2: required double relevance;
@@ -42,7 +47,7 @@ service Relevance {
     CrudResponse createDocument(1: string text),
     CrudResponse createDocumentWithID(1: string id, 2: string text),
     CrudResponse deleteDocument(1: string id),
-    string getDocument(1: string id),
+    GetDocumentResponse getDocument(1: string id),
     CrudResponse createCentroid(1: string centroidId),
     CrudResponse deleteCentroid(1: string centroidId),
     ListCentroidDocumentsResponse listAllDocumentsForCentroid(1: string centroidId),

@@ -3,6 +3,8 @@
 #include <wangle/concurrent/FutureExecutor.h>
 #include <folly/futures/Future.h>
 #include <folly/futures/helpers.h>
+#include <folly/futures/Try.h>
+#include <folly/ExceptionWrapper.h>
 
 #include <folly/Optional.h>
 #include <folly/Synchronized.h>
@@ -10,6 +12,7 @@
 #include <cassert>
 
 #include "persistence/Persistence.h"
+#include "persistence/exceptions.h"
 #include "CentroidUpdateWorker.h"
 #include "Centroid.h"
 #include "DocumentProcessor.h"
@@ -17,6 +20,7 @@
 #include "SimilarityScoreWorker.h"
 #include "util.h"
 
+using persistence::exceptions::CentroidDoesNotExist;
 using namespace wangle;
 using namespace folly;
 using namespace std;
@@ -75,17 +79,17 @@ void SimilarityScoreWorker::setLoadedCentroid_(const string &id, shared_ptr<Cent
   }
 }
 
-Future<double> SimilarityScoreWorker::getDocumentSimilarity(string centroidId, ProcessedDocument *doc) {
+Future<Try<double>> SimilarityScoreWorker::getDocumentSimilarity(string centroidId, ProcessedDocument *doc) {
   return threadPool_->addFuture([this, centroidId, doc](){
     auto centroid = getLoadedCentroid_(centroidId);
     if (!centroid.hasValue()) {
       LOG(INFO) << "relevance request against null centroid: " << centroidId;
-      return 0.0;
+      Try<double>(make_exception_wrapper<CentroidDoesNotExist>());
     }
-    return centroid.value()->score(doc);
+    return Try<double>(centroid.value()->score(doc));
   });
 }
 
-Future<double> SimilarityScoreWorker::getDocumentSimilarity(string centroidId, shared_ptr<ProcessedDocument> doc) {
+Future<Try<double>> SimilarityScoreWorker::getDocumentSimilarity(string centroidId, shared_ptr<ProcessedDocument> doc) {
   return getDocumentSimilarity(centroidId, doc.get());
 }

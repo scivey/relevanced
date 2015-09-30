@@ -26,59 +26,58 @@ void ThriftRelevanceServer::ping(){
 }
 
 Future<unique_ptr<DocumentRelevanceResponse>> ThriftRelevanceServer::future_getDocumentSimilarity(unique_ptr<string> centroidId, unique_ptr<string> docId) {
-  return server_->getDocumentSimilarity(std::move(centroidId), std::move(docId)).then([this](Try<double> relevance) {
-    auto res = std::make_unique<DocumentRelevanceResponse>();
-    if (!relevance.hasException()) {
-      res->status = RelevanceStatus::OK;
-      res->relevance = relevance.value();
-      return std::move(res);
-    }
-    res->relevance = 0.0;
-    if (relevance.hasException<CentroidDoesNotExist>()) {
-      res->status = RelevanceStatus::CENTROID_DOES_NOT_EXIST;
-    } else if (relevance->hasException<DocumentDoesNotExist>()) {
-      res->status = RelevanceStatus::DOCUMENT_DOES_NOT_EXIST;
+  return server_->getDocumentSimilarity(std::move(centroidId), std::move(docId)).then([this](Try<double> result) {
+    auto response = std::make_unique<DocumentRelevanceResponse>();
+    if (result.hasException()) {
+      if (result.hasException<CentroidDoesNotExist>()) {
+        response->status = RelevanceStatus::CENTROID_DOES_NOT_EXIST;
+      } else if (result.hasException<DocumentDoesNotExist>()) {
+        response->status = RelevanceStatus::DOCUMENT_DOES_NOT_EXIST;
+      } else {
+        response->status = RelevanceStatus::UNKNOWN_EXCEPTION;
+      }
     } else {
-      res->status = RelevanceStatus::UNKNOWN_EXCEPTION;
+      response->status = RelevanceStatus::OK;
+      response->relevance = result.value();
     }
-    return std::move(res);
+    return std::move(response);
   });
 }
 
 Future<unique_ptr<DocumentRelevanceResponse>> ThriftRelevanceServer::future_getTextSimilarity(unique_ptr<string> centroidId, unique_ptr<string> text) {
-  return server_->getTextSimilarity(std::move(centroidId), std::move(text)).then([this](Try<double> relevance) {
-    auto res = std::make_unique<DocumentRelevanceResponse>();
-    if (!relevance.hasException()) {
-      res->status = RelevanceStatus::OK;
-      res->relevance = relevance.value();
-      return std::move(res);
-    }
-    res->relevance = 0.0;
-    if (relevance.hasException<CentroidDoesNotExist>()) {
-      res->status = RelevanceStatus::CENTROID_DOES_NOT_EXIST;
-    } else if (relevance->hasException<DocumentDoesNotExist>()) {
-      res->status = RelevanceStatus::DOCUMENT_DOES_NOT_EXIST;
+  return server_->getTextSimilarity(std::move(centroidId), std::move(text)).then([this](Try<double> result) {
+    auto response = std::make_unique<DocumentRelevanceResponse>();
+    if (result.hasException()) {
+      if (result.hasException<CentroidDoesNotExist>()) {
+        response->status = RelevanceStatus::CENTROID_DOES_NOT_EXIST;
+      } else if (result.hasException<DocumentDoesNotExist>()) {
+        response->status = RelevanceStatus::DOCUMENT_DOES_NOT_EXIST;
+      } else {
+        response->status = RelevanceStatus::UNKNOWN_EXCEPTION;
+      }
     } else {
-      res->status = RelevanceStatus::UNKNOWN_EXCEPTION;
+      response->status = RelevanceStatus::OK;
+      response->relevance = result.value();
     }
-    return std::move(res);
+    return std::move(response);
   });
 }
 
 Future<unique_ptr<services::DocumentMultiRelevanceResponse>> ThriftRelevanceServer::future_multiGetTextSimilarity(unique_ptr<vector<string>> centroidIds, unique_ptr<string> text) {
-  return server_->multiGetTextSimilarity(std::move(centroidIds), std::move(text)).then([this](Try<unique_ptr<map<string, double>>> scores) {
-    auto res = std::make_unique<services::DocumentMultiRelevanceResponse>();
-    if (!scores.hasException()) {
-      res->status = RelevanceStatus::OK;
-      res->scores = *scores;
-      return std::move(res);
-    }
-    if (scores.hasException<CentroidDoesNotExist>()) {
-      res->status = RelevanceStatus::CENTROID_DOES_NOT_EXIST;
+  return server_->multiGetTextSimilarity(std::move(centroidIds), std::move(text)).then([this](Try<unique_ptr<map<string, double>>> result) {
+    auto response = std::make_unique<services::DocumentMultiRelevanceResponse>();
+    if (result.hasException()) {
+      if (result.hasException<CentroidDoesNotExist>()) {
+        response->status = RelevanceStatus::CENTROID_DOES_NOT_EXIST;
+      } else {
+        response->status = RelevanceStatus::UNKNOWN_EXCEPTION;
+      }
     } else {
-      res->status = RelevanceStatus::UNKNOWN_EXCEPTION;
+      response->status = RelevanceStatus::OK;
+      map<string, double> scores = *result.value();
+      response->scores = std::move(scores);
     }
-    return std::move(res);
+    return std::move(response);
   });
 }
 
@@ -87,11 +86,11 @@ Future<unique_ptr<CrudResponse>> ThriftRelevanceServer::future_createDocument(un
     auto response = std::make_unique<CrudResponse>();
     if (!result.hasException()) {
       response->status = RelevanceStatus::OK;
-      response->created = *response.value();
+      response->created = *result.value();
       return std::move(response);
     }
-    // can't think of any exceptions we're anticipating here
-    response->Status = RelevanceStatus::UNKNOWN_EXCEPTION;
+    // can't think of any specific exceptions we're anticipating here
+    response->status = RelevanceStatus::UNKNOWN_EXCEPTION;
     return std::move(response);
   });
 }
@@ -104,90 +103,141 @@ Future<unique_ptr<CrudResponse>> ThriftRelevanceServer::future_createDocumentWit
       response->created = *result.value();
       return std::move(response);
     }
-    if (result.hasException(DocumentAlreadyExists))
-    return std::move(res);
+    if (result.hasException<DocumentAlreadyExists>()) {
+      response->status = RelevanceStatus::DOCUMENT_ALREADY_EXISTS;
+    } else {
+      response->status = RelevanceStatus::UNKNOWN_EXCEPTION;
+    }
+    return std::move(response);
   });
 }
 
 Future<unique_ptr<CrudResponse>> ThriftRelevanceServer::future_deleteDocument(unique_ptr<string> id) {
-  return server_->deleteDocument(std::move(id)).then([this](bool deleted) {
-    auto res = std::make_unique<CrudResponse>();
-    if (deleted) {
-      res->status = RelevanceStatus::OK;
-    } else {
-      res->status = RelevanceStatus::DOCUMENT_DOES_NOT_EXIST;
+  return server_->deleteDocument(std::move(id)).then([this](Try<bool> result) {
+    auto response = std::make_unique<CrudResponse>();
+    if (!result.hasException()) {
+      response->status = RelevanceStatus::OK;
+      return std::move(response);
     }
-    return std::move(res);
+    if (result.hasException<DocumentDoesNotExist>()) {
+      response->status = RelevanceStatus::DOCUMENT_DOES_NOT_EXIST;
+    } else {
+      response->status = RelevanceStatus::UNKNOWN_EXCEPTION;
+    }
+    return std::move(response);
   });
 }
 
-Future<unique_ptr<string>> ThriftRelevanceServer::future_getDocument(unique_ptr<string> id) {
-  return server_->getDocument(std::move(id));
+Future<unique_ptr<GetDocumentResponse>> ThriftRelevanceServer::future_getDocument(unique_ptr<string> id) {
+  return server_->getDocument(std::move(id)).then([](Try<unique_ptr<string>> result) {
+    auto response = std::make_unique<GetDocumentResponse>();
+    if (result.hasException()) {
+      if (result.hasException<DocumentDoesNotExist>()) {
+        response->status = RelevanceStatus::DOCUMENT_DOES_NOT_EXIST;
+      } else {
+        response->status = RelevanceStatus::UNKNOWN_EXCEPTION;
+      }
+    } else {
+      response->status = RelevanceStatus::OK;
+      response->document = *result.value();
+    }
+    return std::move(response);
+  });
 }
 
 Future<unique_ptr<CrudResponse>> ThriftRelevanceServer::future_createCentroid(unique_ptr<string> centroidId) {
-  LOG(INFO) << "createCentroid";
-  return server_->createCentroid(std::move(centroidId)).then([](bool created) {
-    LOG(INFO) << format("created ? {}", created);
-    auto res = std::make_unique<CrudResponse>();
-    if (created) {
-      res->status = RelevanceStatus::OK;
+  return server_->createCentroid(std::move(centroidId)).then([](Try<bool> result) {
+    auto response = std::make_unique<CrudResponse>();
+    if (result.hasException()) {
+      if (result.hasException<CentroidAlreadyExists>()) {
+        response->status = RelevanceStatus::CENTROID_ALREADY_EXISTS;
+      } else {
+        response->status = RelevanceStatus::UNKNOWN_EXCEPTION;
+      }
     } else {
-      res->status = RelevanceStatus::CLASSIFIER_ALREADY_EXISTS;
+      response->status = RelevanceStatus::OK;
     }
-    return std::move(res);
+    return std::move(response);
   });
 }
 
 Future<unique_ptr<CrudResponse>> ThriftRelevanceServer::future_deleteCentroid(unique_ptr<string> centroidId) {
-  return server_->deleteCentroid(std::move(centroidId)).then([](bool deleted) {
-    auto res = std::make_unique<CrudResponse>();
-    if (deleted) {
-      res->status = RelevanceStatus::OK;
+  return server_->deleteCentroid(std::move(centroidId)).then([](Try<bool> result) {
+    auto response = std::make_unique<CrudResponse>();
+    if (result.hasException()) {
+      if (result.hasException<CentroidDoesNotExist>()) {
+        response->status = RelevanceStatus::CENTROID_DOES_NOT_EXIST;
+      } else {
+        response->status = RelevanceStatus::UNKNOWN_EXCEPTION;
+      }
     } else {
-      res->status = RelevanceStatus::CLASSIFIER_DOES_NOT_EXIST;
+      response->status = RelevanceStatus::OK;
     }
-    return std::move(res);
+    return std::move(response);
   });
 }
 
 Future<unique_ptr<ListCentroidDocumentsResponse>> ThriftRelevanceServer::future_listAllDocumentsForCentroid(unique_ptr<string> centroidId) {
-  return server_->listAllDocumentsForCentroid(std::move(centroidId)).then([](unique_ptr<vector<string>> documentIds) {
-    LOG(INFO) << "response size: " << documentIds->size();
-    auto result = std::make_unique<ListCentroidDocumentsResponse>();
-    result->status = RelevanceStatus::OK;
-    vector<string> docs = *documentIds;
-    result->documents = std::move(docs);
-    return std::move(result);
+  return server_->listAllDocumentsForCentroid(std::move(centroidId)).then([](Try<unique_ptr<vector<string>>> result) {
+    auto response = std::make_unique<ListCentroidDocumentsResponse>();
+    if (!result.hasException()) {
+      response->status = RelevanceStatus::OK;
+      vector<string> docIds = *result.value();
+      response->documents = std::move(docIds);
+    } else {
+      if (result.hasException<CentroidDoesNotExist>()) {
+        response->status = RelevanceStatus::CENTROID_DOES_NOT_EXIST;
+      } else {
+        response->status = RelevanceStatus::UNKNOWN_EXCEPTION;
+      }
+    }
+    return std::move(response);
   });
 }
 
 Future<unique_ptr<CrudResponse>> ThriftRelevanceServer::future_addDocumentToCentroid(unique_ptr<string> centroidId, unique_ptr<string> docId) {
-  return server_->addDocumentToCentroid(std::move(centroidId), std::move(docId)).then([](bool added) {
-    auto res = std::make_unique<CrudResponse>();
-    if (added) {
-      res->status = RelevanceStatus::OK;
+  return server_->addDocumentToCentroid(std::move(centroidId), std::move(docId)).then([](Try<bool> result) {
+    auto response = std::make_unique<CrudResponse>();
+    if (result.hasException()) {
+      if (result.hasException<DocumentDoesNotExist>()) {
+        response->status = RelevanceStatus::DOCUMENT_DOES_NOT_EXIST;
+      } else if (result.hasException<CentroidDoesNotExist>()) {
+        response->status = RelevanceStatus::CENTROID_DOES_NOT_EXIST;
+      } else {
+        response->status = RelevanceStatus::UNKNOWN_EXCEPTION;
+      }
     } else {
-      res->status = RelevanceStatus::DOCUMENT_DOES_NOT_EXIST;
+      response->status = RelevanceStatus::OK;
     }
-    return std::move(res);
+    return std::move(response);
   });
 }
 
 Future<unique_ptr<CrudResponse>> ThriftRelevanceServer::future_removeDocumentFromCentroid(unique_ptr<string> centroidId, unique_ptr<string> docId) {
-  return server_->removeDocumentFromCentroid(std::move(centroidId), std::move(docId)).then([](bool removed) {
-    auto res = std::make_unique<CrudResponse>();
-    if (removed) {
-      res->status = RelevanceStatus::OK;
+  return server_->removeDocumentFromCentroid(std::move(centroidId), std::move(docId)).then([](Try<bool> result) {
+    auto response = std::make_unique<CrudResponse>();
+    if (result.hasException()) {
+      if (result.hasException<DocumentDoesNotExist>()) {
+        response->status = RelevanceStatus::DOCUMENT_DOES_NOT_EXIST;
+      } else if (result.hasException<CentroidDoesNotExist>()) {
+        response->status = RelevanceStatus::CENTROID_DOES_NOT_EXIST;
+      } else {
+        response->status = RelevanceStatus::UNKNOWN_EXCEPTION;
+      }
     } else {
-      res->status = RelevanceStatus::DOCUMENT_DOES_NOT_EXIST;
+      response->status = RelevanceStatus::OK;
     }
-    return std::move(res);
+    return std::move(response);
   });
 }
 
 Future<bool> ThriftRelevanceServer::future_recomputeCentroid(unique_ptr<string> centroidId) {
-  return server_->recomputeCentroid(std::move(centroidId));
+  return server_->recomputeCentroid(std::move(centroidId)).then([](Try<bool> result) {
+    if (result.hasException()) {
+      return false;
+    }
+    return true;
+  });
 }
 
 Future<unique_ptr<vector<string>>> ThriftRelevanceServer::future_listAllCentroids() {

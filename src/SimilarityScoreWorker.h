@@ -18,8 +18,8 @@ class SimilarityScoreWorkerIf {
 public:
   virtual void initialize() = 0;
   virtual folly::Future<bool> reloadCentroid(std::string id) = 0;
-  virtual folly::Future<double> getDocumentSimilarity(std::string centroidId, ProcessedDocument *doc) = 0;
-  virtual folly::Future<double> getDocumentSimilarity(std::string centroidId, std::shared_ptr<ProcessedDocument> doc) = 0;
+  virtual folly::Future<folly::Try<double>> getDocumentSimilarity(std::string centroidId, ProcessedDocument *doc) = 0;
+  virtual folly::Future<folly::Try<double>> getDocumentSimilarity(std::string centroidId, std::shared_ptr<ProcessedDocument> doc) = 0;
 };
 
 class SimilarityScoreWorker: public SimilarityScoreWorkerIf {
@@ -36,6 +36,6 @@ public:
   folly::Optional<std::shared_ptr<Centroid>> getLoadedCentroid_(const std::string &id);
   void initialize() override;
   folly::Future<bool> reloadCentroid(std::string id) override;
-  folly::Future<double> getDocumentSimilarity(std::string centroidId, ProcessedDocument *doc) override;
-  folly::Future<double> getDocumentSimilarity(std::string centroidId, std::shared_ptr<ProcessedDocument> doc) override;
+  folly::Future<folly::Try<double>> getDocumentSimilarity(std::string centroidId, ProcessedDocument *doc) override;
+  folly::Future<folly::Try<double>> getDocumentSimilarity(std::string centroidId, std::shared_ptr<ProcessedDocument> doc) override;
 };

@@ -5,7 +5,7 @@
 #include <folly/futures/Try.h>
 #include <folly/Optional.h>
 #include <folly/Format.h>
-#include <folly/ExceptionWrapperer.h>
+#include <folly/ExceptionWrapper.h>
 
 
 #include <glog/logging.h>
@@ -49,7 +49,7 @@ Future<Try<double>> RelevanceServer::getDocumentSimilarity(unique_ptr<string> ce
   string cId = *centroidId;
   return persistence_->loadDocument(*docId).then([this, cId](Try<shared_ptr<ProcessedDocument>> doc) {
     if (doc.hasException()) {
-      return makeFuture(Try<double>(doc.exception()));
+      return makeFuture<Try<double>>(Try<double>(doc.exception()));
     }
     return scoreWorker_->getDocumentSimilarity(cId, doc.value());
   });
@@ -61,20 +61,24 @@ Future<Try<unique_ptr<map<string, double>>>> RelevanceServer::multiGetTextSimila
     new vector<string>(*centroidIds)
   );
   return processingWorker_->processNew(doc).then([this, cIds](shared_ptr<ProcessedDocument> processed) {
-    vector<Future<double>> scores;
+    vector<Future<Try<double>>> scores;
     for (size_t i = 0; i < cIds->size(); i++) {
       scores.push_back(scoreWorker_->getDocumentSimilarity(cIds->at(i), processed));
     }
-    return collect(scores).then([this, cIds](Try<vector<double>> scores) {
+    return collect(scores).then([this, cIds](Try<vector<Try<double>>> scores) {
       if (scores.hasException()) {
         return Try<unique_ptr<map<string, double>>>(scores.exception());
       }
       auto scoreVals = scores.value();
-      auto output = std::make_unique<map<string, double>>();
+      auto response = std::make_unique<map<string, double>>();
       for (size_t i = 0; i < cIds->size(); i++) {
-        output->insert(make_pair(cIds->at(i), scoreVals.at(i)));
+        auto currentScoreVal = scoreVals.at(i);
+        if (currentScoreVal.hasException()) {
+          return Try<unique_ptr<map<string, double>>>(currentScoreVal.exception());
+        }
+        response->insert(make_pair(cIds->at(i), currentScoreVal.value()));
       }
-      return Try<unique_ptr<map<string, double>>>(std::move(output));
+      return Try<unique_ptr<map<string, double>>>(std::move(response));
     });
   });
 }
@@ -97,7 +101,7 @@ Future<Try<unique_ptr<string>>> RelevanceServer::internalCreateDocumentWithID(st
   processingWorker_->processNew(doc).then([this](shared_ptr<ProcessedDocument> processed) {
     persistence_->saveDocument(processed);
   });
-  return makeFuture(Try<unique_ptr<string>>(std::make_unique<string>(id)));
+  return Try<unique_ptr<string>>(std::make_unique<string>(id));
 }
 
 Future<Try<unique_ptr<string>>> RelevanceServer::createDocumentWithID(unique_ptr<string> id, unique_ptr<string> text) {
@@ -137,7 +141,8 @@ Future<Try<unique_ptr<vector<string>>>> RelevanceServer::listAllDocumentsForCent
     if (docIds.hasException()) {
       return Try<unique_ptr<vector<string>>>(docIds.exception());
     }
-    return Try<unique_ptr<vector<string>>>(std::move(std::make_unique<vector<string>>()));
+    vector<string> docs = docIds.value();
+    return Try<unique_ptr<vector<string>>>(std::make_unique<vector<string>>(std::move(docs)));
   });
 }
 

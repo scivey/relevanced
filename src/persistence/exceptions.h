@@ -2,7 +2,7 @@
 #include <exception>
 
 namespace persistence {
-namespace execeptions {
+namespace exceptions {
 
 class DocumentDoesNotExist: public std::exception {};
 class DocumentAlreadyExists: public std::exception {};

@@ -28,10 +28,10 @@ public:
   folly::Future<unique_ptr<services::CrudResponse>>
     future_createDocumentWithID(std::unique_ptr<std::string> id, std::unique_ptr<std::string> text) override;
 
-  folly::Future<unique_ptr<services::CrudResponse>>
+  folly::Future<std::unique_ptr<services::CrudResponse>>
     future_deleteDocument(std::unique_ptr<std::string> id) override;
 
-  folly::Future<std::unique_ptr<std::string>>
+  folly::Future<std::unique_ptr<services::GetDocumentResponse>>
     future_getDocument(std::unique_ptr<std::string> id) override;
 
   folly::Future<unique_ptr<services::CrudResponse>>
