@@ -9,7 +9,7 @@
 #include <folly/futures/Future.h>
 #include "CentroidUpdateWorker.h"
 #include "persistence/Persistence.h"
-
+#include "Debouncer.h"
 using persistence::PersistenceIf;
 using namespace std;
 using namespace folly;
@@ -21,23 +21,18 @@ CentroidUpdateWorker::CentroidUpdateWorker(
 ): persistence_(persistence), threadPool_(threadPool) {}
 
 void CentroidUpdateWorker::initialize() {
-  evThread_ = make_shared<thread>([this](){
-    base_.loopForever();
-  });
   chrono::milliseconds initialDelay(5000);
   chrono::milliseconds debounceInterval(30000);
-  updateQueue_ = make_shared<DebouncedQueue<string>>(
-    &base_, 100, initialDelay, debounceInterval
-  );
-  dequeueThread_ = make_shared<thread>([this](){
-    string elem;
-    for (;;) {
-      this_thread::sleep_for(chrono::milliseconds(1000));
-      while (updateQueue_->read(elem)) {
-        update(elem);
-      }
+  updateQueue_ = make_shared<Debouncer<string>>(
+    initialDelay, debounceInterval, [this](string centroidId) {
+      update(centroidId);
     }
-  });
+  );
+}
+
+void CentroidUpdateWorker::stop() {
+  stopping_ = true;
+  updateQueue_->stop();
 }
 
 Future<bool> CentroidUpdateWorker::update(const string &centroidId) {
@@ -64,5 +59,6 @@ void CentroidUpdateWorker::onUpdate(function<void (const string&)> callback) {
 }
 
 void CentroidUpdateWorker::triggerUpdate(const string &centroidId) {
-  updateQueue_->write(centroidId);
+  string toWrite = centroidId;
+  updateQueue_->write(toWrite);
 }
