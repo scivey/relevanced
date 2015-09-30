@@ -123,7 +123,7 @@ TEST(SyncPersistence, LoadDocumentOptionExists) {
   EXPECT_EQ(2, docPtr->normalizedWordCounts.size());
 }
 
-TEST(SyncPersistence, LoadDocumentOptionDNE) {
+TEST(SyncPersistence, LoadDocumentOptionDoesNotExist) {
   InMemoryRockHandle mockRock("/some-path");
   UniquePointer<RockHandleIf> rockHandle(
     &mockRock, NonDeleter<RockHandleIf>()
@@ -160,7 +160,7 @@ TEST(SyncPersistence, LoadDocumentExists) {
   EXPECT_EQ(2, docPtr->normalizedWordCounts.size());
 }
 
-TEST(SyncPersistence, LoadDocumentDNE) {
+TEST(SyncPersistence, LoadDocumentDoesNotExist) {
   InMemoryRockHandle mockRock("/some-path");
   UniquePointer<RockHandleIf> rockHandle(
     &mockRock, NonDeleter<RockHandleIf>()
@@ -200,7 +200,7 @@ TEST(SyncPersistence, DeleteCentroidSadPanda) {
   EXPECT_TRUE(res.hasException());
 }
 
-TEST(SyncPersistence, DeleteCentroidHappySimple) {
+TEST(SyncPersistence, DeleteCentroidHappy) {
   InMemoryRockHandle mockRock("/some-path");
   UniquePointer<RockHandleIf> rockHandle(
     &mockRock, NonDeleter<RockHandleIf>()
@@ -255,414 +255,352 @@ TEST(SyncPersistence, DeleteCentroidHappyWithDocuments) {
   }
 }
 
+TEST(SyncPersistence, DeleteCentroidHappyNoAssociatedDocuments) {
+  InMemoryRockHandle mockRock("/some-path");
+  UniquePointer<RockHandleIf> rockHandle(
+    &mockRock, NonDeleter<RockHandleIf>()
+  );
+  SyncPersistence dbHandle(std::move(rockHandle));
+  vector<pair<string, string>> willRetain {
+    {"centroids:good-centroid-1", "anything"},
+    {"centroids:good-centroid-2", "anything"},
+    {"good-centroid-1__documents:doc1", "anything"},
+    {"good-centroid-1__documents:doc7", "anything"},
+    {"good-centroid-1__documents:doc9", "anything"},
+    {"good-centroid-2__documents:doc1", "anything"},
+    {"good-centroid-2__documents:doc3", "anything"},
+    {"good-centroid-2__documents:doc5", "anything"}
+  };
+  vector<pair<string, string>> willDelete {
+    {"centroids:bad-centroid", "anything"}
+  };
+  for (auto &keyVal: willRetain) {
+    mockRock.put(keyVal.first, keyVal.second);
+  }
+  for (auto &keyVal: willDelete) {
+    mockRock.put(keyVal.first, keyVal.second);
+  }
+  EXPECT_TRUE(mockRock.exists("centroids:good-centroid-1"));
+  EXPECT_TRUE(mockRock.exists("centroids:bad-centroid"));
+  EXPECT_TRUE(mockRock.exists("good-centroid-1__documents:doc9"));
 
-// TEST(SyncPersistence, LoadDocumentExists) {
-//   InMemoryRockHandle mockRock("/some-path");
-//   UniquePointer<RockHandleIf> rockHandle(
-//     &mockRock, NonDeleter<RockHandleIf>()
-//   );
-//   SyncPersistence dbHandle(std::move(rockHandle));
-//   map<string, double> wordCounts = {
-//     {"fish", 1.82},
-//     {"dog", 8.7}
-//   };
-//   ProcessedDocument doc("doc-id", wordCounts);
+  dbHandle.deleteCentroid("bad-centroid");
+  for (auto &keyVal: willDelete) {
+    EXPECT_FALSE(mockRock.exists(keyVal.first));
+  }
+  for (auto &keyVal: willRetain) {
+    EXPECT_TRUE(mockRock.exists(keyVal.first));
+  }
+}
 
-//   unsigned char *serialized;
-//   size_t len = serialization::binarySerialize(&serialized, doc);
-//   rocksdb::Slice data((char*) serialized, len);
-//   EXPECT_FALSE(mockRock.exists("doc-id"));
-//   mockRock.put("doc-id", data);
-//   EXPECT_TRUE(mockRock.exists("doc-id"));
+TEST(SyncPersistence, SaveCentroid) {
+  InMemoryRockHandle mockRock("/some-path");
+  UniquePointer<RockHandleIf> rockHandle(
+    &mockRock, NonDeleter<RockHandleIf>()
+  );
+  SyncPersistence dbHandle(std::move(rockHandle));
+  Centroid centroid(
+    "centroid-id",
+    map<string, double> {
+      {"moose", 1.7},
+      {"blarg", 2.21}
+    },
+    5.8
+  );
+  EXPECT_FALSE(mockRock.exists("centroids:centroid-id"));
+  auto res = dbHandle.saveCentroid("centroid-id", &centroid);
+  EXPECT_FALSE(res.hasException());
+  auto serialized = mockRock.get("centroids:centroid-id");
+  auto deserialized = serialization::jsonDeserialize<Centroid>(serialized);
+  EXPECT_EQ("centroid-id", deserialized.id);
+  EXPECT_EQ(5.8, deserialized.magnitude);
+  EXPECT_EQ(2, deserialized.scores.size());
+  EXPECT_EQ(2.21, deserialized.scores["blarg"]);
+}
 
-//   auto result = dbHandle.loadDocument("doc-id");
+TEST(SyncPersistence, LoadCentroidDoesNotExist) {
+  InMemoryRockHandle mockRock("/some-path");
+  UniquePointer<RockHandleIf> rockHandle(
+    &mockRock, NonDeleter<RockHandleIf>()
+  );
+  SyncPersistence dbHandle(std::move(rockHandle));
+  auto res = dbHandle.loadCentroid("centroid-id");
+  EXPECT_TRUE(res.hasException());
+}
 
-//   EXPECT_TRUE(result.hasValue());
-//   auto loaded = std::move(result.value());
-//   EXPECT_EQ("doc-id", loaded->id);
-//   EXPECT_EQ(2, loaded->normalizedWordCounts.size());
-//   free(serialized);
-// }
+TEST(SyncPersistence, LoadCentroidExists) {
+  InMemoryRockHandle mockRock("/some-path");
+  UniquePointer<RockHandleIf> rockHandle(
+    &mockRock, NonDeleter<RockHandleIf>()
+  );
+  SyncPersistence dbHandle(std::move(rockHandle));
+  Centroid toSerialize(
+    "centroid-id",
+    map<string, double> {
+      {"moose", 1.7},
+      {"blarg", 2.21}
+    },
+    5.8
+  );
+  auto data = serialization::jsonSerialize<Centroid>(&toSerialize);
+  mockRock.put("centroids:centroid-id", data);
+  auto res = dbHandle.loadCentroid("centroid-id");
+  EXPECT_FALSE(res.hasException());
+  auto centroidPtr = res.value();
+  EXPECT_EQ("centroid-id", centroidPtr->id);
+  EXPECT_EQ(5.8, centroidPtr->magnitude);
+  EXPECT_EQ(2, centroidPtr->scores.size());
+  EXPECT_EQ(2.21, centroidPtr->scores["blarg"]);
+}
 
-// TEST(SyncPersistence, LoadDocumentDoesNotExist) {
-//   InMemoryRockHandle mockRock("/some-path");
-//   UniquePointer<RockHandleIf> rockHandle(
-//     &mockRock, NonDeleter<RockHandleIf>()
-//   );
-//   SyncPersistence dbHandle(std::move(rockHandle));
-//   EXPECT_FALSE(mockRock.exists("doc-id"));
+TEST(SyncPersistence, LoadCentroidOptionExists) {
+  InMemoryRockHandle mockRock("/some-path");
+  UniquePointer<RockHandleIf> rockHandle(
+    &mockRock, NonDeleter<RockHandleIf>()
+  );
+  SyncPersistence dbHandle(std::move(rockHandle));
+  Centroid toSerialize(
+    "centroid-id",
+    map<string, double> {
+      {"moose", 1.7},
+      {"blarg", 2.21}
+    },
+    5.8
+  );
+  auto data = serialization::jsonSerialize<Centroid>(&toSerialize);
+  mockRock.put("centroids:centroid-id", data);
+  auto res = dbHandle.loadCentroidOption("centroid-id");
+  EXPECT_TRUE(res.hasValue());
+  auto centroidPtr = res.value();
+  EXPECT_EQ("centroid-id", centroidPtr->id);
+  EXPECT_EQ(5.8, centroidPtr->magnitude);
+  EXPECT_EQ(2, centroidPtr->scores.size());
+  EXPECT_EQ(2.21, centroidPtr->scores["blarg"]);
+}
 
-//   auto result = dbHandle.loadDocument("doc-id");
+TEST(SyncPersistence, LoadCentroidOptionDoesNotExist) {
+  InMemoryRockHandle mockRock("/some-path");
+  UniquePointer<RockHandleIf> rockHandle(
+    &mockRock, NonDeleter<RockHandleIf>()
+  );
+  SyncPersistence dbHandle(std::move(rockHandle));
+  auto res = dbHandle.loadCentroidOption("centroid-id");
+  EXPECT_FALSE(res.hasValue());
+}
 
-//   EXPECT_FALSE(result.hasValue());
-// }
+TEST(SyncPersistence, ListAllCentroids) {
+  InMemoryRockHandle mockRock("/some-path");
+  UniquePointer<RockHandleIf> rockHandle(
+    &mockRock, NonDeleter<RockHandleIf>()
+  );
+  SyncPersistence dbHandle(std::move(rockHandle));
+  vector<string> centroidsIds {
+    "centroids:some-centroid-1",
+    "centroids:some-centroid-6",
+    "centroids:some-centroid-3",
+    "centroids:some-centroid-4",
+    "centroids:some-centroid-2"
+  };
+  for (auto &elem: centroidsIds) {
+    mockRock.put(elem, "anything");
+  }
+  auto centroids = dbHandle.listAllCentroids();
+  vector<string> expected {
+    "some-centroid-1",
+    "some-centroid-2",
+    "some-centroid-3",
+    "some-centroid-4",
+    "some-centroid-6"
+  };
+  EXPECT_EQ(expected, centroids);
+}
 
+TEST(SyncPersistence, AddDocumentToCentroidHappy) {
+  InMemoryRockHandle mockRock("/some-path");
+  UniquePointer<RockHandleIf> rockHandle(
+    &mockRock, NonDeleter<RockHandleIf>()
+  );
+  SyncPersistence dbHandle(std::move(rockHandle));
+  mockRock.put("centroids:centroid-id", "x");
+  mockRock.put("documents:document-id", "x");
+  auto res = dbHandle.addDocumentToCentroid("centroid-id", "document-id");
+  EXPECT_FALSE(res.hasException());
+  EXPECT_TRUE(res.value());
+  EXPECT_TRUE(mockRock.exists("centroid-id__documents:document-id"));
+}
 
-// TEST(ClassifierDBHandle, DoesClassifierExistTrue) {
-//   MockRock docMockRock;
-//   UniquePointer<RockHandleIf> docRockHandle(
-//     &docMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   MockRock listMockRock;
-//   UniquePointer<RockHandleIf> listRockHandle(
-//     &listMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   string id {"classifier-id"};
-//   EXPECT_CALL(listMockRock, exists(id))
-//     .WillOnce(Return(true));
-//   ClassifierDBHandle dbHandle(
-//     std::move(docRockHandle),
-//     std::move(listRockHandle)
-//   );
-//   EXPECT_TRUE(dbHandle.doesClassifierExist(id));
-// }
+TEST(SyncPersistence, AddDocumentToCentroidMissingCentroid) {
+  InMemoryRockHandle mockRock("/some-path");
+  UniquePointer<RockHandleIf> rockHandle(
+    &mockRock, NonDeleter<RockHandleIf>()
+  );
+  SyncPersistence dbHandle(std::move(rockHandle));
+  mockRock.put("centroids:unrelated-centroid-id", "x");
+  mockRock.put("documents:document-id", "x");
+  auto res = dbHandle.addDocumentToCentroid("centroid-id", "document-id");
+  EXPECT_TRUE(res.hasException());
+  EXPECT_FALSE(mockRock.exists("centroid-id__documents:document-id"));
+}
 
-// TEST(ClassifierDBHandle, DoesClassifierExistFalse) {
-//   MockRock docMockRock;
-//   UniquePointer<RockHandleIf> docRockHandle(
-//     &docMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   MockRock listMockRock;
-//   UniquePointer<RockHandleIf> listRockHandle(
-//     &listMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   string id {"classifier-id"};
-//   EXPECT_CALL(listMockRock, exists(id))
-//     .WillOnce(Return(false));
-//   ClassifierDBHandle dbHandle(
-//     std::move(docRockHandle),
-//     std::move(listRockHandle)
-//   );
-//   EXPECT_FALSE(dbHandle.doesClassifierExist(id));
-// }
+TEST(SyncPersistence, AddDocumentToCentroidMissingDocument) {
+  InMemoryRockHandle mockRock("/some-path");
+  UniquePointer<RockHandleIf> rockHandle(
+    &mockRock, NonDeleter<RockHandleIf>()
+  );
+  SyncPersistence dbHandle(std::move(rockHandle));
+  mockRock.put("centroids:centroid-id", "x");
+  mockRock.put("documents:unrelated-document-id", "x");
+  auto res = dbHandle.addDocumentToCentroid("centroid-id", "document-id");
+  EXPECT_TRUE(res.hasException());
+  EXPECT_FALSE(mockRock.exists("centroid-id__documents:document-id"));
+}
 
-// TEST(ClassifierDBHandle, CreateClassifierExists) {
-//   InMemoryRockHandle docMockRock("doc");
-//   UniquePointer<RockHandleIf> docRockHandle(
-//     &docMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   InMemoryRockHandle listMockRock("list");
-//   UniquePointer<RockHandleIf> listRockHandle(
-//     &listMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   string data {"value"};
-//   listMockRock.put("classifier", data);
-//   EXPECT_TRUE(listMockRock.exists("classifier"));
-//   ClassifierDBHandle dbHandle(
-//     std::move(docRockHandle),
-//     std::move(listRockHandle)
-//   );
+TEST(SyncPersistence, RemoveDocumentFromCentroidHappy) {
+  InMemoryRockHandle mockRock("/some-path");
+  UniquePointer<RockHandleIf> rockHandle(
+    &mockRock, NonDeleter<RockHandleIf>()
+  );
+  SyncPersistence dbHandle(std::move(rockHandle));
+  mockRock.put("centroids:centroid-id", "x");
+  mockRock.put("documents:document-id", "x");
+  mockRock.put("centroid-id__documents:document-id", "1");
+  EXPECT_TRUE(mockRock.exists("centroid-id__documents:document-id"));
+  auto res = dbHandle.removeDocumentFromCentroid("centroid-id", "document-id");
+  EXPECT_FALSE(res.hasException());
+  EXPECT_TRUE(res.value());
+  EXPECT_FALSE(mockRock.exists("centroid-id__documents:document-id"));
+}
 
-//   EXPECT_FALSE(dbHandle.createClassifier("classifier"));
+TEST(SyncPersistence, RemoveDocumentFromCentroidMissingCentroid) {
+  InMemoryRockHandle mockRock("/some-path");
+  UniquePointer<RockHandleIf> rockHandle(
+    &mockRock, NonDeleter<RockHandleIf>()
+  );
+  SyncPersistence dbHandle(std::move(rockHandle));
+  mockRock.put("centroids:other-centroid-id", "x");
+  mockRock.put("documents:document-id", "x");
+  auto res = dbHandle.removeDocumentFromCentroid("centroid-id", "document-id");
+  EXPECT_TRUE(res.hasException());
+}
 
-//   EXPECT_EQ("value", listMockRock.get("classifier"));
-// }
+TEST(SyncPersistence, RemoveDocumentFromCentroidMissingDocument) {
+  InMemoryRockHandle mockRock("/some-path");
+  UniquePointer<RockHandleIf> rockHandle(
+    &mockRock, NonDeleter<RockHandleIf>()
+  );
+  SyncPersistence dbHandle(std::move(rockHandle));
+  mockRock.put("centroids:centroid-id", "x");
+  mockRock.put("documents:unrelated-document-id", "x");
+  auto res = dbHandle.removeDocumentFromCentroid("centroid-id", "document-id");
+  EXPECT_TRUE(res.hasException());
+}
 
-// TEST(ClassifierDBHandle, CreateClassifierDoesNotExist) {
-//   InMemoryRockHandle docMockRock("doc");
-//   UniquePointer<RockHandleIf> docRockHandle(
-//     &docMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   InMemoryRockHandle listMockRock("list");
-//   UniquePointer<RockHandleIf> listRockHandle(
-//     &listMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   EXPECT_FALSE(listMockRock.exists("classifier"));
-//   ClassifierDBHandle dbHandle(
-//     std::move(docRockHandle),
-//     std::move(listRockHandle)
-//   );
+TEST(SyncPersistence, ListAllDocumentsForCentroidHappy) {
+  InMemoryRockHandle mockRock("/some-path");
+  UniquePointer<RockHandleIf> rockHandle(
+    &mockRock, NonDeleter<RockHandleIf>()
+  );
+  SyncPersistence dbHandle(std::move(rockHandle));
+  mockRock.put("centroids:centroid-id", "x");
+  mockRock.put("centroid-id__documents:doc1", "x");
+  mockRock.put("centroid-id__documents:doc2", "x");
+  mockRock.put("centroid-id__documents:doc3", "x");
+  auto res = dbHandle.listAllDocumentsForCentroid("centroid-id");
+  EXPECT_FALSE(res.hasException());
+  auto docIds = res.value();
+  vector<string> expected {
+    "doc1", "doc2", "doc3"
+  };
+  EXPECT_EQ(expected, docIds);
+}
 
-//   EXPECT_TRUE(dbHandle.createClassifier("classifier"));
+TEST(SyncPersistence, ListAllDocumentsForCentroidHappyButNoDocs) {
+  InMemoryRockHandle mockRock("/some-path");
+  UniquePointer<RockHandleIf> rockHandle(
+    &mockRock, NonDeleter<RockHandleIf>()
+  );
+  SyncPersistence dbHandle(std::move(rockHandle));
+  mockRock.put("centroids:centroid-id", "x");
+  auto res = dbHandle.listAllDocumentsForCentroid("centroid-id");
+  EXPECT_FALSE(res.hasException());
+  auto docIds = res.value();
+  EXPECT_EQ(0, docIds.size());
+}
 
-//   EXPECT_TRUE(listMockRock.get("classifier") != "");
-// }
+TEST(SyncPersistence, ListAllDocumentsForCentroidSadPanda1) {
+  InMemoryRockHandle mockRock("/some-path");
+  UniquePointer<RockHandleIf> rockHandle(
+    &mockRock, NonDeleter<RockHandleIf>()
+  );
+  SyncPersistence dbHandle(std::move(rockHandle));
+  mockRock.put("centroids:unrelated-centroid-id", "x");
+  auto res = dbHandle.listAllDocumentsForCentroid("centroid-id");
+  EXPECT_TRUE(res.hasException());
+}
 
-// TEST(ClassifierDBHandle, DoesClassifierHaveDocumentTrue) {
-//   InMemoryRockHandle docMockRock("doc");
-//   UniquePointer<RockHandleIf> docRockHandle(
-//     &docMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   InMemoryRockHandle listMockRock("list");
-//   UniquePointer<RockHandleIf> listRockHandle(
-//     &listMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   string val {"1"};
-//   docMockRock.put("classifier_id:document_id", val);
-//   EXPECT_TRUE(docMockRock.exists("classifier_id:document_id"));
-//   ClassifierDBHandle dbHandle(
-//     std::move(docRockHandle),
-//     std::move(listRockHandle)
-//   );
+TEST(SyncPersistence, ListAllDocumentsForCentroidSadPanda2) {
+  InMemoryRockHandle mockRock("/some-path");
+  UniquePointer<RockHandleIf> rockHandle(
+    &mockRock, NonDeleter<RockHandleIf>()
+  );
+  SyncPersistence dbHandle(std::move(rockHandle));
+  mockRock.put("centroids:unrelated-centroid-id", "x");
+  mockRock.put("unrelated-centroid-id__documents:some-doc", "x");
+  auto res = dbHandle.listAllDocumentsForCentroid("centroid-id");
+  EXPECT_TRUE(res.hasException());
+}
 
-//   EXPECT_TRUE(dbHandle.doesClassifierHaveDocument("classifier_id", "document_id"));
-// }
+TEST(SyncPersistence, ListAllDocumentsForCentroidOptionHappy) {
+  InMemoryRockHandle mockRock("/some-path");
+  UniquePointer<RockHandleIf> rockHandle(
+    &mockRock, NonDeleter<RockHandleIf>()
+  );
+  SyncPersistence dbHandle(std::move(rockHandle));
+  mockRock.put("centroids:centroid-id", "x");
+  mockRock.put("centroid-id__documents:doc1", "x");
+  mockRock.put("centroid-id__documents:doc2", "x");
+  mockRock.put("centroid-id__documents:doc3", "x");
+  auto res = dbHandle.listAllDocumentsForCentroid("centroid-id");
+  EXPECT_TRUE(res.hasValue());
+  auto docIds = res.value();
+  vector<string> expected {
+    "doc1", "doc2", "doc3"
+  };
+  EXPECT_EQ(expected, docIds);
+}
 
-// TEST(ClassifierDBHandle, DoesClassifierHaveDocumentFalse) {
-//   InMemoryRockHandle docMockRock("doc");
-//   UniquePointer<RockHandleIf> docRockHandle(
-//     &docMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   InMemoryRockHandle listMockRock("list");
-//   UniquePointer<RockHandleIf> listRockHandle(
-//     &listMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   EXPECT_FALSE(docMockRock.exists("classifier_id:document_id"));
-//   ClassifierDBHandle dbHandle(
-//     std::move(docRockHandle),
-//     std::move(listRockHandle)
-//   );
+TEST(SyncPersistence, ListAllDocumentsForCentroidOptionHappyButNoDocs) {
+  InMemoryRockHandle mockRock("/some-path");
+  UniquePointer<RockHandleIf> rockHandle(
+    &mockRock, NonDeleter<RockHandleIf>()
+  );
+  SyncPersistence dbHandle(std::move(rockHandle));
+  mockRock.put("centroids:centroid-id", "x");
+  auto res = dbHandle.listAllDocumentsForCentroid("centroid-id");
+  EXPECT_TRUE(res.hasValue());
+  auto docIds = res.value();
+  EXPECT_EQ(0, docIds.size());
+}
 
-//   EXPECT_FALSE(dbHandle.doesClassifierHaveDocument("classifier_id", "document_id"));
-// }
+TEST(SyncPersistence, ListAllDocumentsForCentroidOptionSadPanda1) {
+  InMemoryRockHandle mockRock("/some-path");
+  UniquePointer<RockHandleIf> rockHandle(
+    &mockRock, NonDeleter<RockHandleIf>()
+  );
+  SyncPersistence dbHandle(std::move(rockHandle));
+  mockRock.put("centroids:unrelated-centroid-id", "x");
+  auto res = dbHandle.listAllDocumentsForCentroidOption("centroid-id");
+  EXPECT_FALSE(res.hasValue());
+}
 
-// TEST(ClassifierDBHandle, AddPositiveDocumentToClassifierHappy) {
-//   InMemoryRockHandle docMockRock("doc");
-//   UniquePointer<RockHandleIf> docRockHandle(
-//     &docMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   InMemoryRockHandle listMockRock("list");
-//   UniquePointer<RockHandleIf> listRockHandle(
-//     &listMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   string collVal {"1"};
-//   listMockRock.put("classifier_id", collVal);
-//   EXPECT_TRUE(listMockRock.exists("classifier_id"));
-//   EXPECT_FALSE(docMockRock.exists("classifier_id:document_id"));
-//   ClassifierDBHandle dbHandle(
-//     std::move(docRockHandle),
-//     std::move(listRockHandle)
-//   );
-//   EXPECT_TRUE(dbHandle.addPositiveDocumentToClassifier("classifier_id", "document_id"));
-//   EXPECT_EQ("1", docMockRock.get("classifier_id:document_id"));
-// }
-
-// TEST(ClassifierDBHandle, AddPositiveDocumentToClassifierMissingClassifier) {
-//   InMemoryRockHandle docMockRock("doc");
-//   UniquePointer<RockHandleIf> docRockHandle(
-//     &docMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   InMemoryRockHandle listMockRock("list");
-//   UniquePointer<RockHandleIf> listRockHandle(
-//     &listMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   EXPECT_FALSE(listMockRock.exists("classifier_id"));
-//   EXPECT_FALSE(docMockRock.exists("classifier_id:document_id"));
-//   ClassifierDBHandle dbHandle(
-//     std::move(docRockHandle),
-//     std::move(listRockHandle)
-//   );
-//   EXPECT_FALSE(dbHandle.addPositiveDocumentToClassifier("classifier_id", "document_id"));
-//   EXPECT_FALSE(docMockRock.exists("classifier_id:document_id"));
-// }
-
-// TEST(ClassifierDBHandle, AddPositiveDocumentToClassifierAlreadyExists) {
-//   InMemoryRockHandle docMockRock("doc");
-//   UniquePointer<RockHandleIf> docRockHandle(
-//     &docMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   InMemoryRockHandle listMockRock("list");
-//   UniquePointer<RockHandleIf> listRockHandle(
-//     &listMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   string collVal {"1"};
-//   listMockRock.put("classifier_id", collVal);
-//   EXPECT_TRUE(listMockRock.exists("classifier_id"));
-//   EXPECT_FALSE(docMockRock.exists("classifier_id:document_id"));
-//   string existing {"existing_value"};
-//   docMockRock.put("classifier_id:document_id", existing);
-//   ClassifierDBHandle dbHandle(
-//     std::move(docRockHandle),
-//     std::move(listRockHandle)
-//   );
-//   EXPECT_FALSE(dbHandle.addPositiveDocumentToClassifier("classifier_id", "document_id"));
-//   EXPECT_EQ("existing_value", docMockRock.get("classifier_id:document_id"));
-// }
-
-// TEST(ClassifierDBHandle, AddNegativeDocumentToClassifierHappy) {
-//   InMemoryRockHandle docMockRock("doc");
-//   UniquePointer<RockHandleIf> docRockHandle(
-//     &docMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   InMemoryRockHandle listMockRock("list");
-//   UniquePointer<RockHandleIf> listRockHandle(
-//     &listMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   string collVal {"1"};
-//   listMockRock.put("classifier_id", collVal);
-//   EXPECT_TRUE(listMockRock.exists("classifier_id"));
-//   EXPECT_FALSE(docMockRock.exists("classifier_id:document_id"));
-//   ClassifierDBHandle dbHandle(
-//     std::move(docRockHandle),
-//     std::move(listRockHandle)
-//   );
-//   EXPECT_TRUE(dbHandle.addNegativeDocumentToClassifier("classifier_id", "document_id"));
-//   EXPECT_EQ("0", docMockRock.get("classifier_id:document_id"));
-// }
-
-// TEST(ClassifierDBHandle, AddNegativeDocumentToClassifierMissingClassifier) {
-//   InMemoryRockHandle docMockRock("doc");
-//   UniquePointer<RockHandleIf> docRockHandle(
-//     &docMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   InMemoryRockHandle listMockRock("list");
-//   UniquePointer<RockHandleIf> listRockHandle(
-//     &listMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   EXPECT_FALSE(listMockRock.exists("classifier_id"));
-//   EXPECT_FALSE(docMockRock.exists("classifier_id:document_id"));
-//   ClassifierDBHandle dbHandle(
-//     std::move(docRockHandle),
-//     std::move(listRockHandle)
-//   );
-//   EXPECT_FALSE(dbHandle.addNegativeDocumentToClassifier("classifier_id", "document_id"));
-//   EXPECT_FALSE(docMockRock.exists("classifier_id:document_id"));
-// }
-
-// TEST(ClassifierDBHandle, AddNegativeDocumentToClassifierAlreadyExists) {
-//   InMemoryRockHandle docMockRock("doc");
-//   UniquePointer<RockHandleIf> docRockHandle(
-//     &docMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   InMemoryRockHandle listMockRock("list");
-//   UniquePointer<RockHandleIf> listRockHandle(
-//     &listMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   string collVal {"1"};
-//   listMockRock.put("classifier_id", collVal);
-//   EXPECT_TRUE(listMockRock.exists("classifier_id"));
-//   EXPECT_FALSE(docMockRock.exists("classifier_id:document_id"));
-//   string existing {"existing_value"};
-//   docMockRock.put("classifier_id:document_id", existing);
-//   ClassifierDBHandle dbHandle(
-//     std::move(docRockHandle),
-//     std::move(listRockHandle)
-//   );
-//   EXPECT_FALSE(dbHandle.addNegativeDocumentToClassifier("classifier_id", "document_id"));
-//   EXPECT_EQ("existing_value", docMockRock.get("classifier_id:document_id"));
-// }
-
-
-// TEST(ClassifierDBHandle, RemoveDocFromClassifierHappy) {
-//   InMemoryRockHandle docMockRock("doc");
-//   UniquePointer<RockHandleIf> docRockHandle(
-//     &docMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   InMemoryRockHandle listMockRock("list");
-//   UniquePointer<RockHandleIf> listRockHandle(
-//     &listMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   string keyVal {"anything"};
-//   docMockRock.put("classifier_id:document_id", keyVal);
-//   EXPECT_TRUE(docMockRock.exists("classifier_id:document_id"));
-//   ClassifierDBHandle dbHandle(
-//     std::move(docRockHandle),
-//     std::move(listRockHandle)
-//   );
-//   EXPECT_TRUE(dbHandle.removeDocumentFromClassifier("classifier_id", "document_id"));
-//   EXPECT_FALSE(docMockRock.exists("classifier_id:document_id"));
-// }
-
-// TEST(ClassifierDBHandle, RemoveDocFromClassifierSadPanda) {
-//   InMemoryRockHandle docMockRock("doc");
-//   UniquePointer<RockHandleIf> docRockHandle(
-//     &docMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   InMemoryRockHandle listMockRock("list");
-//   UniquePointer<RockHandleIf> listRockHandle(
-//     &listMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   EXPECT_FALSE(docMockRock.exists("classifier_id:document_id"));
-//   ClassifierDBHandle dbHandle(
-//     std::move(docRockHandle),
-//     std::move(listRockHandle)
-//   );
-//   EXPECT_FALSE(dbHandle.removeDocumentFromClassifier("classifier_id", "document_id"));
-// }
-
-// TEST(ClassifierDBHandle, ListClassifiers) {
-//   InMemoryRockHandle docMockRock("doc");
-//   UniquePointer<RockHandleIf> docRockHandle(
-//     &docMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   InMemoryRockHandle listMockRock("list");
-//   UniquePointer<RockHandleIf> listRockHandle(
-//     &listMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   string anything {"anything"};
-//   listMockRock.put("coll1", anything);
-//   listMockRock.put("coll2", anything);
-//   listMockRock.put("coll3", anything);
-//   ClassifierDBHandle dbHandle(
-//     std::move(docRockHandle),
-//     std::move(listRockHandle)
-//   );
-//   auto classifiers = dbHandle.listClassifiers();
-//   EXPECT_EQ(3, classifiers.size());
-//   EXPECT_EQ("coll1", classifiers.at(0));
-//   EXPECT_EQ("coll2", classifiers.at(1));
-//   EXPECT_EQ("coll3", classifiers.at(2));
-// }
-
-// TEST(ClassifierDBHandle, ListClassifiersEmpty) {
-//   InMemoryRockHandle docMockRock("doc");
-//   UniquePointer<RockHandleIf> docRockHandle(
-//     &docMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   InMemoryRockHandle listMockRock("list");
-//   UniquePointer<RockHandleIf> listRockHandle(
-//     &listMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   ClassifierDBHandle dbHandle(
-//     std::move(docRockHandle),
-//     std::move(listRockHandle)
-//   );
-//   auto classifiers = dbHandle.listClassifiers();
-//   EXPECT_EQ(0, classifiers.size());
-// }
-
-// TEST(ClassifierDBHandle, ListAllClassifierDocuments) {
-//   InMemoryRockHandle docMockRock("doc");
-//   UniquePointer<RockHandleIf> docRockHandle(
-//     &docMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   InMemoryRockHandle listMockRock("list");
-//   UniquePointer<RockHandleIf> listRockHandle(
-//     &listMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   string anything {"1"};
-//   listMockRock.put("coll1", anything);
-//   docMockRock.put("coll1:doc1", anything);
-//   docMockRock.put("coll1:doc2", anything);
-//   docMockRock.put("coll1:doc3", anything);
-//   docMockRock.put("coll1:doc4", anything);
-//   ClassifierDBHandle dbHandle(
-//     std::move(docRockHandle),
-//     std::move(listRockHandle)
-//   );
-//   auto documents = dbHandle.listAllClassifierDocuments("coll1");
-//   EXPECT_EQ(4, documents.size());
-//   EXPECT_EQ("doc1", documents.at(0));
-//   EXPECT_EQ("doc2", documents.at(1));
-//   EXPECT_EQ("doc3", documents.at(2));
-//   EXPECT_EQ("doc4", documents.at(3));
-// }
-
-// TEST(ClassifierDBHandle, ListAllClassifierDocumentsEmpty) {
-//   InMemoryRockHandle docMockRock("doc");
-//   UniquePointer<RockHandleIf> docRockHandle(
-//     &docMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   InMemoryRockHandle listMockRock("list");
-//   UniquePointer<RockHandleIf> listRockHandle(
-//     &listMockRock, NonDeleter<RockHandleIf>()
-//   );
-//   string anything {"1"};
-//   listMockRock.put("coll1", anything);
-//   ClassifierDBHandle dbHandle(
-//     std::move(docRockHandle),
-//     std::move(listRockHandle)
-//   );
-//   auto documents = dbHandle.listAllClassifierDocuments("coll1");
-//   EXPECT_EQ(0, documents.size());
-// }
+TEST(SyncPersistence, ListAllDocumentsForCentroidOptionSadPanda2) {
+  InMemoryRockHandle mockRock("/some-path");
+  UniquePointer<RockHandleIf> rockHandle(
+    &mockRock, NonDeleter<RockHandleIf>()
+  );
+  SyncPersistence dbHandle(std::move(rockHandle));
+  mockRock.put("centroids:unrelated-centroid-id", "x");
+  mockRock.put("unrelated-centroid-id__documents:some-doc", "x");
+  auto res = dbHandle.listAllDocumentsForCentroid("centroid-id");
+  EXPECT_FALSE(res.hasValue());
+}

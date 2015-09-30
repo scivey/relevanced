@@ -27,12 +27,13 @@ protected:
   std::shared_ptr<persistence::PersistenceIf> persistence_;
   std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>> threadPool_;
   folly::Synchronized<std::map<std::string, std::shared_ptr<Centroid>>> centroids_;
-  folly::Optional<std::shared_ptr<Centroid>> getLoadedCentroid_(const std::string &id);
 public:
   SimilarityScoreWorker(
     std::shared_ptr<persistence::PersistenceIf> persistence,
     std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>> threadPool
   );
+  void setLoadedCentroid_(const std::string &id, std::shared_ptr<Centroid>);
+  folly::Optional<std::shared_ptr<Centroid>> getLoadedCentroid_(const std::string &id);
   void initialize() override;
   folly::Future<bool> reloadCentroid(std::string id) override;
   folly::Future<double> getDocumentSimilarity(std::string centroidId, ProcessedDocument *doc) override;

@@ -61,10 +61,3 @@ shared_ptr<ProcessedDocument> DocumentProcessor::processNew(shared_ptr<Document>
   process_(d2, result);
   return result;
 }
-
-
-UniquePointer<ProcessedDocument> DocumentProcessor::processUnique(const Document &doc) {
-  ProcessedDocument *result = new ProcessedDocument(doc.id);
-  process_(doc, result);
-  return UniquePointer<ProcessedDocument>(result);
-}

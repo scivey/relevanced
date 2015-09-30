@@ -69,6 +69,12 @@ Optional<shared_ptr<Centroid>> SimilarityScoreWorker::getLoadedCentroid_(const s
   return center;
 }
 
+void SimilarityScoreWorker::setLoadedCentroid_(const string &id, shared_ptr<Centroid> centroid) {
+  SYNCHRONIZED(centroids_) {
+    centroids_[id] = centroid;
+  }
+}
+
 Future<double> SimilarityScoreWorker::getDocumentSimilarity(string centroidId, ProcessedDocument *doc) {
   return threadPool_->addFuture([this, centroidId, doc](){
     auto centroid = getLoadedCentroid_(centroidId);

@@ -12,7 +12,6 @@ public:
   virtual ProcessedDocument process(const Document &doc) = 0;
   virtual std::shared_ptr<ProcessedDocument> processNew(const Document &doc) = 0;
   virtual std::shared_ptr<ProcessedDocument> processNew(std::shared_ptr<Document> doc) = 0;
-  virtual util::UniquePointer<ProcessedDocument> processUnique(const Document &doc) = 0;
 };
 
 class DocumentProcessor: public DocumentProcessorIf {
@@ -30,7 +29,6 @@ public:
   ) : stemmer_(stemmer), tokenizer_(tokenizer), stopwordFilter_(stopwordFilter) {}
   std::shared_ptr<ProcessedDocument> processNew(const Document &doc) override;
   std::shared_ptr<ProcessedDocument> processNew(std::shared_ptr<Document> doc) override;
-  util::UniquePointer<ProcessedDocument> processUnique(const Document &doc) override;
   ProcessedDocument process(const Document &doc) override;
 
 };
