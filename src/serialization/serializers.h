@@ -9,6 +9,9 @@ namespace serialization {
 template<typename T>
 struct BinaryDeserializer {
   static void deserialize(unsigned char *bytes, T &result) {
+    ((void) bytes);
+    ((void) result);
+
     LOG(INFO) << "default binary deserialization";
   }
 };
@@ -16,6 +19,9 @@ struct BinaryDeserializer {
 template<typename T>
 struct BinarySerializer {
   static size_t serialize(unsigned char **result, T &target) {
+    ((void) result);
+    ((void) target);
+
     LOG(INFO) << "default binary serialization";
     return 0;
   }
@@ -34,14 +40,19 @@ void binaryDeserialize(unsigned char *bytes, T &result) {
 template<typename T>
 struct JsonSerializer {
   static string serialize(T *target) {
+    ((void) target);
     LOG(INFO) << "default json serialization";
+    return "";
   }
 };
 
 template<typename T>
 struct JsonDeserializer {
   static T deserialize(const std::string &jsonStr) {
+    ((void) jsonStr);
     LOG(INFO) << "default json deserialization";
+    T t;
+    return t;
   }
 };
 

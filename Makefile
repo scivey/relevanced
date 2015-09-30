@@ -1,54 +1,7 @@
-CXX=clang++-3.5
-CC=clang-3.5
-CFLAGS=-I./src --std=c99
-CXX_FLAGS=--std=c++14 -stdlib=libstdc++ -I./src -I./external/gmock-1.7.0/include -I./external/gtest-1.7.0/include -O0
-LINK=-lthriftcpp2 -lthrift -lwangle -lfolly -lrocksdb -lmitie -lglog -lz -lsnappy -llz4 -lbz2 -ldouble-conversion -lboost_thread -lboost_system -ljemalloc -latomic -pthread
-
-%.o:%.cpp
-	$(CXX) $(CXX_FLAGS) -o $@ -c $<
-
-LIB_OBJ=$(addprefix ./src/, \
-		DocumentProcessingWorker.o \
-		DocumentProcessor.o \
-		ThriftRelevanceServer.o \
-		RelevanceServer.o \
-		CentroidUpdateWorker.o \
-		CentroidUpdaterFactory.o \
-		CentroidUpdater.o \
-		Centroid.o \
-		SimilarityScoreWorker.o \
-		tokenizer/Tokenizer.o \
-		stemmer/PorterStemmer.o \
-		stopwords/StopwordFilter.o \
-		stopwords/english_stopwords.o \
-		persistence/Persistence.o \
-		persistence/SyncPersistence.o \
-		persistence/InMemoryRockHandle.o \
-		persistence/RockHandle.o \
-		util.o \
-	)
-
-THRIFT_OBJ = $(addprefix ./src/gen-cpp2/, \
-		Relevance.o \
-		Relevance_client.o \
-		Relevance_processmap_binary.o \
-		Relevance_processmap_compact.o \
-		TextRelevance_constants.o \
-		TextRelevance_types.o \
-	)
-
-MAIN_OBJ=./src/main.o $(LIB_OBJ)
-
-relevanced: $(MAIN_OBJ) $(THRIFT_OBJ)
-	$(CXX) $(CXX_FLAGS) -o $@ $(MAIN_OBJ) $(THRIFT_OBJ) $(LINK)
-
-run: relevanced
-	./relevanced
+.PHONY: run clean thrift thrift-py
 
 clean:
-	rm -f runner src/*.o src/persistence/*.o src/stemmer/*.o src/stopwords/*.o src/tokenizer/*.o
-
-.PHONY: run clean thrift thrift-py
+	rm -f src/*.o
 
 thrift:
 	python -m thrift_compiler.main --gen cpp2 -o src src/TextRelevance.thrift
@@ -65,13 +18,11 @@ thrift-rb:
 	thrift-0.9 --gen rb -o ./clients/ruby/relevanced_client src/TextRelevance.thrift
 
 
-.PHONY: proc
-
 build-docker-base:
-	sudo docker build -t scivey/cpp-base containers/cpp-base
+	sudo docker build -t relevanced/base containers/base
 
 build-docker-relevanced:
-	sudo docker build -t scivey/relevanced containers/relevanced
+	sudo docker build -t relevanced/relevanced containers/relevanced
 
 GTEST_LIB = ./external/gtest-1.7.0-min/gtest-all.o
 GMOCK_LIB = ./external/gmock-1.7.0/src/gmock-all.o
@@ -82,25 +33,14 @@ $(GMOCK_LIB): ./external/gmock-1.7.0/src/gmock.cc
 $(GTEST_LIB): ./external/gtest-1.7.0-min/src/gtest_main.cc
 	cd ./external/gtest-1.7.0-min && make libgtest.a
 
-UNIT_TEST_OBJ = $(addprefix ./src/test_unit/, \
-		test_PorterStemmer.o \
-		test_DocumentSerialization.o \
-		test_StopwordFilter.o \
-		test_Tokenizer.o \
-		test_DocumentProcessor.o \
-		test_SyncPersistence.o \
-		test_InMemoryRockHandle.o \
-		test_SimilarityScoreWorker.o \
-		test_CentroidUpdateWorker.o \
-		test_DocumentProcessingWorker.o \
-		runTests.o \
-	)
+doxy:
+	mkdir -p build
+	doxygen
 
-unit_test_runner: $(UNIT_TEST_OBJ) $(LIB_OBJ) $(THRIFT_OBJ)
-	$(CXX) $(CXX_FLAGS) -o $@ $(UNIT_TEST_OBJ) $(THRIFT_OBJ) $(LIB_OBJ) $(GTEST_LIB) $(GMOCK_LIB) $(LINK)
+serve-doxy:
+	cd ./build/doxygen && http-server -c-1 -p8013
 
-test-unit: unit_test_runner
-	./unit_test_runner
+serve-docs:
+	mkdocs serve -a localhost:8014
 
-clean-test:
-	rm -f src/test_unit/*.o
+.PHONY: doxy serve-docs serve-doxy

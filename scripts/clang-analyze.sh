@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# shamelessly lifted from osquery's repo:
+# https://github.com/facebook/osquery/blob/5bf30a779ddb92e6bb6784c73975a039795d7135/tools/analysis/clang-analyze.sh
+
+# Copyright (c) 2014, Ruslan Baratov
+# All rights reserved.
+
+declare -a BLACKLIST=(
+    "logging.cc"
+    "logging_unittest.cc"
+    "signalhandler_unittest.cc"
+    "string_util.cc"
+    "sysinfo.cc"
+  )
+
+for BL_ITEM in ${BLACKLIST[@]}; do
+  if [[ "$@" == *"${BL_ITEM}"* ]]; then
+    clang++ "$@"
+    exit 0;
+  fi
+done
+
+for x in "$@"; do
+  if [ ! "${x}" == "-c" ]; then
+    continue
+  fi
+
+  OUTPUT="`mktemp /tmp/clang-analyze.out.XXXXX`"
+  BINARY="`mktemp /tmp/clang-analyze.bin.XXXXX`"
+
+  # analyze
+  clang++ --analyze "$@" -o "${BINARY}" 2> "${OUTPUT}"
+
+  RESULT=0
+  [ "$?" == 0 ] || RESULT=1
+  [ -s "${OUTPUT}" ] && RESULT=1
+
+  cat "${OUTPUT}";
+  rm -f "${OUTPUT}"
+  rm -f "${BINARY}"
+
+  if [ "${RESULT}" == "1" ]; then
+    exit 1;
+  fi
+done
+
+# compile real code
+clang++ "$@"

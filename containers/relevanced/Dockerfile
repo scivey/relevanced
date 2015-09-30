@@ -1,4 +1,4 @@
-FROM scivey/cpp-base
+FROM relevanced/base
 
 RUN cd /build && \
     git clone https://github.com/scivey/relevanced.git && \

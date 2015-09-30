@@ -1,0 +1,16 @@
+site_name: relevanced
+theme: yeti
+
+docs_dir: docs
+site_dir: build/site
+pages:
+- Introduction:
+  - Welcome to relevanced: index.md
+  - Motivations: introduction/motivations.md
+  - Feature Overview: introduction/overview.md
+- Examples:
+  - Binary Classifier (Python): examples/python-binary-classifier.md
+  - Multiclass Classifier (Python): examples/python-multiclass-classifier.md
+- Installation:
+  - Building: installation/building.md
+  - Docker Image: installation/docker.md

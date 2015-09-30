@@ -14,7 +14,7 @@ void DocumentProcessor::process_(const Document &doc, ProcessedDocument *result)
   // computes normalized frequency for each term in the document:
   // raw frequency divided by total number of (non-stopword) terms
   map<string, double> wordCounts;
-  size_t totalWords;
+  size_t totalWords = 0;
   for (auto &word: tokenizer_->tokenize(doc.text)) {
     stemmer_->stemInPlace(word);
     if (!stopwordFilter_->isStopword(word)) {

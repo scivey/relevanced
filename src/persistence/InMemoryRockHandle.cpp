@@ -31,7 +31,7 @@ string InMemoryRockHandle::get(const string &key) {
 }
 
 bool InMemoryRockHandle::get(const string &key, string &result) {
-  bool gotten;
+  bool gotten = false;
   SYNCHRONIZED(data_) {
     if (data_.find(key) == data_.end()) {
       gotten = false;
@@ -44,7 +44,7 @@ bool InMemoryRockHandle::get(const string &key, string &result) {
 }
 
 bool InMemoryRockHandle::exists(const string &key) {
-  bool result;
+  bool result = false;
   SYNCHRONIZED(data_) {
     if (data_.find(key) == data_.end()) {
       result = false;
@@ -56,7 +56,7 @@ bool InMemoryRockHandle::exists(const string &key) {
 }
 
 bool InMemoryRockHandle::del(const string &key) {
-  bool result;
+  bool result = false;
   SYNCHRONIZED(data_) {
     if (data_.find(key) == data_.end()) {
       result = false;

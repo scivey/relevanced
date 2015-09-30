@@ -1,10 +1,10 @@
 class RelevancedClientError(Exception):
     pass
 
-class ClassifierDoesNotExist(RelevancedClientError):
+class CentroidDoesNotExist(RelevancedClientError):
     pass
 
-class ClassifierAlreadyExists(RelevancedClientError):
+class CentroidAlreadyExists(RelevancedClientError):
     pass
 
 class DocumentDoesNotExist(RelevancedClientError):

@@ -57,7 +57,7 @@ Try<bool> SyncPersistence::deleteDocument(const string &id) {
 
 vector<string> SyncPersistence::listAllDocuments() {
   vector<string> docIds;
-  rockHandle_->iterPrefix("documents", [&docIds](const string &key, function<void (string&)> read, function<void ()> escape) {
+  rockHandle_->iterPrefix("documents", [&docIds](const string &key, function<void (string&)>, function<void ()>) {
     auto offset = key.find(':');
     assert(offset != string::npos);
     docIds.push_back(key.substr(offset + 1));
@@ -121,7 +121,7 @@ Try<bool> SyncPersistence::deleteCentroid(const string &id) {
   rockHandle_->del(mainKey);
   vector<string> associatedDocuments;
   auto docPrefix = sformat("{}__documents", id);
-  rockHandle_->iterPrefix(docPrefix, [&associatedDocuments](const string &key, function<void (string&)> read, function<void()> escape) {
+  rockHandle_->iterPrefix(docPrefix, [&associatedDocuments](const string &key, function<void (string&)>, function<void()>) {
     auto offset = key.find(':');
     assert(offset != string::npos);
     associatedDocuments.push_back(key.substr(offset + 1));
@@ -179,7 +179,7 @@ Optional<shared_ptr<Centroid>> SyncPersistence::loadCentroidOption(const string 
 vector<string> SyncPersistence::listAllCentroids() {
   string prefix = "centroids";
   vector<string> centroidIds;
-  rockHandle_->iterPrefix(prefix, [&centroidIds](const string &key, function<void (string&)> read, function<void()> escape) {
+  rockHandle_->iterPrefix(prefix, [&centroidIds](const string &key, function<void (string&)>, function<void()>) {
     auto offset = key.find(':');
     assert(offset != string::npos);
     centroidIds.push_back(key.substr(offset + 1));
@@ -226,7 +226,7 @@ Try<bool> SyncPersistence::doesCentroidHaveDocument(const string& centroidId, co
 vector<string> SyncPersistence::listAllDocumentsForCentroidRaw(const string& centroidId) {
   vector<string> documentIds;
   auto prefix = sformat("{}__documents", centroidId);
-  rockHandle_->iterPrefix(prefix, [&documentIds](const string &key, function<void(string&)> read, function<void()> escape) {
+  rockHandle_->iterPrefix(prefix, [&documentIds](const string &key, function<void(string&)>, function<void()>) {
     auto offset = key.find(':');
     assert(offset != string::npos);
     documentIds.push_back(key.substr(offset + 1));

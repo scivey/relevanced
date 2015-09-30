@@ -15,13 +15,14 @@
 template<typename T>
 class Debouncer {
   folly::Synchronized<std::set<T>> inFlight_;
-  function<void (T)> onValueCb_;
+  std::chrono::milliseconds initialDelay_;
   std::chrono::milliseconds interval_;
   std::chrono::milliseconds requeueDelay_;
-  std::chrono::milliseconds initialDelay_;
+  function<void (T)> onValueCb_;
   std::atomic<bool> stopping_ {false};
 public:
-  Debouncer(std::chrono::milliseconds initialDelay, std::chrono::milliseconds interval, function<void (T)> onValue): initialDelay_(initialDelay), interval_(interval), onValueCb_(onValue) {
+  Debouncer(std::chrono::milliseconds initialDelay, std::chrono::milliseconds interval, function<void (T)> onValue)
+    : initialDelay_(initialDelay), interval_(interval), onValueCb_(onValue) {
     std::chrono::milliseconds diff(10);
     requeueDelay_ = interval_ + diff;
   }
