@@ -2,11 +2,13 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include <folly/futures/Try.h>
+
 #include "persistence/Persistence.h"
 
 class CentroidUpdaterIf {
 public:
-  virtual bool run() = 0;
+  virtual folly::Try<bool> run() = 0;
   virtual ~CentroidUpdaterIf() = default;
 };
 
@@ -19,6 +21,6 @@ public:
     std::shared_ptr<persistence::PersistenceIf>,
     std::string centroidId
   );
-  bool run() override;
+  folly::Try<bool> run() override;
 };
 

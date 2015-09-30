@@ -5,9 +5,13 @@
 #include <string>
 #include <chrono>
 #include <memory>
+
+#include <folly/ExceptionWrapper.h>
+#include <folly/futures/Try.h>
 #include <wangle/concurrent/CPUThreadPoolExecutor.h>
 #include <wangle/concurrent/FutureExecutor.h>
 
+#include "persistence/exceptions.h"
 #include "TestHelpers.h"
 #include "CentroidUpdater.h"
 #include "CentroidUpdaterFactory.h"
@@ -17,15 +21,13 @@
 
 using namespace std;
 using namespace wangle;
-using stopwords::StopwordFilterIf;
-using stemmer::StemmerIf;
-using tokenizer::TokenizerIf;
+using persistence::exceptions::CentroidDoesNotExist;
 using ::testing::Return;
 using ::testing::_;
 
 class MockCentroidUpdater: public CentroidUpdaterIf {
 public:
-  MOCK_METHOD0(run, bool());
+  MOCK_METHOD0(run, Try<bool>());
 };
 
 class MockCentroidUpdaterFactory: public CentroidUpdaterFactoryIf {
@@ -47,7 +49,7 @@ TEST(CentroidUpdateWorker, SimpleSuccess) {
   );
 
   EXPECT_CALL(updater, run())
-    .WillOnce(Return(true));
+    .WillOnce(Return(Try<bool>(true)));
 
   EXPECT_CALL(updaterFactory, makeForCentroidId("centroid-id"))
     .WillOnce(Return(updaterPtr));
@@ -55,7 +57,8 @@ TEST(CentroidUpdateWorker, SimpleSuccess) {
   CentroidUpdateWorker worker(factoryPtr, threadPool);
 
   auto result = worker.update("centroid-id").get();
-  EXPECT_TRUE(result);
+  EXPECT_FALSE(result.hasException());
+  EXPECT_TRUE(result.value());
 }
 
 TEST(CentroidUpdateWorker, SimpleFailure) {
@@ -72,7 +75,7 @@ TEST(CentroidUpdateWorker, SimpleFailure) {
   );
 
   EXPECT_CALL(updater, run())
-    .WillOnce(Return(false));
+    .WillOnce(Return(Try<bool>(make_exception_wrapper<CentroidDoesNotExist>())));
 
   EXPECT_CALL(updaterFactory, makeForCentroidId("centroid-id"))
     .WillOnce(Return(updaterPtr));
@@ -81,5 +84,5 @@ TEST(CentroidUpdateWorker, SimpleFailure) {
 
   chrono::milliseconds updateDelay(0);
   auto result = worker.update("centroid-id", updateDelay).get();
-  EXPECT_FALSE(result);
+  EXPECT_TRUE(result.hasException());
 }

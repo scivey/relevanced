@@ -9,15 +9,17 @@
 #include <glog/logging.h>
 #include <folly/Format.h>
 #include <folly/Optional.h>
+#include <folly/futures/Try.h>
+
 #include "util.h"
 #include "ProcessedDocument.h"
 #include "Centroid.h"
 #include "CentroidUpdater.h"
 #include "persistence/Persistence.h"
 
-using namespace persistence;
 using namespace std;
 using namespace folly;
+using persistence::exceptions::CentroidDoesNotExist;
 using util::UniquePointer;
 
 CentroidUpdater::CentroidUpdater(
@@ -26,17 +28,17 @@ CentroidUpdater::CentroidUpdater(
 ): persistence_(persistence), centroidId_(centroidId) {}
 
 
-bool CentroidUpdater::run() {
+Try<bool> CentroidUpdater::run() {
   LOG(INFO) << "CentroidUpdater::run";
   if (!persistence_->doesCentroidExist(centroidId_).get()) {
     LOG(INFO) << format("centroid '{}' does not exist!", centroidId_);
-    return false;
+    return Try<bool>(make_exception_wrapper<CentroidDoesNotExist>());
   }
 
   auto centroidIdsOpt = persistence_->listAllDocumentsForCentroidOption(centroidId_).get();
   if (!centroidIdsOpt.hasValue()) {
     LOG(INFO) << format("falsy document list for centroid '{}'; aborting.", centroidId_);
-    return false;
+    return Try<bool>(false);
   }
 
   auto centroidIds = centroidIdsOpt.value();
@@ -67,5 +69,5 @@ bool CentroidUpdater::run() {
   LOG(INFO) << "persisting...";
   persistence_->saveCentroid(centroidId_, centroid).get();
   LOG(INFO) << "persisted..";
-  return true;
+  return Try<bool>(true);
 }

@@ -84,7 +84,7 @@ Future<Try<double>> SimilarityScoreWorker::getDocumentSimilarity(string centroid
     auto centroid = getLoadedCentroid_(centroidId);
     if (!centroid.hasValue()) {
       LOG(INFO) << "relevance request against null centroid: " << centroidId;
-      Try<double>(make_exception_wrapper<CentroidDoesNotExist>());
+      return Try<double>(make_exception_wrapper<CentroidDoesNotExist>());
     }
     return Try<double>(centroid.value()->score(doc));
   });

@@ -23,9 +23,11 @@
 #include "tokenizer/Tokenizer.h"
 #include "MockSyncPersistence.h"
 #include "util.h"
+
 using namespace std;
 using namespace wangle;
 using namespace persistence;
+using persistence::exceptions::CentroidDoesNotExist;
 using stopwords::StopwordFilterIf;
 using stemmer::StemmerIf;
 using tokenizer::TokenizerIf;
@@ -204,7 +206,9 @@ TEST(SimilarityScoreWorker, TestGetDocumentSimilarityHappy) {
   shared_ptr<Centroid> c1Ptr(&c1, NonDeleter<Centroid>());
   worker->setLoadedCentroid_("centroid-1", c1Ptr);
 
-  double score = worker->getDocumentSimilarity("centroid-1", &document).get();
+  auto result = worker->getDocumentSimilarity("centroid-1", &document).get();
+  EXPECT_FALSE(result.hasException());
+  auto score = result.value();
   EXPECT_TRUE(score > 0.0);
   EXPECT_TRUE(score < 1.0);
 }
@@ -232,8 +236,8 @@ TEST(SimilarityScoreWorker, TestGetDocumentSimilarityMissingCentroid) {
   );
   shared_ptr<Centroid> c1Ptr(&c1, NonDeleter<Centroid>());
   worker->setLoadedCentroid_("irrelevant-centroid-1", c1Ptr);
-  double score = worker->getDocumentSimilarity("centroid-1", &document).get();
-  EXPECT_EQ(0.0, score);
+  auto result = worker->getDocumentSimilarity("centroid-1", &document).get();
+  EXPECT_TRUE(result.hasException<CentroidDoesNotExist>());
 }
 
 
@@ -249,6 +253,6 @@ TEST(SimilarityScoreWorker, TestGetDocumentSimilarityNoCentroidNoNoneAtAll) {
     },
     mag3(5.8, 4.1, 15.1)
   );
-  double score = worker->getDocumentSimilarity("centroid-1", &document).get();
-  EXPECT_EQ(0.0, score);
+  auto result = worker->getDocumentSimilarity("centroid-1", &document).get();
+  EXPECT_TRUE(result.hasException<CentroidDoesNotExist>());
 }
