@@ -3,6 +3,7 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <chrono>
 #include <atomic>
 #include <thread>
 #include <wangle/concurrent/CPUThreadPoolExecutor.h>
@@ -22,8 +23,9 @@ public:
   virtual void initialize() = 0;
   virtual void echoUpdated(const std::string&) = 0;
   virtual void onUpdate(std::function<void (const std::string&)>) = 0;
-  virtual void triggerUpdate(const std::string &classifierId) = 0;
-  virtual folly::Future<bool> update(const std::string &classifierId) = 0;
+  virtual void triggerUpdate(const std::string &centroidId) = 0;
+  virtual folly::Future<bool> update(const std::string &centroidId) = 0;
+  virtual folly::Future<bool> update(const std::string &centroidId, std::chrono::milliseconds updateDelay) = 0;
   virtual ~CentroidUpdateWorkerIf() = default;
 };
 
@@ -43,7 +45,8 @@ public:
   void initialize() override;
   void echoUpdated(const std::string&) override;
   void onUpdate(std::function<void (const std::string&)>) override;
-  void triggerUpdate(const std::string &classifierId) override;
-  folly::Future<bool> update(const std::string &classifierId) override;
+  void triggerUpdate(const std::string &centroidId) override;
+  folly::Future<bool> update(const std::string &centroidId) override;
+  folly::Future<bool> update(const std::string &centroidId, std::chrono::milliseconds updateDelay) override;
 };
 

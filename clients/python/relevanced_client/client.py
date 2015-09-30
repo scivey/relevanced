@@ -123,6 +123,18 @@ class Client(object):
             raise_unexpected(res.status)
         return res.relevance
 
+    def multi_get_text_similarity(self, centroid_ids, text):
+        assert(not isinstance(centroid_ids, basestring))
+        res = self.thrift_client.multiGetTextSimilarity(
+            centroid_ids, text.encode('utf-8')
+        )
+        if res.status != RelevanceStatus.OK:
+            if res.status == RelevanceStatus.CENTROID_DOES_NOT_EXIST:
+                raise exceptions.CentroidDoesNotExist(centroid_id)
+            raise_unexpected(res.status)
+        return res.scores
+
+
     def get_document_similarity(self, centroid_id, doc_id):
         res = self.thrift_client.getDocumentSimilarity(
             centroid_id, doc_id

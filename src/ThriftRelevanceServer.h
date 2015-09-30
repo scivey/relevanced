@@ -16,6 +16,9 @@ public:
   folly::Future<unique_ptr<services::DocumentRelevanceResponse>>
     future_getDocumentSimilarity(std::unique_ptr<std::string> centroidId, std::unique_ptr<std::string> docId) override;
 
+  folly::Future<unique_ptr<services::DocumentMultiRelevanceResponse>>
+    future_multiGetTextSimilarity(std::unique_ptr<std::vector<std::string>> centroidId, std::unique_ptr<std::string> text) override;
+
   folly::Future<unique_ptr<services::DocumentRelevanceResponse>>
     future_getTextSimilarity(std::unique_ptr<std::string> centroidId, std::unique_ptr<std::string> text) override;
 

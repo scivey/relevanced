@@ -21,8 +21,10 @@
 
 using namespace std;
 using namespace folly;
+using namespace persistence::exceptions;
 
 namespace persistence {
+
 
 SyncPersistence::SyncPersistence(
   util::UniquePointer<RockHandleIf> rockHandle

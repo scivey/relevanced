@@ -2,15 +2,21 @@ namespace cpp2 services
 
 enum RelevanceStatus {
     OK = 0,
-    CLASSIFIER_DOES_NOT_EXIST = 1,
-    CLASSIFIER_ALREADY_EXISTS = 2,
+    CENTROID_DOES_NOT_EXIST = 1,
+    CENTROID_ALREADY_EXISTS = 2,
     DOCUMENT_DOES_NOT_EXIST = 3,
-    DOCUMENT_ALREADY_EXISTS = 4
+    DOCUMENT_ALREADY_EXISTS = 4,
+    UNKNOWN_EXCEPTION = 5
 }
 
 struct DocumentRelevanceResponse {
     1: required RelevanceStatus status;
     2: required double relevance;
+}
+
+struct DocumentMultiRelevanceResponse {
+    1: required RelevanceStatus status;
+    2: required map<string, double> scores;
 }
 
 struct GetCentroidSizeResponse {
@@ -31,6 +37,7 @@ struct CrudResponse {
 service Relevance {
     void ping(),
     DocumentRelevanceResponse getDocumentSimilarity(1: string centroidId, 2: string docId),
+    DocumentMultiRelevanceResponse multiGetTextSimilarity(1: list<string> centroidIds, 2: string text),
     DocumentRelevanceResponse getTextSimilarity(1: string centroidId, 2: string text),
     CrudResponse createDocument(1: string text),
     CrudResponse createDocumentWithID(1: string id, 2: string text),

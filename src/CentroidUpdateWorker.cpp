@@ -37,15 +37,20 @@ void CentroidUpdateWorker::stop() {
 }
 
 Future<bool> CentroidUpdateWorker::update(const string &centroidId) {
-  return threadPool_->addFuture([this, centroidId](){
+  return update(centroidId, chrono::milliseconds(50));
+}
+
+Future<bool> CentroidUpdateWorker::update(const string &centroidId, chrono::milliseconds updateDelay) {
+  return threadPool_->addFuture([this, centroidId, updateDelay](){
     auto updater = updaterFactory_->makeForCentroidId(centroidId);
     bool result = updater->run();
-    makeFuture(centroidId).delayed(chrono::milliseconds(50)).then([this](string centroidId) {
+    return makeFuture(centroidId).delayed(updateDelay).then([this, result](string centroidId) {
       this->echoUpdated(centroidId);
+      return result;
     });
-    return result;
   });
 }
+
 
 void CentroidUpdateWorker::echoUpdated(const string &centroidId) {
   SYNCHRONIZED(updateCallbacks_) {

@@ -91,6 +91,7 @@ UNIT_TEST_OBJ = $(addprefix ./src/test_unit/, \
 		test_SyncPersistence.o \
 		test_InMemoryRockHandle.o \
 		test_SimilarityScoreWorker.o \
+		test_CentroidUpdateWorker.o \
 		test_DocumentProcessingWorker.o \
 		runTests.o \
 	)
