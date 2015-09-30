@@ -15,7 +15,6 @@ protected:
 public:
   std::string dbPath;
   InMemoryRockHandle(std::string dbPath);
-  bool put(std::string key, std::string val) override;
   bool put(std::string key, rocksdb::Slice) override;
   std::string get(const std::string &key) override;
   bool get(const std::string &key, std::string &result) override;

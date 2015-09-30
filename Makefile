@@ -22,7 +22,6 @@ LIB_OBJ=$(addprefix ./src/, \
 		stopwords/english_stopwords.o \
 		persistence/Persistence.o \
 		persistence/SyncPersistence.o \
-		persistence/PrefixedRockHandle.o \
 		persistence/InMemoryRockHandle.o \
 		persistence/RockHandle.o \
 		util.o \
@@ -88,9 +87,7 @@ UNIT_TEST_OBJ = $(addprefix ./src/test_unit/, \
 		test_StopwordFilter.o \
 		test_Tokenizer.o \
 		test_DocumentProcessor.o \
-		test_CentroidDBHandle.o \
-		test_DocumentDBHandle.o \
-		test_ClassifierDBHandle.o \
+		test_SyncPersistence.o \
 		test_InMemoryRockHandle.o \
 		runTests.o \
 	)

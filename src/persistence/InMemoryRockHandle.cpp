@@ -13,15 +13,11 @@ namespace persistence {
 
 InMemoryRockHandle::InMemoryRockHandle(string dbPath): dbPath(dbPath){}
 
-bool InMemoryRockHandle::put(string key, string val) {
+bool InMemoryRockHandle::put(string key, rocksdb::Slice val) {
   SYNCHRONIZED(data_) {
-    data_.insert(make_pair(key, val));
+    data_.insert(make_pair(key, val.ToString()));
   }
   return true;
-}
-
-bool InMemoryRockHandle::put(string key, rocksdb::Slice val) {
-  return put(key, val.ToString());
 }
 
 string InMemoryRockHandle::get(const string &key) {

@@ -46,6 +46,9 @@ Try<bool> SyncPersistence::saveDocument(shared_ptr<ProcessedDocument> doc) {
 
 Try<bool> SyncPersistence::deleteDocument(const string &id) {
   auto key = sformat("documents:{}", id);
+  if (!rockHandle_->exists(key)) {
+    return Try<bool>(make_exception_wrapper<DocumentDoesNotExist>());
+  }
   bool rc = rockHandle_->del(key);
   return Try<bool>(rc);
 }
@@ -117,7 +120,9 @@ Try<bool> SyncPersistence::deleteCentroid(const string &id) {
   vector<string> associatedDocuments;
   auto docPrefix = sformat("{}__documents", id);
   rockHandle_->iterPrefix(docPrefix, [&associatedDocuments](const string &key, function<void (string&)> read, function<void()> escape) {
-    associatedDocuments.push_back(key);
+    auto offset = key.find(':');
+    assert(offset != string::npos);
+    associatedDocuments.push_back(key.substr(offset + 1));
   });
   for (auto &docId: associatedDocuments) {
     auto key = sformat("{}__documents:{}", id, docId);

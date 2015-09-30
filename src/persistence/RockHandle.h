@@ -23,7 +23,6 @@ namespace persistence {
 
 class RockHandleIf {
 public:
-  virtual bool put(std::string key, std::string val) = 0;
   virtual bool put(std::string key, rocksdb::Slice) = 0;
   virtual std::string get(const std::string &key) = 0;
   virtual bool get(const std::string &key, std::string &result) = 0;
@@ -45,7 +44,6 @@ protected:
   rocksdb::DB *db_;
 public:
   RockHandle(std::string dbPath);
-  bool put(std::string key, std::string val) override;
   bool put(std::string key, rocksdb::Slice) override;
   std::string get(const std::string &key) override;
   bool get(const std::string &key, std::string &result) override;

@@ -7,7 +7,7 @@
 #include "DocumentProcessingWorker.h"
 #include "persistence/Persistence.h"
 #include "persistence/SyncPersistence.h"
-#include "persistence/PrefixedRockHandle.h"
+#include "persistence/RockHandle.h"
 #include "ProcessedDocument.h"
 #include "SimilarityScoreWorker.h"
 #include "RelevanceServer.h"
@@ -38,7 +38,7 @@ int main() {
     );
     builders::ServerBuilder builder(options);
     builder.buildPersistence<
-      PrefixedRockHandle, SyncPersistence, Persistence
+      RockHandle, SyncPersistence, Persistence
     >();
     builder.buildDocumentProcessor<
       DocumentProcessingWorker, DocumentProcessor,

@@ -10,7 +10,6 @@ using namespace std;
 
 class MockRock: public persistence::RockHandleIf {
 public:
-  MOCK_METHOD2(put, bool(string, string));
   MOCK_METHOD2(put, bool(string, rocksdb::Slice));
   MOCK_METHOD1(get, string(const string&));
   MOCK_METHOD2(get, bool(const string&, string&));
