@@ -11,6 +11,7 @@
 #include "stemmer/PorterStemmer.h"
 #include "DocumentProcessor.h"
 #include "DocumentProcessingWorker.h"
+#include "CentroidUpdaterFactory.h"
 #include "persistence/Persistence.h"
 #include "persistence/SyncPersistence.h"
 #include "persistence/RockHandle.h"
@@ -85,14 +86,17 @@ public:
     ));
   }
 
-  template<typename CentroidUpdateWorkerT>
+  template<typename CentroidUpdateWorkerT, typename CentroidUpdaterFactoryT>
   void buildCentroidUpdateWorker() {
     assert(persistence_.get() != nullptr);
+    shared_ptr<CentroidUpdaterFactoryIf> updaterFactory(
+      new CentroidUpdaterFactoryT(persistence_)
+    );
     auto threadPool = make_shared<FutureExecutor<CPUThreadPoolExecutor>>(
       options_->getCentroidUpdateThreadCount()
     );
     centroidUpdater_.reset(new CentroidUpdateWorkerT(
-      persistence_, threadPool
+      updaterFactory, threadPool
     ));
   }
 

@@ -12,6 +12,8 @@
 
 #include "CentroidUpdateWorker.h"
 #include "CentroidUpdater.h"
+#include "CentroidUpdaterFactory.h"
+
 #include "Debouncer.h"
 #include "persistence/Persistence.h"
 
@@ -27,17 +29,14 @@ public:
 
 class CentroidUpdateWorker: public CentroidUpdateWorkerIf {
 protected:
-  std::shared_ptr<persistence::PersistenceIf> persistence_;
+  std::shared_ptr<CentroidUpdaterFactoryIf> updaterFactory_;
   std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>> threadPool_;
   std::shared_ptr<Debouncer<std::string>> updateQueue_;
-  std::shared_ptr<std::thread> dequeueThread_;
-  std::shared_ptr<std::thread> evThread_;
-  folly::EventBase base_;
   folly::Synchronized<std::vector<std::function<void(const std::string&)>>> updateCallbacks_;
   std::atomic<bool> stopping_ {false};
 public:
   CentroidUpdateWorker(
-    std::shared_ptr<persistence::PersistenceIf>,
+    std::shared_ptr<CentroidUpdaterFactoryIf> updaterFactory,
     std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>>
   );
   void stop();

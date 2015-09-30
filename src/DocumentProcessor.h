@@ -12,6 +12,7 @@ public:
   virtual ProcessedDocument process(const Document &doc) = 0;
   virtual std::shared_ptr<ProcessedDocument> processNew(const Document &doc) = 0;
   virtual std::shared_ptr<ProcessedDocument> processNew(std::shared_ptr<Document> doc) = 0;
+  virtual ~DocumentProcessorIf() = default;
 };
 
 class DocumentProcessor: public DocumentProcessorIf {

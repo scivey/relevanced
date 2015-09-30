@@ -20,6 +20,6 @@ DocumentProcessingWorker::DocumentProcessingWorker(
 
 Future<shared_ptr<ProcessedDocument>> DocumentProcessingWorker::processNew(shared_ptr<Document> doc) {
   return threadPool_->addFuture([this, doc](){
-    return processor_->processNew(*doc);
+    return processor_->processNew(doc);
   });
 }

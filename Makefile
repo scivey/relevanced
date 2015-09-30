@@ -13,6 +13,7 @@ LIB_OBJ=$(addprefix ./src/, \
 		ThriftRelevanceServer.o \
 		RelevanceServer.o \
 		CentroidUpdateWorker.o \
+		CentroidUpdaterFactory.o \
 		CentroidUpdater.o \
 		Centroid.o \
 		SimilarityScoreWorker.o \
@@ -90,6 +91,7 @@ UNIT_TEST_OBJ = $(addprefix ./src/test_unit/, \
 		test_SyncPersistence.o \
 		test_InMemoryRockHandle.o \
 		test_SimilarityScoreWorker.o \
+		test_DocumentProcessingWorker.o \
 		runTests.o \
 	)
 

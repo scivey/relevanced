@@ -8,6 +8,7 @@
 #include <wangle/concurrent/FutureExecutor.h>
 #include <folly/futures/Future.h>
 #include "CentroidUpdateWorker.h"
+#include "CentroidUpdaterFactory.h"
 #include "persistence/Persistence.h"
 #include "Debouncer.h"
 using persistence::PersistenceIf;
@@ -16,9 +17,9 @@ using namespace folly;
 using namespace wangle;
 
 CentroidUpdateWorker::CentroidUpdateWorker(
-  shared_ptr<PersistenceIf> persistence,
+  shared_ptr<CentroidUpdaterFactoryIf> updaterFactory,
   shared_ptr<FutureExecutor<CPUThreadPoolExecutor>> threadPool
-): persistence_(persistence), threadPool_(threadPool) {}
+): updaterFactory_(updaterFactory), threadPool_(threadPool) {}
 
 void CentroidUpdateWorker::initialize() {
   chrono::milliseconds initialDelay(5000);
@@ -37,8 +38,8 @@ void CentroidUpdateWorker::stop() {
 
 Future<bool> CentroidUpdateWorker::update(const string &centroidId) {
   return threadPool_->addFuture([this, centroidId](){
-    CentroidUpdater updater(persistence_, centroidId);
-    bool result = updater.run();
+    auto updater = updaterFactory_->makeForCentroidId(centroidId);
+    bool result = updater->run();
     makeFuture(centroidId).delayed(chrono::milliseconds(50)).then([this](string centroidId) {
       this->echoUpdated(centroidId);
     });

@@ -13,6 +13,7 @@
 #include "RelevanceServer.h"
 #include "RelevanceServerOptions.h"
 #include "CentroidUpdateWorker.h"
+#include "CentroidUpdaterFactory.h"
 #include "ServerBuilder.h"
 #include "stemmer/PorterStemmer.h"
 #include "stemmer/StemmerIf.h"
@@ -45,7 +46,7 @@ int main() {
       Tokenizer, PorterStemmer, StopwordFilter
     >();
     builder.buildCentroidUpdateWorker<
-      CentroidUpdateWorker
+      CentroidUpdateWorker, CentroidUpdaterFactory
     >();
     builder.buildSimilarityWorker<
       SimilarityScoreWorker

@@ -4,7 +4,13 @@
 #include <string>
 #include "persistence/Persistence.h"
 
-class CentroidUpdater {
+class CentroidUpdaterIf {
+public:
+  virtual bool run() = 0;
+  virtual ~CentroidUpdaterIf() = default;
+};
+
+class CentroidUpdater: public CentroidUpdaterIf {
 protected:
   std::shared_ptr<persistence::PersistenceIf> persistence_;
   string centroidId_;
@@ -13,6 +19,6 @@ public:
     std::shared_ptr<persistence::PersistenceIf>,
     std::string centroidId
   );
-  bool run();
+  bool run() override;
 };
 
