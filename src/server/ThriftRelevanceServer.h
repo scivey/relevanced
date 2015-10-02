@@ -9,6 +9,19 @@
 namespace relevanced {
 namespace server {
 
+/**
+ * `ThriftRelevanceServer` is not really responsible for relevanced's
+ * core functionality.
+ * 
+ * Its job is to proxy requests back to its injected `RelevanceServerIf` instance,
+ * and then interpret the responses in a way that makes sense for the defined
+ * Thrift protocol.
+ * 
+ * A major aspect of this is translating wrapped exceptions like `CentroidDoesNotExist`
+ * and `DocumentDoesNotExist` into corresponding status codes for the client, e.g.
+ * `RelevanceStatus::CENTROID_DOES_NOT_EXIST`.
+ */
+
 class ThriftRelevanceServer: public services::RelevanceSvIf {
   std::shared_ptr<RelevanceServerIf> server_;
 public:

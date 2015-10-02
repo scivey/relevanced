@@ -50,7 +50,7 @@ using util::UniquePointer;
  * 
  * There is some indirection in the rest of the code for the sake of
  * testability.  For instance, the `DocumentProcessor` and `CentroidUpdater` are
- * defined in terms of instances even though the "real" `RelevanceServer`
+ * defined in terms of interfaces even though the "real" `RelevanceServer`
  * only needs one implementation of each.
  * 
  * `ServerBuilder`'s job is to stitch those layers of indirection together into
