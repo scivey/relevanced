@@ -13,6 +13,7 @@
 using namespace std;
 using namespace folly;
 
+namespace relevanced {
 namespace serialization {
 
 
@@ -138,3 +139,4 @@ public:
 };
 
 } // serialization
+} // relevanced

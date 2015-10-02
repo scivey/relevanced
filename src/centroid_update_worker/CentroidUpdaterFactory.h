@@ -3,8 +3,11 @@
 #include <memory>
 #include <string>
 #include "persistence/Persistence.h"
-#include "CentroidUpdater.h"
-#include "util.h"
+#include "centroid_update_worker/CentroidUpdater.h"
+#include "util/util.h"
+
+namespace relevanced {
+namespace centroid_update_worker {
 
 class CentroidUpdaterFactoryIf {
 public:
@@ -21,4 +24,7 @@ public:
   );
   std::shared_ptr<CentroidUpdaterIf> makeForCentroidId(const std::string&) override;
 };
+
+} // centroid_update_worker
+} // relevanced
 

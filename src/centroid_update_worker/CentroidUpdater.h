@@ -6,6 +6,9 @@
 
 #include "persistence/Persistence.h"
 
+namespace relevanced {
+namespace centroid_update_worker {
+
 class CentroidUpdaterIf {
 public:
   virtual folly::Try<bool> run() = 0;
@@ -24,3 +27,5 @@ public:
   folly::Try<bool> run() override;
 };
 
+} // centroid_update_worker
+} // relevanced

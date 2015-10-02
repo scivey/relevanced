@@ -1,14 +1,17 @@
 #include <string>
 #include <memory>
-#include <eigen3/Eigen/Sparse>
 #include <folly/dynamic.h>
 #include <folly/json.h>
 #include <folly/Conv.h>
 #include <folly/DynamicConverter.h>
 
-#include "ProcessedDocument.h"
-#include "Centroid.h"
-#include "util.h"
+#include "models/ProcessedDocument.h"
+#include "models/Centroid.h"
+#include "util/util.h"
+
+namespace relevanced {
+namespace models {
+
 using namespace std;
 using namespace folly;
 
@@ -30,3 +33,6 @@ double Centroid::score(ProcessedDocument *document) {
   }
   return dotProd / (magnitude * document->magnitude);
 }
+
+} // models
+} // relevanced

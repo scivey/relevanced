@@ -7,20 +7,17 @@
 
 #include <glog/logging.h>
 #include "gen-cpp2/Relevance.h"
-#include "SimilarityScoreWorker.h"
+#include "similarity_score_worker/SimilarityScoreWorker.h"
 #include <folly/Optional.h>
 #include "persistence/Persistence.h"
-#include "DocumentProcessingWorker.h"
-#include "CentroidUpdateWorker.h"
+#include "document_processing_worker/DocumentProcessingWorker.h"
+#include "centroid_update_worker/CentroidUpdateWorker.h"
 
-#include "Document.h"
-#include "util.h"
+#include "util/util.h"
 
-namespace {
-  using namespace std;
-  using namespace folly;
-  using util::UniquePointer;
-}
+
+namespace relevanced {
+namespace server {
 
 class RelevanceServerIf {
 public:
@@ -46,18 +43,36 @@ public:
   virtual ~RelevanceServerIf() = default;
 };
 
+/**
+ * The central coordinator of the application.  `RelevanceServer`:
+ * 
+ * - Dispatches CRUD requests back to its injected `Persistence` instance.
+ * - Routes responses with raw text through its injected `DocumentProcessingWorker`,
+     then sends the vectorized documents on to `Persistence` (for operations like
+     `createDocument`) or to `SimilarityScoreWorker` (for operations like `getRelevanceForText`).
+ * - Keeps track of centroid document membership changes that it has passed on to `Persistence`,
+ *   and asks its injected `CentroidUpdateWorker` to recalculate the centroid when appropriate.
+ * - Listens for successful centroid updates from its `CentroidUpdateWorker` (via `onUpdate`), 
+ *   and tells its `SimilarityScoreWorker` instance to reload specific centroids as updated
+     models for them become available.
+ * 
+ * This logic is implemented in its own class, rather than in the Thrift
+ * server interface implementation, to make it easier to provide alternative
+ * ways of interfacing with a single running `RelevanceServer` instance.
+ * 
+ */
 class RelevanceServer: public RelevanceServerIf {
   shared_ptr<persistence::PersistenceIf> persistence_;
-  shared_ptr<SimilarityScoreWorkerIf> scoreWorker_;
-  shared_ptr<DocumentProcessingWorkerIf> processingWorker_;
-  shared_ptr<CentroidUpdateWorkerIf> centroidUpdateWorker_;
+  shared_ptr<similarity_score_worker::SimilarityScoreWorkerIf> scoreWorker_;
+  shared_ptr<document_processing_worker::DocumentProcessingWorkerIf> processingWorker_;
+  shared_ptr<centroid_update_worker::CentroidUpdateWorkerIf> centroidUpdateWorker_;
   folly::Future<folly::Try<std::unique_ptr<std::string>>> internalCreateDocumentWithID(std::string id, std::string text);
 public:
   RelevanceServer(
     shared_ptr<persistence::PersistenceIf> persistenceSv,
-    shared_ptr<SimilarityScoreWorkerIf> scoreWorker,
-    shared_ptr<DocumentProcessingWorkerIf> docProcessingWorker,
-    shared_ptr<CentroidUpdateWorkerIf> centroidUpdateWorker
+    shared_ptr<similarity_score_worker::SimilarityScoreWorkerIf> scoreWorker,
+    shared_ptr<document_processing_worker::DocumentProcessingWorkerIf> docProcessingWorker,
+    shared_ptr<centroid_update_worker::CentroidUpdateWorkerIf> centroidUpdateWorker
   );
   void initialize() override;
   void ping() override;
@@ -79,3 +94,6 @@ public:
   folly::Future<std::unique_ptr<std::vector<std::string>>> listAllCentroids() override;
   folly::Future<std::unique_ptr<std::vector<std::string>>> listAllDocuments() override;
 };
+
+} // server
+} // relevanced

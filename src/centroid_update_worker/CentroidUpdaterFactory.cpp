@@ -1,8 +1,11 @@
 #include <memory>
 #include <string>
 #include "persistence/Persistence.h"
-#include "CentroidUpdater.h"
-#include "CentroidUpdaterFactory.h"
+#include "centroid_update_worker/CentroidUpdater.h"
+#include "centroid_update_worker/CentroidUpdaterFactory.h"
+
+namespace relevanced {
+namespace centroid_update_worker {
 
 CentroidUpdaterFactory::CentroidUpdaterFactory(shared_ptr<persistence::PersistenceIf> persistence)
   : persistence_(persistence) {}
@@ -12,3 +15,6 @@ shared_ptr<CentroidUpdaterIf> CentroidUpdaterFactory::makeForCentroidId(const st
     new CentroidUpdater(persistence_, centroidId)
   );
 }
+
+} // centroid_update_worker
+} // relevanced

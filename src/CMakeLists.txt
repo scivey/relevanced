@@ -9,35 +9,35 @@ if (HAVE_CXX_FLAG_FSTRICT_ALIASING)
 endif()
 
 set(RELEVANCED_BASE_SOURCES
-    "DocumentProcessingWorker.cpp"
-    "DocumentProcessor.cpp"
-    "ThriftRelevanceServer.cpp"
-    "RelevanceServer.cpp"
-    "CentroidUpdateWorker.cpp"
-    "CentroidUpdaterFactory.cpp"
-    "CentroidUpdater.cpp"
-    "Centroid.cpp"
-    "SimilarityScoreWorker.cpp"
-    "tokenizer/Tokenizer.cpp"
-    "stemmer/PorterStemmer.cpp"
-    "stopwords/StopwordFilter.cpp"
-    "stopwords/english_stopwords.cpp"
-    "persistence/Persistence.cpp"
-    "persistence/SyncPersistence.cpp"
-    "persistence/InMemoryRockHandle.cpp"
-    "persistence/RockHandle.cpp"
-    "util.cpp"
+    "centroid_update_worker/CentroidUpdater.cpp"
+    "centroid_update_worker/CentroidUpdaterFactory.cpp"
+    "centroid_update_worker/CentroidUpdateWorker.cpp"
+    "document_processing_worker/DocumentProcessingWorker.cpp"
+    "document_processing_worker/DocumentProcessor.cpp"
     "gen-cpp2/Relevance.cpp"
     "gen-cpp2/Relevance_client.cpp"
     "gen-cpp2/Relevance_processmap_binary.cpp"
     "gen-cpp2/Relevance_processmap_compact.cpp"
     "gen-cpp2/TextRelevance_constants.cpp"
     "gen-cpp2/TextRelevance_types.cpp"
+    "models/Centroid.cpp"
+    "persistence/InMemoryRockHandle.cpp"
+    "persistence/Persistence.cpp"
+    "persistence/RockHandle.cpp"
+    "persistence/SyncPersistence.cpp"
+    "server/RelevanceServer.cpp"
+    "server/ThriftRelevanceServer.cpp"
+    "similarity_score_worker/SimilarityScoreWorker.cpp"
+    "stemmer/PorterStemmer.cpp"
+    "stopwords/english_stopwords.cpp"
+    "stopwords/StopwordFilter.cpp"
+    "tokenizer/Tokenizer.cpp"
+    "util/util.cpp"
 )
 
 # Define the source files
 
-add_executable(relevanced "main.cpp" ${RELEVANCED_BASE_SOURCES})
+add_executable(relevanced "relevanced_server.cpp" ${RELEVANCED_BASE_SOURCES})
 
 set(RELEVANCED_LINK_LIBRARIES
     "thriftcpp2"

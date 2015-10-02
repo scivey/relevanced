@@ -1,6 +1,7 @@
 #pragma once
 #include <exception>
 
+namespace relevanced {
 namespace persistence {
 namespace exceptions {
 
@@ -11,3 +12,5 @@ class CentroidAlreadyExists: public std::exception {};
 
 } // exceptions
 } // persistence
+} // relevanced
+

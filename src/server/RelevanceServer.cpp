@@ -10,21 +10,29 @@
 
 #include <glog/logging.h>
 
+#include "centroid_update_worker/CentroidUpdateWorker.h"
+#include "document_processing_worker/DocumentProcessor.h"
 #include "gen-cpp2/Relevance.h"
-#include "SimilarityScoreWorker.h"
-#include "CentroidUpdateWorker.h"
-#include "persistence/Persistence.h"
+#include "models/Document.h"
+#include "models/ProcessedDocument.h"
+#include "models/ProcessedDocument.h"
 #include "persistence/exceptions.h"
-#include "DocumentProcessor.h"
-#include "Document.h"
-#include "util.h"
-#include "RelevanceServer.h"
+#include "persistence/Persistence.h"
 #include "serialization/serializers.h"
-#include "ProcessedDocument.h"
+#include "server/RelevanceServer.h"
+#include "similarity_score_worker/SimilarityScoreWorker.h"
+#include "util/util.h"
 
+namespace relevanced {
+namespace server {
 
 using namespace std;
 using namespace folly;
+using similarity_score_worker::SimilarityScoreWorkerIf;
+using centroid_update_worker::CentroidUpdateWorkerIf;
+using document_processing_worker::DocumentProcessingWorkerIf;
+using models::Document;
+using models::ProcessedDocument;
 using util::UniquePointer;
 
 RelevanceServer::RelevanceServer(
@@ -185,3 +193,6 @@ Future<unique_ptr<vector<string>>> RelevanceServer::listAllDocuments() {
     return std::move(std::make_unique<vector<string>>(docIds));
   });
 }
+
+} // server
+} // relevanced

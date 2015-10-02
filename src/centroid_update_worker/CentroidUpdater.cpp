@@ -1,26 +1,32 @@
-#include <map>
-#include <set>
-#include <vector>
-#include <memory>
-#include <string>
-#include <thread>
 #include <chrono>
 #include <cmath>
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
+#include <thread>
+#include <vector>
 #include <glog/logging.h>
 #include <folly/Format.h>
-#include <folly/Optional.h>
 #include <folly/futures/Try.h>
+#include <folly/Optional.h>
 
-#include "util.h"
-#include "ProcessedDocument.h"
-#include "Centroid.h"
-#include "CentroidUpdater.h"
+#include "centroid_update_worker/CentroidUpdater.h"
+#include "models/Centroid.h"
+#include "models/ProcessedDocument.h"
 #include "persistence/Persistence.h"
+#include "util/util.h"
 
 using namespace std;
 using namespace folly;
+
+namespace relevanced {
+namespace centroid_update_worker {
+using models::Centroid;
+using models::ProcessedDocument;
 using persistence::exceptions::CentroidDoesNotExist;
 using util::UniquePointer;
+
 
 CentroidUpdater::CentroidUpdater(
   shared_ptr<persistence::PersistenceIf> persistence,
@@ -71,3 +77,6 @@ Try<bool> CentroidUpdater::run() {
   LOG(INFO) << "persisted..";
   return Try<bool>(true);
 }
+
+} // centroid_update_worker
+} // relevanced

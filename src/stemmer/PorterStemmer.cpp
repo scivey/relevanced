@@ -1,9 +1,10 @@
 #include <string>
 #include <mitie/stemmer.h>
-#include "PorterStemmer.h"
-#include "stringUtil.h"
+#include "stemmer/PorterStemmer.h"
+#include "util/util.h"
 using namespace std;
 
+namespace relevanced {
 namespace stemmer {
 
 void PorterStemmer::stemInPlace(string &word) {
@@ -15,3 +16,4 @@ string PorterStemmer::stem(const string &word) {
 }
 
 } // stemmer
+} // relevanced

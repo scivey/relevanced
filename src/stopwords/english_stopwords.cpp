@@ -2,10 +2,11 @@
 #include <string>
 #include <vector>
 
-#include "english_stopwords.h"
+#include "stopwords/english_stopwords.h"
 
 using namespace std;
 
+namespace relevanced {
 namespace stopwords {
 
 const set<string> stopwordSet = {
@@ -143,3 +144,5 @@ bool isEnglishStopword(const string &word) {
 }
 
 } // stopwords
+} // relevanced
+

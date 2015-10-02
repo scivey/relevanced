@@ -14,12 +14,13 @@
 #include <rocksdb/utilities/optimistic_transaction.h>
 #include <rocksdb/utilities/optimistic_transaction_db.h>
 #include <folly/Format.h>
-#include "RockHandle.h"
+#include "persistence/RockHandle.h"
 
 using namespace std;
 using namespace folly;
 using namespace rocksdb;
 
+namespace relevanced {
 namespace persistence {
 
 class ColonPrefixTransform: public rocksdb::SliceTransform {
@@ -132,3 +133,5 @@ bool RockHandle::iterAll(function<void (const string&, function<void(string&)>, 
 }
 
 } // persistence
+} // relevanced
+

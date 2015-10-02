@@ -13,14 +13,19 @@
 
 #include "persistence/exceptions.h"
 #include "TestHelpers.h"
-#include "CentroidUpdater.h"
-#include "CentroidUpdaterFactory.h"
-#include "CentroidUpdateWorker.h"
-#include "DocumentProcessingWorker.h"
-#include "ProcessedDocument.h"
+#include "centroid_update_worker/CentroidUpdater.h"
+#include "centroid_update_worker/CentroidUpdaterFactory.h"
+#include "centroid_update_worker/CentroidUpdateWorker.h"
+#include "document_processing_worker/DocumentProcessingWorker.h"
+#include "models/ProcessedDocument.h"
 
 using namespace std;
 using namespace wangle;
+using namespace relevanced;
+using namespace relevanced::centroid_update_worker;
+using namespace relevanced::document_processing_worker;
+using namespace relevanced::models;
+
 using persistence::exceptions::CentroidDoesNotExist;
 using ::testing::Return;
 using ::testing::_;

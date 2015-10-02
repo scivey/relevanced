@@ -9,8 +9,11 @@
 #include <glog/logging.h>
 #include "gen-cpp2/Relevance.h"
 #include "persistence/exceptions.h"
-#include "ThriftRelevanceServer.h"
-#include "RelevanceServer.h"
+#include "server/ThriftRelevanceServer.h"
+#include "server/RelevanceServer.h"
+
+namespace relevanced {
+namespace server {
 
 using namespace services;
 using namespace std;
@@ -247,3 +250,6 @@ Future<unique_ptr<vector<string>>> ThriftRelevanceServer::future_listAllCentroid
 Future<unique_ptr<vector<string>>> ThriftRelevanceServer::future_listAllDocuments() {
   return server_->listAllDocuments();
 }
+
+} // server
+} // relevanced

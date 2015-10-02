@@ -3,10 +3,15 @@
 #include <map>
 #include <cmath>
 #include "DocumentProcessor.h"
-#include "ProcessedDocument.h"
-#include "Document.h"
-#include "util.h"
+#include "models/ProcessedDocument.h"
+#include "models/Document.h"
+#include "util/util.h"
 
+namespace relevanced {
+namespace document_processing_worker {
+
+using models::Document;
+using models::ProcessedDocument;
 using namespace std;
 using util::UniquePointer;
 
@@ -61,3 +66,6 @@ shared_ptr<ProcessedDocument> DocumentProcessor::processNew(shared_ptr<Document>
   process_(d2, result);
   return result;
 }
+
+} // document_processing_worker
+} // relevanced

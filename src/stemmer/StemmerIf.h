@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 
+namespace relevanced {
 namespace stemmer {
 
 class StemmerIf {
@@ -10,3 +11,5 @@ public:
 };
 
 } // stemmer
+} // relevanced
+

@@ -5,7 +5,7 @@
 #include "stemmer/PorterStemmer.h"
 
 using namespace std;
-using stemmer::PorterStemmer;
+using relevanced::stemmer::PorterStemmer;
 
 TEST(PorterStemmer, TestStem) {
     PorterStemmer stemmer;

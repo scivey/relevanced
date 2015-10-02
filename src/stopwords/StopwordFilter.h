@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 
+namespace relevanced {
 namespace stopwords {
 
 class StopwordFilterIf {
@@ -14,3 +15,5 @@ public:
 };
 
 } // stopwords
+} // relevanced
+

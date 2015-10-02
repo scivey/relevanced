@@ -12,6 +12,9 @@
 #include <folly/io/async/EventBase.h>
 #include <glog/logging.h>
 
+namespace relevanced {
+namespace util {
+
 template<typename T>
 class Debouncer {
   folly::Synchronized<std::set<T>> inFlight_;
@@ -73,3 +76,6 @@ public:
     }
   }
 };
+
+} // util
+} // relevanced

@@ -1,6 +1,17 @@
 #pragma once
 #include <string>
 
+namespace relevanced {
+namespace server {
+
+/**
+ * Various configuration settings which can be modified with command
+ * line switches.  This is passed into `ServerBuilder`.  In addition to 
+ * passing it a `shared_ptr` for these options into the `RelevanceServer`
+ * it builds, `ServerBuilder` uses some of these options during build
+ * and initialization.  The thread count settings are particuarly notable
+ * there.
+ */
 struct RelevanceServerOptions {
   const std::string dataDir;
   const int thriftPort;
@@ -37,3 +48,6 @@ public:
     return centroidUpdateThreads_;
   }
 };
+
+} // server
+} // relevanced

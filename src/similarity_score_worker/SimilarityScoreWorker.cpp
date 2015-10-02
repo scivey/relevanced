@@ -11,14 +11,20 @@
 #include <vector>
 #include <cassert>
 
-#include "persistence/Persistence.h"
+#include "centroid_update_worker/CentroidUpdateWorker.h"
+#include "document_processing_worker/DocumentProcessor.h"
+#include "models/Centroid.h"
+#include "models/ProcessedDocument.h"
 #include "persistence/exceptions.h"
-#include "CentroidUpdateWorker.h"
-#include "Centroid.h"
-#include "DocumentProcessor.h"
-#include "ProcessedDocument.h"
-#include "SimilarityScoreWorker.h"
-#include "util.h"
+#include "persistence/Persistence.h"
+#include "similarity_score_worker/SimilarityScoreWorker.h"
+#include "util/util.h"
+
+namespace relevanced {
+namespace similarity_score_worker {
+
+using models::ProcessedDocument;
+using models::Centroid;
 
 using persistence::exceptions::CentroidDoesNotExist;
 using namespace wangle;
@@ -93,3 +99,6 @@ Future<Try<double>> SimilarityScoreWorker::getDocumentSimilarity(string centroid
 Future<Try<double>> SimilarityScoreWorker::getDocumentSimilarity(string centroidId, shared_ptr<ProcessedDocument> doc) {
   return getDocumentSimilarity(centroidId, doc.get());
 }
+
+} // similarity_score_worker
+} // relevanced

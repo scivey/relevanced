@@ -7,8 +7,8 @@
 #include <folly/futures/Future.h>
 #include <folly/futures/Try.h>
 #include <folly/Optional.h>
-#include "ProcessedDocument.h"
-#include "Centroid.h"
+#include "models/ProcessedDocument.h"
+#include "models/Centroid.h"
 #include "persistence/SyncPersistence.h"
 
 using namespace std;

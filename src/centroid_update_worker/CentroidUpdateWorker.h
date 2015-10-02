@@ -11,12 +11,15 @@
 #include <folly/futures/Future.h>
 #include <folly/io/async/EventBase.h>
 
-#include "CentroidUpdateWorker.h"
-#include "CentroidUpdater.h"
-#include "CentroidUpdaterFactory.h"
+#include "centroid_update_worker/CentroidUpdateWorker.h"
+#include "centroid_update_worker/CentroidUpdater.h"
+#include "centroid_update_worker/CentroidUpdaterFactory.h"
 
-#include "Debouncer.h"
+#include "util/Debouncer.h"
 #include "persistence/Persistence.h"
+
+namespace relevanced {
+namespace centroid_update_worker {
 
 class CentroidUpdateWorkerIf {
 public:
@@ -33,7 +36,7 @@ class CentroidUpdateWorker: public CentroidUpdateWorkerIf {
 protected:
   std::shared_ptr<CentroidUpdaterFactoryIf> updaterFactory_;
   std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>> threadPool_;
-  std::shared_ptr<Debouncer<std::string>> updateQueue_;
+  std::shared_ptr<util::Debouncer<std::string>> updateQueue_;
   folly::Synchronized<std::vector<std::function<void(const std::string&)>>> updateCallbacks_;
   std::atomic<bool> stopping_ {false};
 public:
@@ -50,3 +53,5 @@ public:
   folly::Future<folly::Try<bool>> update(const std::string &centroidId, std::chrono::milliseconds updateDelay) override;
 };
 
+} // centroid_update_worker
+} // relevanced

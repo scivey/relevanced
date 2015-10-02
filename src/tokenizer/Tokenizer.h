@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 
+namespace relevanced {
 namespace tokenizer {
 
 class TokenizerIf {
@@ -15,3 +16,4 @@ public:
 };
 
 }
+} // relevanced

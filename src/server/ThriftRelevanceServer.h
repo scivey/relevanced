@@ -4,7 +4,10 @@
 #include <folly/futures/Future.h>
 #include <folly/futures/helpers.h>
 #include "gen-cpp2/Relevance.h"
-#include "RelevanceServer.h"
+#include "server/RelevanceServer.h"
+
+namespace relevanced {
+namespace server {
 
 class ThriftRelevanceServer: public services::RelevanceSvIf {
   std::shared_ptr<RelevanceServerIf> server_;
@@ -55,3 +58,6 @@ public:
   folly::Future<std::unique_ptr<std::vector<std::string>>> future_listAllDocuments() override;
 
 };
+
+} // server
+} // relevanced

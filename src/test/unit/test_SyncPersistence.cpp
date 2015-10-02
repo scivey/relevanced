@@ -1,28 +1,29 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
-#include <vector>
-#include <string>
 #include <functional>
 #include <memory>
+#include <string>
+#include <vector>
 
 #include <rocksdb/db.h>
 #include <rocksdb/slice.h>
 
-#include "util.h"
-#include "TestHelpers.h"
-#include "Document.h"
-#include "DocumentProcessor.h"
-#include "ProcessedDocument.h"
-#include "stopwords/StopwordFilter.h"
-#include "stemmer/StemmerIf.h"
-#include "tokenizer/Tokenizer.h"
-#include "persistence/SyncPersistence.h"
-#include "persistence/RockHandle.h"
+#include "models/Centroid.h"
+#include "models/Document.h"
+#include "models/ProcessedDocument.h"
 #include "persistence/InMemoryRockHandle.h"
-#include "Centroid.h"
+#include "persistence/RockHandle.h"
+#include "persistence/SyncPersistence.h"
+#include "stemmer/StemmerIf.h"
+#include "stopwords/StopwordFilter.h"
+#include "TestHelpers.h"
+#include "tokenizer/Tokenizer.h"
+#include "util/util.h"
 
 using namespace std;
-using namespace persistence;
+using namespace relevanced;
+using namespace relevanced::persistence;
+using namespace relevanced::models;
 
 using util::UniquePointer;
 using ::testing::Return;

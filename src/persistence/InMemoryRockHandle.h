@@ -1,5 +1,5 @@
 #pragma once
-#include "RockHandle.h"
+#include "persistence/RockHandle.h"
 #include <memory>
 #include <string>
 #include <functional>
@@ -7,6 +7,7 @@
 #include <folly/Format.h>
 #include <folly/Synchronized.h>
 
+namespace relevanced {
 namespace persistence {
 
 class InMemoryRockHandle: public RockHandleIf {
@@ -27,4 +28,6 @@ public:
 
 
 } // persistence
+} // relevanced
+
 

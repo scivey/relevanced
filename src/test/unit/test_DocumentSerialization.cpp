@@ -5,9 +5,11 @@
 #include <cstdio>
 #include <cstring>
 #include "serialization/serializers.h"
-#include "ProcessedDocument.h"
+#include "models/ProcessedDocument.h"
 
 using namespace std;
+using namespace relevanced;
+using namespace relevanced::models;
 
 TEST(TestDocumentSerialization, TestBinarySerialization) {
     ProcessedDocument doc("doc-id");

@@ -2,6 +2,7 @@
 #include <string>
 #include "StemmerIf.h"
 
+namespace relevanced {
 namespace stemmer {
 
 class PorterStemmer: public StemmerIf {
@@ -11,4 +12,6 @@ public:
 };
 
 } // stemmer
+} // relevanced
+
 

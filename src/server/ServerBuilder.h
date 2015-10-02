@@ -9,37 +9,55 @@
 #include "tokenizer/Tokenizer.h"
 #include "stemmer/StemmerIf.h"
 #include "stemmer/PorterStemmer.h"
-#include "DocumentProcessor.h"
-#include "DocumentProcessingWorker.h"
-#include "CentroidUpdaterFactory.h"
+#include "document_processing_worker/DocumentProcessor.h"
+#include "document_processing_worker/DocumentProcessingWorker.h"
+#include "centroid_update_worker/CentroidUpdaterFactory.h"
 #include "persistence/Persistence.h"
 #include "persistence/SyncPersistence.h"
 #include "persistence/RockHandle.h"
-#include "ProcessedDocument.h"
+#include "models/ProcessedDocument.h"
 #include "serialization/serializers.h"
-#include "RelevanceServer.h"
-#include "ThriftRelevanceServer.h"
-#include "util.h"
-#include "SimilarityScoreWorker.h"
-#include "RelevanceServerOptions.h"
+#include "server/RelevanceServer.h"
+#include "server/ThriftRelevanceServer.h"
+#include "util/util.h"
+#include "similarity_score_worker/SimilarityScoreWorker.h"
+#include "server/RelevanceServerOptions.h"
+
+
+namespace relevanced {
+namespace server {
 
 using namespace std;
 using util::UniquePointer;
 using namespace std;
 using namespace folly;
 using namespace persistence;
-using stemmer::StemmerIf;
-using stemmer::PorterStemmer;
-using stopwords::StopwordFilter;
-using stopwords::StopwordFilterIf;
-using tokenizer::TokenizerIf;
-using tokenizer::Tokenizer;
+using namespace similarity_score_worker;
+using namespace centroid_update_worker;
+using namespace document_processing_worker;
+using relevanced::stemmer::StemmerIf;
+using relevanced::stemmer::PorterStemmer;
+using relevanced::stopwords::StopwordFilter;
+using relevanced::stopwords::StopwordFilterIf;
+using relevanced::tokenizer::TokenizerIf;
+using relevanced::tokenizer::Tokenizer;
 using wangle::CPUThreadPoolExecutor;
 using wangle::FutureExecutor;
 using util::UniquePointer;
 
-namespace builders {
-
+/**
+ * This is an AbstractNonsenseArchitectureAstronautFactoryManager.
+ * 
+ * There is some indirection in the rest of the code for the sake of
+ * testability.  For instance, the `DocumentProcessor` and `CentroidUpdater` are
+ * defined in terms of instances even though the "real" `RelevanceServer`
+ * only needs one implementation of each.
+ * 
+ * `ServerBuilder`'s job is to stitch those layers of indirection together into
+ * a usable `RelevancedServer` or `ThriftRelevanceServer` instance.
+ * 
+ * The main goal here is to contain the abstract nonsense to one place.
+ */
 class ServerBuilder {
   shared_ptr<PersistenceIf> persistence_;
   shared_ptr<DocumentProcessingWorkerIf> processor_;
@@ -142,5 +160,5 @@ public:
 
 };
 
-
-} // builders
+} // server
+} // relevanced

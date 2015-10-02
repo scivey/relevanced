@@ -10,6 +10,9 @@
 #include "serialization/serializers.h"
 #include "serialization/bytes.h"
 
+namespace relevanced {
+namespace models {
+
 class ProcessedDocument {
 public:
   std::string id;
@@ -20,10 +23,13 @@ public:
     : id(id), normalizedWordCounts(counts), magnitude(magnitude) {}
 };
 
+} // models
+} // relevanced
+
 namespace folly {
   template<>
-  struct DynamicConstructor<ProcessedDocument> {
-    static folly::dynamic construct(const ProcessedDocument &document) {
+  struct DynamicConstructor<relevanced::models::ProcessedDocument> {
+    static folly::dynamic construct(const relevanced::models::ProcessedDocument &document) {
       auto scores = folly::toDynamic(document.normalizedWordCounts);
       folly::dynamic self = folly::dynamic::object;
       self["id"] = document.id;
@@ -34,18 +40,21 @@ namespace folly {
   };
 
   template<>
-  struct DynamicConverter<ProcessedDocument> {
-    static ProcessedDocument convert(const folly::dynamic &dyn) {
+  struct DynamicConverter<relevanced::models::ProcessedDocument> {
+    static relevanced::models::ProcessedDocument convert(const folly::dynamic &dyn) {
       auto scores = folly::convertTo<std::map<std::string, double>>(dyn["scores"]);
       auto magnitude = folly::convertTo<double>(dyn["magnitude"]);
       auto id = folly::convertTo<std::string>(dyn["id"]);
-      return ProcessedDocument(id, std::move(scores), magnitude);
+      return relevanced::models::ProcessedDocument(id, std::move(scores), magnitude);
     }
   };
-}
+} // folly
 
-
+namespace relevanced {
 namespace serialization {
+
+  using models::ProcessedDocument;
+
   template<>
   struct BinarySerializer<ProcessedDocument> {
     static size_t serialize(unsigned char **bytes, ProcessedDocument &target) {
@@ -111,6 +120,5 @@ namespace serialization {
       return folly::convertTo<ProcessedDocument>(dynSelf);
     }
   };
-
-
-}
+} // serialization
+} // relevanced

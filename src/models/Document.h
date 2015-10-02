@@ -1,7 +1,9 @@
 #pragma once
 
-#pragma once
 #include <string>
+
+namespace relevanced {
+namespace models {
 
 class Document {
 public:
@@ -9,3 +11,6 @@ public:
   const std::string text;
   Document(const std::string &idStr, const std::string &textStr): id(idStr), text(textStr) {}
 };
+
+} // models
+} // relevanced

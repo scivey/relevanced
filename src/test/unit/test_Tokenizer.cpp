@@ -2,7 +2,7 @@
 #include "tokenizer/Tokenizer.h"
 
 using namespace std;
-using tokenizer::Tokenizer;
+using relevanced::tokenizer::Tokenizer;
 
 TEST(TestTokenizer, SimpleTest) {
     Tokenizer tokenizer;

@@ -1,20 +1,15 @@
 #pragma once
 
-#include <map>
-#include <string>
-#include <sstream>
 #include <algorithm>
-#include <set>
 #include <functional>
-
-#include <vector>
+#include <map>
 #include <memory>
-#include <eigen3/Eigen/Sparse>
+#include <set>
+#include <sstream>
+#include <string>
+#include <vector>
 
-namespace {
-  using namespace std;
-}
-
+namespace relevanced {
 namespace util {
 
 template<typename T>
@@ -22,16 +17,16 @@ void defaultDelete(T *t) {
     delete t;
 }
 
-// a type-erased version of unique_ptr
+// a type-erased version of std::unique_ptr
 template<typename T>
 struct UniquePointer {
-    unique_ptr<T, function<void (T*)>> ptr;
-    UniquePointer(T *t, function<void (T*)> deleteFunc) {
-        unique_ptr<T, function<void (T*)>> temp(t, deleteFunc);
+    std::unique_ptr<T, std::function<void (T*)>> ptr;
+    UniquePointer(T *t, std::function<void (T*)> deleteFunc) {
+        std::unique_ptr<T, std::function<void (T*)>> temp(t, deleteFunc);
         ptr = std::move(temp);
     }
     UniquePointer(T *t) {
-      unique_ptr<T, function<void (T*)>> temp(
+      std::unique_ptr<T, std::function<void (T*)>> temp(
           t, defaultDelete<T>
       );
       ptr = std::move(temp);
@@ -39,7 +34,7 @@ struct UniquePointer {
 
     UniquePointer(const UniquePointer<T> &other) = delete;
 
-    UniquePointer(unique_ptr<T, function<void (T*)>> &&otherPtr)
+    UniquePointer(std::unique_ptr<T, std::function<void (T*)>> &&otherPtr)
         : ptr(std::move(otherPtr)){}
 
     UniquePointer(UniquePointer<T>&& other) noexcept:
@@ -62,7 +57,7 @@ struct UniquePointer {
 template<typename T>
 class Counter {
 public:
-  map<T, size_t> counts;
+  std::map<T, size_t> counts;
   void incrBy(const T &key, size_t amount) {
     if (counts.find(key) != counts.end()) {
       counts[key] += amount;
@@ -77,8 +72,8 @@ public:
 
 
 template<typename T1, typename T2>
-vector<T1> getSortedKeys(const map<T1, T2> &aMap) {
-  vector<T1> result;
+std::vector<T1> getSortedKeys(const std::map<T1, T2> &aMap) {
+  std::vector<T1> result;
   for (auto &elem: aMap) {
     result.push_back(elem.first);
   }
@@ -87,8 +82,8 @@ vector<T1> getSortedKeys(const map<T1, T2> &aMap) {
 }
 
 template<typename T>
-vector<T> vecOfSet(const set<T> &t) {
-  vector<T> output;
+std::vector<T> vecOfSet(const std::set<T> &t) {
+  std::vector<T> output;
   for (auto &elem: t) {
     output.push_back(elem);
   }
@@ -96,8 +91,8 @@ vector<T> vecOfSet(const set<T> &t) {
 }
 
 std::string getUuid();
-double vectorMag(const Eigen::SparseVector<double> &vec, size_t count);
 
-double sparseDot(Eigen::SparseVector<double> &vec1, Eigen::SparseVector<double> &vec2);
+bool isOnlyAscii(const std::string &text);
 
 } // util
+} // relevanced

@@ -4,13 +4,16 @@
 #include <folly/futures/Future.h>
 #include <wangle/concurrent/CPUThreadPoolExecutor.h>
 #include <wangle/concurrent/FutureExecutor.h>
-#include "DocumentProcessor.h"
-#include "ProcessedDocument.h"
-#include "Document.h"
+#include "document_processing_worker/DocumentProcessor.h"
+#include "models/ProcessedDocument.h"
+#include "models/Document.h"
+
+namespace relevanced {
+namespace document_processing_worker {
 
 class DocumentProcessingWorkerIf {
 public:
-  virtual folly::Future<std::shared_ptr<ProcessedDocument>> processNew(std::shared_ptr<Document>) = 0;
+  virtual folly::Future<std::shared_ptr<models::ProcessedDocument>> processNew(std::shared_ptr<models::Document>) = 0;
 };
 
 class DocumentProcessingWorker: public DocumentProcessingWorkerIf {
@@ -21,5 +24,8 @@ public:
     std::shared_ptr<DocumentProcessorIf>,
     std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>> threadPool
   );
-  folly::Future<std::shared_ptr<ProcessedDocument>> processNew(std::shared_ptr<Document>) override;
+  folly::Future<std::shared_ptr<models::ProcessedDocument>> processNew(std::shared_ptr<models::Document>) override;
 };
+
+} // document_processing_worker
+} // relevanced

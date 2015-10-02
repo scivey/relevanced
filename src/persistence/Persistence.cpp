@@ -1,22 +1,29 @@
-#include "Persistence.h"
 #include <memory>
 #include <string>
 #include <vector>
+
 #include <glog/logging.h>
 #include <wangle/concurrent/CPUThreadPoolExecutor.h>
 #include <wangle/concurrent/FutureExecutor.h>
 #include <folly/futures/Future.h>
 #include <folly/futures/Try.h>
 #include <folly/Format.h>
-
 #include <folly/Optional.h>
-#include "util.h"
-#include "SyncPersistence.h"
+
+#include "persistence/Persistence.h"
+#include "util/util.h"
+#include "persistence/SyncPersistence.h"
+#include "models/ProcessedDocument.h"
+#include "models/Centroid.h"
 
 using namespace std;
 using namespace folly;
 
+namespace relevanced {
 namespace persistence {
+
+using models::ProcessedDocument;
+using models::Centroid;
 
 Persistence::Persistence(
   util::UniquePointer<SyncPersistenceIf> syncHandle,
@@ -133,3 +140,5 @@ Future<Optional<vector<string>>> Persistence::listAllDocumentsForCentroidOption(
 }
 
 } // persistence
+} // relevanced
+

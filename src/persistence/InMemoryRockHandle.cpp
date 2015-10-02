@@ -1,4 +1,4 @@
-#include "InMemoryRockHandle.h"
+#include "persistence/InMemoryRockHandle.h"
 #include <memory>
 #include <string>
 #include <functional>
@@ -9,6 +9,7 @@
 using namespace folly;
 using namespace std;
 
+namespace relevanced {
 namespace persistence {
 
 InMemoryRockHandle::InMemoryRockHandle(string dbPath): dbPath(dbPath){}
@@ -117,4 +118,6 @@ bool InMemoryRockHandle::iterPrefix(const string &prefix, function<void (const s
 
 
 } // persistence
+} // relevanced
+
 

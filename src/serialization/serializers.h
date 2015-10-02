@@ -4,6 +4,8 @@
 #include <boost/static_assert.hpp>
 #include "bytes.h"
 #include <glog/logging.h>
+
+namespace relevanced {
 namespace serialization {
 
 template<typename T>
@@ -66,5 +68,5 @@ T jsonDeserialize(const std::string &jsonStr) {
   return JsonDeserializer<T>::deserialize(jsonStr);
 }
 
-
-}
+} // serialization
+} // relevanced

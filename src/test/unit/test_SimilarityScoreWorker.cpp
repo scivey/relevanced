@@ -10,27 +10,30 @@
 #include <folly/futures/Try.h>
 
 #include "TestHelpers.h"
-#include "Document.h"
-#include "Centroid.h"
+#include "models/Document.h"
+#include "models/Centroid.h"
 
-#include "DocumentProcessor.h"
+#include "document_processing_worker/DocumentProcessor.h"
 #include "persistence/Persistence.h"
 #include "persistence/SyncPersistence.h"
-#include "SimilarityScoreWorker.h"
-#include "ProcessedDocument.h"
+#include "similarity_score_worker/SimilarityScoreWorker.h"
+#include "models/ProcessedDocument.h"
 #include "stopwords/StopwordFilter.h"
 #include "stemmer/StemmerIf.h"
 #include "tokenizer/Tokenizer.h"
 #include "MockSyncPersistence.h"
-#include "util.h"
+#include "util/util.h"
 
 using namespace std;
 using namespace wangle;
-using namespace persistence;
-using persistence::exceptions::CentroidDoesNotExist;
-using stopwords::StopwordFilterIf;
-using stemmer::StemmerIf;
-using tokenizer::TokenizerIf;
+using namespace relevanced;
+using namespace relevanced::models;
+using namespace relevanced::similarity_score_worker;
+using namespace relevanced::persistence;
+using relevanced::persistence::exceptions::CentroidDoesNotExist;
+using relevanced::stopwords::StopwordFilterIf;
+using relevanced::stemmer::StemmerIf;
+using relevanced::tokenizer::TokenizerIf;
 using util::UniquePointer;
 using ::testing::Return;
 using ::testing::Invoke;

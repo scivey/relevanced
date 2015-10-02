@@ -3,33 +3,34 @@
 #include <chrono>
 #include <glog/logging.h>
 
-#include "DocumentProcessor.h"
-#include "DocumentProcessingWorker.h"
+#include "centroid_update_worker/CentroidUpdateWorker.h"
+#include "centroid_update_worker/CentroidUpdaterFactory.h"
+#include "document_processing_worker/DocumentProcessor.h"
+#include "document_processing_worker/DocumentProcessingWorker.h"
 #include "persistence/Persistence.h"
 #include "persistence/SyncPersistence.h"
 #include "persistence/RockHandle.h"
-#include "ProcessedDocument.h"
-#include "SimilarityScoreWorker.h"
-#include "RelevanceServer.h"
-#include "RelevanceServerOptions.h"
-#include "CentroidUpdateWorker.h"
-#include "CentroidUpdaterFactory.h"
-#include "ServerBuilder.h"
+#include "server/RelevanceServer.h"
+#include "server/RelevanceServerOptions.h"
+#include "server/ServerBuilder.h"
+#include "server/ThriftRelevanceServer.h"
+#include "similarity_score_worker/SimilarityScoreWorker.h"
 #include "stemmer/PorterStemmer.h"
 #include "stemmer/StemmerIf.h"
 #include "stopwords/StopwordFilter.h"
-#include "ThriftRelevanceServer.h"
 #include "tokenizer/Tokenizer.h"
-#include "util.h"
+#include "util/util.h"
 
 using namespace std;
-using namespace persistence;
-using stemmer::StemmerIf;
-using stemmer::PorterStemmer;
-using stopwords::StopwordFilter;
-using stopwords::StopwordFilterIf;
-using tokenizer::TokenizerIf;
-using tokenizer::Tokenizer;
+using namespace relevanced;
+using namespace relevanced::centroid_update_worker;
+using namespace relevanced::document_processing_worker;
+using namespace relevanced::persistence;
+using namespace relevanced::similarity_score_worker;
+using namespace relevanced::server;
+using relevanced::stopwords::StopwordFilter;
+using relevanced::stemmer::PorterStemmer;
+using relevanced::tokenizer::Tokenizer;
 
 int main() {
   thread t1([](){
@@ -37,7 +38,7 @@ int main() {
     auto options = make_shared<RelevanceServerOptions>(
       "data", 8097
     );
-    builders::ServerBuilder builder(options);
+    server::ServerBuilder builder(options);
     builder.buildPersistence<
       RockHandle, SyncPersistence, Persistence
     >();

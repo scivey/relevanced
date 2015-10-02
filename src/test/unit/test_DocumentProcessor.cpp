@@ -4,17 +4,20 @@
 #include <string>
 #include <memory>
 #include "TestHelpers.h"
-#include "Document.h"
-#include "DocumentProcessor.h"
-#include "ProcessedDocument.h"
+#include "models/Document.h"
+#include "document_processing_worker/DocumentProcessor.h"
+#include "models/ProcessedDocument.h"
 #include "stopwords/StopwordFilter.h"
 #include "stemmer/StemmerIf.h"
 #include "tokenizer/Tokenizer.h"
 
 using namespace std;
-using stopwords::StopwordFilterIf;
-using stemmer::StemmerIf;
-using tokenizer::TokenizerIf;
+using namespace relevanced;
+using namespace relevanced::models;
+using namespace relevanced::document_processing_worker;
+using relevanced::stopwords::StopwordFilterIf;
+using relevanced::stemmer::StemmerIf;
+using relevanced::tokenizer::TokenizerIf;
 using ::testing::Return;
 using ::testing::_;
 

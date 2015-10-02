@@ -9,10 +9,15 @@
 #include <folly/futures/Future.h>
 #include <folly/futures/Try.h>
 
-#include "CentroidUpdateWorker.h"
-#include "CentroidUpdaterFactory.h"
+#include "centroid_update_worker/CentroidUpdateWorker.h"
+#include "centroid_update_worker/CentroidUpdaterFactory.h"
 #include "persistence/Persistence.h"
-#include "Debouncer.h"
+#include "util/Debouncer.h"
+
+namespace relevanced {
+namespace centroid_update_worker {
+
+using util::Debouncer;
 using persistence::PersistenceIf;
 using namespace std;
 using namespace folly;
@@ -72,3 +77,6 @@ void CentroidUpdateWorker::triggerUpdate(const string &centroidId) {
   string toWrite = centroidId;
   updateQueue_->write(toWrite);
 }
+
+} // centroid_update_worker
+} // relevanced

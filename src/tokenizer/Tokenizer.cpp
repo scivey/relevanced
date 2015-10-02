@@ -7,6 +7,7 @@
 
 using namespace std;
 
+namespace relevanced {
 namespace tokenizer {
 
 vector<string> Tokenizer::tokenize(const string &text) {
@@ -21,3 +22,5 @@ vector<string> Tokenizer::tokenize(const string &text) {
 }
 
 } // tokenizer
+} // relevanced
+

@@ -2,7 +2,7 @@
 #include "stopwords/StopwordFilter.h"
 
 using namespace std;
-using stopwords::StopwordFilter;
+using relevanced::stopwords::StopwordFilter;
 
 TEST(TestStopwordFilter, Punctuation) {
     StopwordFilter filter;

@@ -1,4 +1,4 @@
-#include "Persistence.h"
+#include "persistence/Persistence.h"
 #include <memory>
 #include <string>
 #include <cassert>
@@ -13,18 +13,20 @@
 #include <folly/Format.h>
 #include <rocksdb/db.h>
 #include "serialization/serializers.h"
-#include "RockHandle.h"
-#include "Centroid.h"
-#include "ProcessedDocument.h"
-#include "util.h"
-#include "exceptions.h"
+#include "persistence/RockHandle.h"
+#include "models/Centroid.h"
+#include "models/ProcessedDocument.h"
+#include "util/util.h"
+#include "persistence/exceptions.h"
+
+namespace relevanced {
+namespace persistence {
 
 using namespace std;
 using namespace folly;
+using models::Centroid;
+using models::ProcessedDocument;
 using namespace persistence::exceptions;
-
-namespace persistence {
-
 
 SyncPersistence::SyncPersistence(
   util::UniquePointer<RockHandleIf> rockHandle
@@ -253,3 +255,4 @@ Optional<vector<string>> SyncPersistence::listAllDocumentsForCentroidOption(cons
 }
 
 } // persistence
+} // relevanced

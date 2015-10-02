@@ -1,10 +1,11 @@
 #include <string>
 #include <set>
-#include "english_stopwords.h"
-#include "StopwordFilter.h"
+#include "stopwords/english_stopwords.h"
+#include "stopwords/StopwordFilter.h"
 
 using namespace std;
 
+namespace relevanced {
 namespace stopwords {
 
 const set<string> punctuationSet = {
@@ -67,3 +68,5 @@ bool StopwordFilter::isStopword(const string &word) {
 }
 
 } // stopwords
+} // relevanced
+

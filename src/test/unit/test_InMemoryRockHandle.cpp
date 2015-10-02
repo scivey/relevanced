@@ -7,12 +7,13 @@
 #include <memory>
 #include <rocksdb/db.h>
 #include <rocksdb/slice.h>
-#include "util.h"
+#include "util/util.h"
 #include "TestHelpers.h"
 #include "persistence/InMemoryRockHandle.h"
 
 using namespace std;
-using persistence::InMemoryRockHandle;
+using namespace relevanced;
+using namespace relevanced::persistence;
 using util::UniquePointer;
 using ::testing::Return;
 using ::testing::_;

@@ -19,6 +19,7 @@ namespace {
   using namespace rocksdb;
 }
 
+namespace relevanced {
 namespace persistence {
 
 class RockHandleIf {
@@ -56,4 +57,6 @@ public:
 
 
 } // persistence
+} // relevanced
+
 

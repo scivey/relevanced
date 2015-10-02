@@ -1,14 +1,17 @@
 #pragma once
 #include <string>
 #include <memory>
-#include "ProcessedDocument.h"
+#include "models/ProcessedDocument.h"
 
 #include <folly/dynamic.h>
 #include <folly/json.h>
 #include <folly/Conv.h>
 #include <folly/DynamicConverter.h>
 #include "serialization/serializers.h"
-#include "util.h"
+#include "util/util.h"
+
+namespace relevanced {
+namespace models {
 
 class Centroid {
 public:
@@ -21,10 +24,13 @@ public:
   double score(ProcessedDocument *document);
 };
 
+} // models
+} // relevanced
+
 namespace folly {
   template<>
-  struct DynamicConstructor<Centroid> {
-    static folly::dynamic construct(const Centroid &centroid) {
+  struct DynamicConstructor<relevanced::models::Centroid> {
+    static folly::dynamic construct(const relevanced::models::Centroid &centroid) {
       auto scores = folly::toDynamic(centroid.scores);
       folly::dynamic self = folly::dynamic::object;
       self["id"] = centroid.id;
@@ -35,17 +41,22 @@ namespace folly {
   };
 
   template<>
-  struct DynamicConverter<Centroid> {
-    static Centroid convert(const folly::dynamic &dyn) {
+  struct DynamicConverter<relevanced::models::Centroid> {
+    static relevanced::models::Centroid convert(const folly::dynamic &dyn) {
       auto scores = folly::convertTo<std::map<std::string, double>>(dyn["scores"]);
       auto magnitude = folly::convertTo<double>(dyn["magnitude"]);
       auto id = folly::convertTo<std::string>(dyn["id"]);
-      return Centroid(id, std::move(scores), magnitude);
+      return relevanced::models::Centroid(id, std::move(scores), magnitude);
     }
   };
-}
+} // folly
 
+
+namespace relevanced {
 namespace serialization {
+
+  using models::Centroid;
+
   template<>
   struct JsonSerializer<Centroid> {
     static std::string serialize(Centroid *centroid) {
@@ -63,4 +74,5 @@ namespace serialization {
     }
   };
 
-}
+} // serialization
+} // relevanced
