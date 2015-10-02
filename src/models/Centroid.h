@@ -21,7 +21,9 @@ public:
   Centroid();
   Centroid(std::string);
   Centroid(std::string, std::map<std::string, double>, double);
+  double score(const std::map<std::string, double> &otherScores, double otherMagnitude);
   double score(ProcessedDocument *document);
+  double score(Centroid *centroid);
 };
 
 } // models

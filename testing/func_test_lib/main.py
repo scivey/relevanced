@@ -63,16 +63,19 @@ def init_centroids(client):
 def main():
     client = get_client()
     init_documents(client)
-    init_centroids(client)
-    # time.sleep(5)
-    # client.recompute('wiki_math')
-    # client.recompute('wiki_poli')
-    print('math -> math')
+    if not len(client.list_all_centroids()) == 2:
+        init_centroids(client)
+        client.recompute_centroid('wiki_math')
+        client.recompute_centroid('wiki_poli')
+        time.sleep(1)
+    print('\n\n')
+    print('math vs math')
     for doc in load_large_math().values()[:10]:
         print(doc['title'])
         print(client.get_text_similarity('wiki_math', doc['text']))
 
-    print('poli -> math')
+    print('\n\n')
+    print('math vs poli')
     for doc in load_large_math().values()[:10]:
         print(doc['title'])
         print(client.get_text_similarity('wiki_poli', doc['text']))

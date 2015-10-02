@@ -62,6 +62,7 @@ def get_wiki_links(url):
                     any_bad = True
                     break
             if not any_bad:
+                href = 'https://en.wikipedia.org%s' % href
                 yield href
 
 def suggest_urls(existing_url_list):

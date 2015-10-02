@@ -38,6 +38,9 @@ public:
   folly::Future<unique_ptr<services::DocumentRelevanceResponse>>
     future_getTextSimilarity(std::unique_ptr<std::string> centroidId, std::unique_ptr<std::string> text) override;
 
+  folly::Future<double>
+    future_getCentroidSimilarity(std::unique_ptr<std::string> centroid1Id, std::unique_ptr<std::string> centroid2Id) override;
+
   folly::Future<unique_ptr<services::CrudResponse>>
     future_createDocument(std::unique_ptr<std::string> text) override;
 

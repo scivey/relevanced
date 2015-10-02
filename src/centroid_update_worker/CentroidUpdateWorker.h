@@ -26,6 +26,7 @@ public:
   virtual void initialize() = 0;
   virtual void echoUpdated(const std::string&) = 0;
   virtual void onUpdate(std::function<void (const std::string&)>) = 0;
+  virtual void onUpdateSpecificOnce(const std::string &id, std::function<void (folly::Try<std::string>)>) = 0;
   virtual void triggerUpdate(const std::string &centroidId) = 0;
   virtual folly::Future<folly::Try<bool>> update(const std::string &centroidId) = 0;
   virtual folly::Future<folly::Try<bool>> update(const std::string &centroidId, std::chrono::milliseconds updateDelay) = 0;
@@ -38,6 +39,7 @@ protected:
   std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>> threadPool_;
   std::shared_ptr<util::Debouncer<std::string>> updateQueue_;
   folly::Synchronized<std::vector<std::function<void(const std::string&)>>> updateCallbacks_;
+  folly::Synchronized<std::map<std::string, std::vector<std::function<void (folly::Try<std::string>)>>>> perCentroidUpdateCallbacks_;
   std::atomic<bool> stopping_ {false};
 public:
   CentroidUpdateWorker(
@@ -48,9 +50,11 @@ public:
   void initialize() override;
   void echoUpdated(const std::string&) override;
   void onUpdate(std::function<void (const std::string&)>) override;
+  void onUpdateSpecificOnce(const std::string &id, std::function<void (folly::Try<std::string>)>) override;
   void triggerUpdate(const std::string &centroidId) override;
   folly::Future<folly::Try<bool>> update(const std::string &centroidId) override;
   folly::Future<folly::Try<bool>> update(const std::string &centroidId, std::chrono::milliseconds updateDelay) override;
+
 };
 
 } // centroid_update_worker

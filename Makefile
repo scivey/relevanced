@@ -43,4 +43,9 @@ serve-doxy:
 serve-docs:
 	mkdocs serve -a localhost:8014
 
-.PHONY: doxy serve-docs serve-doxy
+.PHONY: doxy serve-docs serve-doxy test-data
+
+test-data:
+	mkdir -p testing/tmp
+	cd testing/tmp && wget http://qwone.com/~jason/20Newsgroups/20news-18828.tar.gz
+	cd testing/tmp && tar -xaf 20news-18828.tar.gz

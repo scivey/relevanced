@@ -1,5 +1,6 @@
 #include <string>
 #include <memory>
+#include <folly/futures/Promise.h>
 #include <folly/futures/Future.h>
 #include <folly/futures/helpers.h>
 #include <folly/futures/Try.h>
@@ -28,6 +29,9 @@ namespace server {
 
 using namespace std;
 using namespace folly;
+using persistence::exceptions::DocumentAlreadyExists;
+using persistence::exceptions::CentroidDoesNotExist;
+
 using similarity_score_worker::SimilarityScoreWorkerIf;
 using centroid_update_worker::CentroidUpdateWorkerIf;
 using document_processing_worker::DocumentProcessingWorkerIf;
@@ -61,6 +65,12 @@ Future<Try<double>> RelevanceServer::getDocumentSimilarity(unique_ptr<string> ce
     }
     return scoreWorker_->getDocumentSimilarity(cId, doc.value());
   });
+}
+
+Future<Try<double>> RelevanceServer::getCentroidSimilarity(unique_ptr<string> centroid1Id, unique_ptr<string> centroid2Id) {
+  string c1 = *centroid1Id;
+  string c2 = *centroid2Id;
+  return scoreWorker_->getCentroidSimilarity(c1, c2);
 }
 
 Future<Try<unique_ptr<map<string, double>>>> RelevanceServer::multiGetTextSimilarity(unique_ptr<vector<string>> centroidIds, unique_ptr<string> text) {
@@ -106,10 +116,14 @@ Future<Try<unique_ptr<string>>> RelevanceServer::createDocument(unique_ptr<strin
 Future<Try<unique_ptr<string>>> RelevanceServer::internalCreateDocumentWithID(string id, string text) {
   auto doc = std::make_shared<Document>(id, text);
   LOG(INFO) << "creating document: " << id.substr(0, 15) << "  |   " << text.substr(0, 20);
-  processingWorker_->processNew(doc).then([this](shared_ptr<ProcessedDocument> processed) {
-    persistence_->saveDocument(processed);
+  return processingWorker_->processNew(doc).then([this, id](shared_ptr<ProcessedDocument> processed) {
+    return persistence_->saveDocument(processed).then([this, id](Try<bool> result) {
+      if (result.hasException()) {
+        return Try<unique_ptr<string>>(make_exception_wrapper<DocumentAlreadyExists>());
+      }
+      return Try<unique_ptr<string>>(std::make_unique<string>(id));
+    });
   });
-  return Try<unique_ptr<string>>(std::make_unique<string>(id));
 }
 
 Future<Try<unique_ptr<string>>> RelevanceServer::createDocumentWithID(unique_ptr<string> id, unique_ptr<string> text) {
@@ -179,7 +193,16 @@ Future<Try<bool>> RelevanceServer::removeDocumentFromCentroid(unique_ptr<string>
 Future<Try<bool>> RelevanceServer::recomputeCentroid(unique_ptr<string> centroidId) {
   auto cId = *centroidId;
   LOG(INFO) << "recomputing centroid: " << cId;
-  return centroidUpdateWorker_->update(cId);
+  auto promise = make_shared<Promise<Try<bool>>>();
+  centroidUpdateWorker_->onUpdateSpecificOnce(cId, [promise](Try<string> result) {
+    if (result.hasException()) {
+      promise->setValue(Try<bool>(make_exception_wrapper<CentroidDoesNotExist>()));
+    } else {
+      promise->setValue(Try<bool>(true));
+    }
+  });
+  centroidUpdateWorker_->triggerUpdate(cId);
+  return promise->getFuture();
 }
 
 Future<unique_ptr<vector<string>>> RelevanceServer::listAllCentroids() {

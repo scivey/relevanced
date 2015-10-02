@@ -23,6 +23,8 @@ public:
   virtual folly::Future<bool> reloadCentroid(std::string id) = 0;
   virtual folly::Future<folly::Try<double>> getDocumentSimilarity(std::string centroidId, models::ProcessedDocument *doc) = 0;
   virtual folly::Future<folly::Try<double>> getDocumentSimilarity(std::string centroidId, std::shared_ptr<models::ProcessedDocument> doc) = 0;
+  virtual folly::Future<folly::Try<double>> getCentroidSimilarity(std::string centroid1Id, std::string centroid2Id) = 0;
+
 };
 
 /**
@@ -55,6 +57,8 @@ public:
   folly::Future<bool> reloadCentroid(std::string id) override;
   folly::Future<folly::Try<double>> getDocumentSimilarity(std::string centroidId, models::ProcessedDocument *doc) override;
   folly::Future<folly::Try<double>> getDocumentSimilarity(std::string centroidId, std::shared_ptr<models::ProcessedDocument> doc) override;
+  folly::Future<folly::Try<double>> getCentroidSimilarity(std::string centroid1Id, std::string centroid2Id) override;
+
 };
 
 } // similarity_score_worker

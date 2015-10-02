@@ -67,10 +67,36 @@ void CentroidUpdateWorker::echoUpdated(const string &centroidId) {
       cb(centroidId);
     }
   }
+  vector<function<void(Try<string>)>> forCentroidCbs;
+  SYNCHRONIZED(perCentroidUpdateCallbacks_) {
+    auto callbacksPair = perCentroidUpdateCallbacks_.find(centroidId);
+    if (callbacksPair != perCentroidUpdateCallbacks_.end()) {
+      for (auto &elem: callbacksPair->second) {
+        forCentroidCbs.push_back(elem);
+      }
+      callbacksPair->second.clear();
+    }
+  }
+  for (auto &cb: forCentroidCbs) {
+    cb(Try<string>(centroidId));
+  }
+
 }
 
 void CentroidUpdateWorker::onUpdate(function<void (const string&)> callback) {
   updateCallbacks_->push_back(std::move(callback));
+}
+
+void CentroidUpdateWorker::onUpdateSpecificOnce(const string &id, function<void (Try<string>)> callback) {
+  SYNCHRONIZED(perCentroidUpdateCallbacks_) {
+    auto callbacksPair = perCentroidUpdateCallbacks_.find(id);
+    if (callbacksPair == perCentroidUpdateCallbacks_.end()) {
+      string tempId = id;
+      perCentroidUpdateCallbacks_.insert(make_pair(tempId, vector<decltype(callback)> {}));
+      callbacksPair = perCentroidUpdateCallbacks_.find(id);
+    }
+    callbacksPair->second.push_back(callback);
+  }
 }
 
 void CentroidUpdateWorker::triggerUpdate(const string &centroidId) {

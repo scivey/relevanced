@@ -66,6 +66,16 @@ Future<unique_ptr<DocumentRelevanceResponse>> ThriftRelevanceServer::future_getT
   });
 }
 
+Future<double> ThriftRelevanceServer::future_getCentroidSimilarity(unique_ptr<string> centroid1Id, unique_ptr<string> centroid2Id) {
+  return server_->getCentroidSimilarity(std::move(centroid1Id), std::move(centroid2Id)).then([this](Try<double> result) {
+    if (result.hasException()) {
+      return 0.0;
+    }
+    return result.value();
+  });
+}
+
+
 Future<unique_ptr<services::DocumentMultiRelevanceResponse>> ThriftRelevanceServer::future_multiGetTextSimilarity(unique_ptr<vector<string>> centroidIds, unique_ptr<string> text) {
   return server_->multiGetTextSimilarity(std::move(centroidIds), std::move(text)).then([this](Try<unique_ptr<map<string, double>>> result) {
     auto response = std::make_unique<services::DocumentMultiRelevanceResponse>();

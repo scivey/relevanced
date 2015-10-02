@@ -27,6 +27,7 @@ public:
   virtual folly::Future<folly::Try<std::unique_ptr<std::map<std::string, double>>>>
     multiGetTextSimilarity(std::unique_ptr<std::vector<std::string>> centroidIds, std::unique_ptr<std::string> text) = 0;
   virtual folly::Future<folly::Try<double>> getTextSimilarity(std::unique_ptr<std::string> centroidId, std::unique_ptr<std::string> text) = 0;
+  virtual folly::Future<folly::Try<double>> getCentroidSimilarity(std::unique_ptr<std::string> centroid1Id, std::unique_ptr<std::string> centroid2Id) = 0;
   virtual folly::Future<folly::Try<std::unique_ptr<std::string>>> createDocument(std::unique_ptr<std::string> text) = 0;
   virtual folly::Future<folly::Try<std::unique_ptr<std::string>>> createDocumentWithID(std::unique_ptr<std::string> id, std::unique_ptr<std::string> text) = 0;
   virtual folly::Future<folly::Try<bool>> deleteDocument(std::unique_ptr<std::string> id) = 0;
@@ -80,6 +81,7 @@ public:
   folly::Future<folly::Try<std::unique_ptr<std::map<std::string, double>>>>
     multiGetTextSimilarity(std::unique_ptr<std::vector<std::string>> centroidIds, std::unique_ptr<std::string> text) override;
   folly::Future<folly::Try<double>> getTextSimilarity(std::unique_ptr<std::string> centroidId, std::unique_ptr<std::string> text) override;
+  folly::Future<folly::Try<double>> getCentroidSimilarity(std::unique_ptr<std::string> centroid1Id, std::unique_ptr<std::string> centroid2Id) override;
   folly::Future<folly::Try<std::unique_ptr<std::string>>> createDocument(std::unique_ptr<std::string> text) override;
   folly::Future<folly::Try<std::unique_ptr<std::string>>> createDocumentWithID(std::unique_ptr<std::string> id, std::unique_ptr<std::string> text) override;
   folly::Future<folly::Try<bool>> deleteDocument(std::unique_ptr<std::string> id) override;

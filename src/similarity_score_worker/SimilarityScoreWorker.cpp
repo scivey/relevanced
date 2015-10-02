@@ -100,5 +100,16 @@ Future<Try<double>> SimilarityScoreWorker::getDocumentSimilarity(string centroid
   return getDocumentSimilarity(centroidId, doc.get());
 }
 
+Future<Try<double>> SimilarityScoreWorker::getCentroidSimilarity(string centroid1Id, string centroid2Id) {
+  return threadPool_->addFuture([this, centroid1Id, centroid2Id](){
+    auto centroid1 = getLoadedCentroid_(centroid1Id);
+    auto centroid2 = getLoadedCentroid_(centroid2Id);
+    if (!centroid1.hasValue() || !centroid2.hasValue()) {
+      return Try<double>(make_exception_wrapper<CentroidDoesNotExist>());
+    }
+    return Try<double>(centroid1.value()->score(centroid2.value().get()));
+  });
+}
+
 } // similarity_score_worker
 } // relevanced
