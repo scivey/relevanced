@@ -1,13 +1,15 @@
 #pragma once
 #include <string>
 #include <memory>
-#include "models/ProcessedDocument.h"
 
 #include <folly/dynamic.h>
 #include <folly/json.h>
 #include <folly/Conv.h>
 #include <folly/DynamicConverter.h>
+
 #include "serialization/serializers.h"
+#include "models/ProcessedDocument.h"
+#include "gen-cpp2/TextRelevance_types.h"
 #include "util/util.h"
 
 namespace relevanced {
@@ -15,6 +17,7 @@ namespace models {
 
 class Centroid {
 public:
+  size_t documentCount {0};
   std::string id;
   std::map<std::string, double> scores;
   double magnitude {0};
@@ -58,6 +61,31 @@ namespace relevanced {
 namespace serialization {
 
   using models::Centroid;
+
+  template<>
+  struct BinarySerializer<Centroid> {
+    static void serialize(std::string &result, Centroid &target) {
+      services::WordVector wordVec;
+      wordVec.id = target.id;
+      wordVec.scores = target.scores;
+      wordVec.documentCount = target.documentCount;
+      wordVec.magnitude = target.magnitude;
+      serialization::thriftBinarySerialize(result, wordVec);
+    }
+  };
+
+  template<>
+  struct BinaryDeserializer<Centroid> {
+    static void deserialize(std::string &data, Centroid *result) {
+      services::WordVector wordVec;
+      serialization::thriftBinaryDeserialize(data, wordVec);
+      result->id = wordVec.id;
+      result->magnitude = wordVec.magnitude;
+      result->documentCount = wordVec.documentCount;
+      result->scores = std::move(wordVec.scores);
+    }
+  };
+
 
   template<>
   struct JsonSerializer<Centroid> {

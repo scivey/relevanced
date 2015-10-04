@@ -1,5 +1,12 @@
 namespace cpp2 services
 
+struct WordVector {
+    1: required string id;
+    2: required i32 documentCount;
+    3: required double magnitude;
+    4: required map<string, double> scores;
+}
+
 enum RelevanceStatus {
     OK = 0,
     CENTROID_DOES_NOT_EXIST = 1,

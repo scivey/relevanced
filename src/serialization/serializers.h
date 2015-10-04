@@ -1,17 +1,19 @@
 #pragma once
 #include <cstdlib>
-#include <cassert>
 #include <boost/static_assert.hpp>
-#include "bytes.h"
+#include <string>
+#include <thrift/lib/cpp2/protocol/BinaryProtocol.h>
+#include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <glog/logging.h>
+#include "bytes.h"
 
 namespace relevanced {
 namespace serialization {
 
 template<typename T>
 struct BinaryDeserializer {
-  static void deserialize(unsigned char *bytes, T &result) {
-    ((void) bytes);
+  static void deserialize(std::string &data, T *result) {
+    ((void) data);
     ((void) result);
 
     LOG(INFO) << "default binary deserialization";
@@ -20,23 +22,41 @@ struct BinaryDeserializer {
 
 template<typename T>
 struct BinarySerializer {
-  static size_t serialize(unsigned char **result, T &target) {
+  static void serialize(std::string &result, T &target) {
     ((void) result);
     ((void) target);
 
     LOG(INFO) << "default binary serialization";
-    return 0;
+  
   }
 };
 
 template<typename T>
-size_t binarySerialize(unsigned char **result, T &target) {
-  return BinarySerializer<T>::serialize(result, target);
+void binarySerialize(std::string &result, T &target) {
+  BinarySerializer<T>::serialize(result, target);
 }
 
 template<typename T>
-void binaryDeserialize(unsigned char *bytes, T &result) {
-  BinaryDeserializer<T>::deserialize(bytes, result);
+void binaryDeserialize(std::string &data, T *result) {
+  BinaryDeserializer<T>::deserialize(data, result);
+}
+
+template<typename T>
+void thriftBinarySerialize(std::string &result, T &target) {
+  apache::thrift::Serializer<
+    apache::thrift::BinaryProtocolReader,
+    apache::thrift::BinaryProtocolWriter
+  > serializer;
+  serializer.serialize<T>(target, &result);
+}
+
+template<typename T>
+void thriftBinaryDeserialize(std::string &data, T &target) {
+  apache::thrift::Serializer<
+    apache::thrift::BinaryProtocolReader,
+    apache::thrift::BinaryProtocolWriter
+  > serializer;
+  serializer.deserialize<T>(data, target);
 }
 
 template<typename T>
