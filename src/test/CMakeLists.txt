@@ -24,12 +24,12 @@ set(RELEVANCED_BASE_SOURCES
     "${PROJECT_SOURCE_DIR}/src/persistence/InMemoryRockHandle.cpp"
     "${PROJECT_SOURCE_DIR}/src/persistence/RockHandle.cpp"
     "${PROJECT_SOURCE_DIR}/src/util/util.cpp"
-    "${PROJECT_SOURCE_DIR}/src/gen-cpp2/Relevance.cpp"
-    "${PROJECT_SOURCE_DIR}/src/gen-cpp2/Relevance_client.cpp"
-    "${PROJECT_SOURCE_DIR}/src/gen-cpp2/Relevance_processmap_binary.cpp"
-    "${PROJECT_SOURCE_DIR}/src/gen-cpp2/Relevance_processmap_compact.cpp"
-    "${PROJECT_SOURCE_DIR}/src/gen-cpp2/TextRelevance_constants.cpp"
-    "${PROJECT_SOURCE_DIR}/src/gen-cpp2/TextRelevance_types.cpp"
+    "${PROJECT_SOURCE_DIR}/src/gen-cpp2/Relevanced.cpp"
+    "${PROJECT_SOURCE_DIR}/src/gen-cpp2/Relevanced_client.cpp"
+    "${PROJECT_SOURCE_DIR}/src/gen-cpp2/Relevanced_processmap_binary.cpp"
+    "${PROJECT_SOURCE_DIR}/src/gen-cpp2/Relevanced_processmap_compact.cpp"
+    "${PROJECT_SOURCE_DIR}/src/gen-cpp2/RelevancedProtocol_constants.cpp"
+    "${PROJECT_SOURCE_DIR}/src/gen-cpp2/RelevancedProtocol_types.cpp"
 )
 
 

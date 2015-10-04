@@ -7,7 +7,7 @@
 #include <folly/Format.h>
 
 #include <glog/logging.h>
-#include "gen-cpp2/Relevance.h"
+#include "gen-cpp2/Relevanced.h"
 #include "persistence/exceptions.h"
 #include "server/ThriftRelevanceServer.h"
 #include "server/RelevanceServer.h"
@@ -15,7 +15,7 @@
 namespace relevanced {
 namespace server {
 
-using namespace services;
+using namespace thrift_protocol;
 using namespace std;
 using namespace folly;
 using namespace persistence::exceptions;
@@ -76,9 +76,9 @@ Future<double> ThriftRelevanceServer::future_getCentroidSimilarity(unique_ptr<st
 }
 
 
-Future<unique_ptr<services::DocumentMultiRelevanceResponse>> ThriftRelevanceServer::future_multiGetTextSimilarity(unique_ptr<vector<string>> centroidIds, unique_ptr<string> text) {
+Future<unique_ptr<thrift_protocol::DocumentMultiRelevanceResponse>> ThriftRelevanceServer::future_multiGetTextSimilarity(unique_ptr<vector<string>> centroidIds, unique_ptr<string> text) {
   return server_->multiGetTextSimilarity(std::move(centroidIds), std::move(text)).then([this](Try<unique_ptr<map<string, double>>> result) {
-    auto response = std::make_unique<services::DocumentMultiRelevanceResponse>();
+    auto response = std::make_unique<thrift_protocol::DocumentMultiRelevanceResponse>();
     if (result.hasException()) {
       if (result.hasException<CentroidDoesNotExist>()) {
         response->status = RelevanceStatus::CENTROID_DOES_NOT_EXIST;

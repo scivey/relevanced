@@ -2,8 +2,9 @@
 
 #include <string>
 #include <map>
-
+#include "gen-cpp2/RelevancedProtocol_types.h"
 #include "models/WordVector.h"
+
 namespace relevanced {
 namespace models {
 
@@ -63,7 +64,7 @@ namespace serialization {
   template<>
   struct BinarySerializer<Centroid> {
     static void serialize(std::string &result, Centroid &target) {\
-      services::CentroidDTO docDto;
+      thrift_protocol::CentroidDTO docDto;
       docDto.id = target.id;
       docDto.wordVector.scores = target.wordVector.scores;
       docDto.wordVector.magnitude = target.wordVector.magnitude;
@@ -75,7 +76,7 @@ namespace serialization {
   template<>
   struct BinaryDeserializer<Centroid> {
     static void deserialize(std::string &data, Centroid *result) {
-      services::CentroidDTO docDto;
+      thrift_protocol::CentroidDTO docDto;
       serialization::thriftBinaryDeserialize(data, docDto);
       result->id = docDto.id;
       result->wordVector.scores = docDto.wordVector.scores;

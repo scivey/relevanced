@@ -13,11 +13,8 @@
 
 #include "centroid_update_worker/CentroidUpdateWorker.h"
 #include "document_processing_worker/DocumentProcessor.h"
-#include "gen-cpp2/Relevance.h"
 #include "models/Document.h"
 #include "models/ProcessedDocument.h"
-
-
 #include "persistence/exceptions.h"
 #include "persistence/Persistence.h"
 #include "serialization/serializers.h"

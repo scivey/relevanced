@@ -2,6 +2,8 @@
 
 #include <string>
 #include "models/WordVector.h"
+#include "gen-cpp2/RelevancedProtocol_types.h"
+
 namespace relevanced {
 namespace models {
 
@@ -55,7 +57,7 @@ namespace serialization {
   template<>
   struct BinarySerializer<ProcessedDocument> {
     static void serialize(std::string &result, ProcessedDocument &target) {\
-      services::ProcessedDocumentDTO docDto;
+      thrift_protocol::ProcessedDocumentDTO docDto;
       docDto.wordVector.scores = target.wordVector.scores;
       docDto.wordVector.magnitude = target.wordVector.magnitude;
       docDto.wordVector.documentWeight = target.wordVector.documentWeight;
@@ -67,7 +69,7 @@ namespace serialization {
   template<>
   struct BinaryDeserializer<ProcessedDocument> {
     static void deserialize(std::string &data, ProcessedDocument *result) {
-      services::ProcessedDocumentDTO docDto;
+      thrift_protocol::ProcessedDocumentDTO docDto;
       serialization::thriftBinaryDeserialize(data, docDto);
       result->id = docDto.id;
       result->wordVector.scores = docDto.wordVector.scores;

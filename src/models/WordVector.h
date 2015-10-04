@@ -8,7 +8,7 @@
 #include <folly/DynamicConverter.h>
 
 #include "serialization/serializers.h"
-#include "gen-cpp2/TextRelevance_types.h"
+#include "gen-cpp2/RelevancedProtocol_types.h"
 #include "util/util.h"
 
 namespace relevanced {
@@ -65,7 +65,7 @@ namespace serialization {
   template<>
   struct BinarySerializer<WordVector> {
     static void serialize(std::string &result, WordVector &target) {
-      services::WordVectorDTO vecDto;
+      thrift_protocol::WordVectorDTO vecDto;
       vecDto.scores = target.scores;
       vecDto.documentWeight = target.documentWeight;
       vecDto.magnitude = target.magnitude;
@@ -76,7 +76,7 @@ namespace serialization {
   template<>
   struct BinaryDeserializer<WordVector> {
     static void deserialize(std::string &data, WordVector *result) {
-      services::WordVectorDTO vecDto;
+      thrift_protocol::WordVectorDTO vecDto;
       serialization::thriftBinaryDeserialize(data, vecDto);
       result->magnitude = vecDto.magnitude;
       result->documentWeight = vecDto.documentWeight;

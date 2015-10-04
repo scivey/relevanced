@@ -6,7 +6,6 @@
 #include <folly/futures/Try.h>
 
 #include <glog/logging.h>
-#include "gen-cpp2/Relevance.h"
 #include "similarity_score_worker/SimilarityScoreWorker.h"
 #include <folly/Optional.h>
 #include "persistence/Persistence.h"

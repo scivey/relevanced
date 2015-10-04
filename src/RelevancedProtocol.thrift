@@ -1,4 +1,4 @@
-namespace cpp2 services
+namespace cpp2 relevanced.thrift_protocol
 
 struct WordVectorDTO {
     1: required double magnitude;
@@ -55,7 +55,7 @@ struct CrudResponse {
     2: required string created;
 }
 
-service Relevance {
+service Relevanced {
     void ping(),
     DocumentRelevanceResponse getDocumentSimilarity(1: string centroidId, 2: string docId),
     DocumentMultiRelevanceResponse multiGetTextSimilarity(1: list<string> centroidIds, 2: string text),

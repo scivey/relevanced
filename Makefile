@@ -4,18 +4,18 @@ clean:
 	rm -f src/*.o
 
 thrift:
-	python -m thrift_compiler.main --gen cpp2 -o src src/TextRelevance.thrift
+	python -m thrift_compiler.main --gen cpp2 -o src src/RelevancedProtocol.thrift
 
 thrift-py:
-	thrift-0.9 --gen py -o ./clients/python/relevanced_client src/TextRelevance.thrift
+	thrift-0.9 --gen py -o ./clients/python/relevanced_client src/RelevancedProtocol.thrift
 	rm -rf ./clients/python/relevanced_client/gen_py
 	mv ./clients/python/relevanced_client/gen-py ./clients/python/relevanced_client/gen_py
 
 thrift-node:
-	thrift-0.9 --gen js:node -o ./clients/nodejs/relevancedClient src/TextRelevance.thrift
+	thrift-0.9 --gen js:node -o ./clients/nodejs/relevancedClient src/RelevancedProtocol.thrift
 
 thrift-rb:
-	thrift-0.9 --gen rb -o ./clients/ruby/relevanced_client src/TextRelevance.thrift
+	thrift-0.9 --gen rb -o ./clients/ruby/relevanced_client src/RelevancedProtocol.thrift
 
 
 build-docker-base:
