@@ -1,8 +1,8 @@
 namespace cpp2 services
 
-struct WordVector {
+struct WordVectorDTO {
     1: required string id;
-    2: required i32 documentCount;
+    2: required double documentWeight;
     3: required double magnitude;
     4: required map<string, double> scores;
 }

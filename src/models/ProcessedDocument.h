@@ -60,7 +60,7 @@ namespace serialization {
   template<>
   struct BinarySerializer<ProcessedDocument> {
     static void serialize(std::string &result, ProcessedDocument &target) {
-      services::WordVector wordVec;
+      services::WordVectorDTO wordVec;
       wordVec.id = target.id;
       wordVec.scores = target.normalizedWordCounts;
       wordVec.documentCount = 1;
@@ -72,7 +72,7 @@ namespace serialization {
   template<>
   struct BinaryDeserializer<ProcessedDocument> {
     static void deserialize(std::string &data, ProcessedDocument *result) {
-      services::WordVector wordVec;
+      services::WordVectorDTO wordVec;
       serialization::thriftBinaryDeserialize(data, wordVec);
       result->id = wordVec.id;
       result->magnitude = wordVec.magnitude;
