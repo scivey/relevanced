@@ -3,7 +3,7 @@
 #include <map>
 #include <cmath>
 #include "DocumentProcessor.h"
-#include "models/ProcessedDocument.h"
+#include "models/WordVector.h"
 #include "models/Document.h"
 #include "util/util.h"
 
@@ -11,11 +11,11 @@ namespace relevanced {
 namespace document_processing_worker {
 
 using models::Document;
-using models::ProcessedDocument;
+using models::WordVector;
 using namespace std;
 using util::UniquePointer;
 
-void DocumentProcessor::process_(const Document &doc, ProcessedDocument *result) {
+void DocumentProcessor::process_(const Document &doc, WordVector *result) {
   // computes normalized frequency for each term in the document:
   // raw frequency divided by total number of (non-stopword) terms
   map<string, double> wordCounts;
@@ -41,27 +41,28 @@ void DocumentProcessor::process_(const Document &doc, ProcessedDocument *result)
   magnitude = sqrt(magnitude);
   result->id = doc.id;
   result->magnitude = magnitude;
-  result->normalizedWordCounts = std::move(wordCounts);
+  result->documentWeight = 1.0;
+  result->scores = std::move(wordCounts);
 }
 
-void DocumentProcessor::process_(const Document &doc, shared_ptr<ProcessedDocument> result) {
+void DocumentProcessor::process_(const Document &doc, shared_ptr<WordVector> result) {
   return process_(doc, result.get());
 }
 
-ProcessedDocument DocumentProcessor::process(const Document &doc) {
-  ProcessedDocument processed(doc.id);
+WordVector DocumentProcessor::process(const Document &doc) {
+  WordVector processed(doc.id);
   process_(doc, &processed);
   return processed;
 }
 
-shared_ptr<ProcessedDocument> DocumentProcessor::processNew(const Document &doc) {
-  auto result = std::make_shared<ProcessedDocument>(doc.id);
+shared_ptr<WordVector> DocumentProcessor::processNew(const Document &doc) {
+  auto result = std::make_shared<WordVector>(doc.id);
   process_(doc, result);
   return result;
 }
 
-shared_ptr<ProcessedDocument> DocumentProcessor::processNew(shared_ptr<Document> doc) {
-  auto result = std::make_shared<ProcessedDocument>(doc->id);
+shared_ptr<WordVector> DocumentProcessor::processNew(shared_ptr<Document> doc) {
+  auto result = std::make_shared<WordVector>(doc->id);
   auto d2 = *doc;
   process_(d2, result);
   return result;

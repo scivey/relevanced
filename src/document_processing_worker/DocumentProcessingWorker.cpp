@@ -1,5 +1,5 @@
 #include "document_processing_worker/DocumentProcessingWorker.h"
-#include "models/ProcessedDocument.h"
+#include "models/WordVector.h"
 #include "models/Document.h"
 
 #include <memory>
@@ -15,7 +15,7 @@ using namespace folly;
 using wangle::FutureExecutor;
 using wangle::CPUThreadPoolExecutor;
 using models::Document;
-using models::ProcessedDocument;
+using models::WordVector;
 
 DocumentProcessingWorker::DocumentProcessingWorker(
   shared_ptr<DocumentProcessorIf> processor,
@@ -23,7 +23,7 @@ DocumentProcessingWorker::DocumentProcessingWorker(
 ) : processor_(processor), threadPool_(threadPool) {}
 
 
-Future<shared_ptr<ProcessedDocument>> DocumentProcessingWorker::processNew(shared_ptr<Document> doc) {
+Future<shared_ptr<WordVector>> DocumentProcessingWorker::processNew(shared_ptr<Document> doc) {
   return threadPool_->addFuture([this, doc](){
     return processor_->processNew(doc);
   });

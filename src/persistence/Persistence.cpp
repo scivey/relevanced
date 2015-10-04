@@ -13,8 +13,7 @@
 #include "persistence/Persistence.h"
 #include "util/util.h"
 #include "persistence/SyncPersistence.h"
-#include "models/ProcessedDocument.h"
-#include "models/Centroid.h"
+#include "models/WordVector.h"
 
 using namespace std;
 using namespace folly;
@@ -22,8 +21,7 @@ using namespace folly;
 namespace relevanced {
 namespace persistence {
 
-using models::ProcessedDocument;
-using models::Centroid;
+using models::WordVector;
 
 Persistence::Persistence(
   util::UniquePointer<SyncPersistenceIf> syncHandle,
@@ -36,7 +34,7 @@ Future<bool> Persistence::doesDocumentExist(const string &id) {
   });
 }
 
-Future<Try<bool>> Persistence::saveDocument(shared_ptr<ProcessedDocument> doc) {
+Future<Try<bool>> Persistence::saveDocument(shared_ptr<WordVector> doc) {
   return threadPool_->addFuture([this, doc](){
     return syncHandle_->saveDocument(doc);
   });
@@ -54,13 +52,13 @@ Future<vector<string>> Persistence::listAllDocuments() {
   });
 }
 
-Future<Try<shared_ptr<ProcessedDocument>>> Persistence::loadDocument(const string &id) {
+Future<Try<shared_ptr<WordVector>>> Persistence::loadDocument(const string &id) {
   return threadPool_->addFuture([this, id](){
     return syncHandle_->loadDocument(id);
   });
 }
 
-Future<Optional<shared_ptr<ProcessedDocument>>> Persistence::loadDocumentOption(const string &id) {
+Future<Optional<shared_ptr<WordVector>>> Persistence::loadDocumentOption(const string &id) {
   return threadPool_->addFuture([this, id](){
     return syncHandle_->loadDocumentOption(id);
   });
@@ -85,19 +83,19 @@ Future<Try<bool>> Persistence::deleteCentroid(const string &id) {
   });
 }
 
-Future<Try<bool>> Persistence::saveCentroid(const string &id, shared_ptr<Centroid> centroid) {
+Future<Try<bool>> Persistence::saveCentroid(const string &id, shared_ptr<WordVector> centroid) {
   return threadPool_->addFuture([this, id, centroid](){
     return syncHandle_->saveCentroid(id, centroid);
   });
 }
 
-Future<Try<shared_ptr<Centroid>>> Persistence::loadCentroid(const string &id) {
+Future<Try<shared_ptr<WordVector>>> Persistence::loadCentroid(const string &id) {
   return threadPool_->addFuture([this, id](){
     return syncHandle_->loadCentroid(id);
   });
 }
 
-Future<Optional<shared_ptr<Centroid>>> Persistence::loadCentroidOption(const string &id) {
+Future<Optional<shared_ptr<WordVector>>> Persistence::loadCentroidOption(const string &id) {
   return threadPool_->addFuture([this, id](){
     return syncHandle_->loadCentroidOption(id);
   });

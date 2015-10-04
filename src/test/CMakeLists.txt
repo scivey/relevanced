@@ -13,7 +13,7 @@ set(RELEVANCED_BASE_SOURCES
     "${PROJECT_SOURCE_DIR}/src/centroid_update_worker/CentroidUpdateWorker.cpp"
     "${PROJECT_SOURCE_DIR}/src/centroid_update_worker/CentroidUpdaterFactory.cpp"
     "${PROJECT_SOURCE_DIR}/src/centroid_update_worker/CentroidUpdater.cpp"
-    "${PROJECT_SOURCE_DIR}/src/models/Centroid.cpp"
+    "${PROJECT_SOURCE_DIR}/src/models/WordVector.cpp"
     "${PROJECT_SOURCE_DIR}/src/similarity_score_worker/SimilarityScoreWorker.cpp"
     "${PROJECT_SOURCE_DIR}/src/tokenizer/Tokenizer.cpp"
     "${PROJECT_SOURCE_DIR}/src/stemmer/PorterStemmer.cpp"

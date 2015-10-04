@@ -12,8 +12,7 @@
 #include <folly/Optional.h>
 
 #include "centroid_update_worker/CentroidUpdater.h"
-#include "models/Centroid.h"
-#include "models/ProcessedDocument.h"
+#include "models/WordVector.h"
 #include "persistence/Persistence.h"
 #include "util/util.h"
 
@@ -22,8 +21,7 @@ using namespace folly;
 
 namespace relevanced {
 namespace centroid_update_worker {
-using models::Centroid;
-using models::ProcessedDocument;
+using models::WordVector;
 using persistence::exceptions::CentroidDoesNotExist;
 using util::UniquePointer;
 
@@ -49,14 +47,16 @@ Try<bool> CentroidUpdater::run() {
 
   auto centroidIds = centroidIdsOpt.value();
   map<string, double> centroidScores;
+  size_t docCount {0};
   for (auto &id: centroidIds) {
     auto doc = persistence_->loadDocumentOption(id).get();
     if (!doc.hasValue()) {
       LOG(INFO) << "missing document: " << id;
       persistence_->removeDocumentFromCentroid(centroidId_, id);
     } else {
+      docCount++;
       auto docPtr = doc.value();
-      for (auto &elem: docPtr->normalizedWordCounts) {
+      for (auto &elem: docPtr->scores) {
         if (centroidScores.find(elem.first) == centroidScores.end()) {
           centroidScores[elem.first] = elem.second;
         } else {
@@ -71,7 +71,7 @@ Try<bool> CentroidUpdater::run() {
   }
   centroidMagnitude = sqrt(centroidMagnitude);
 
-  auto centroid = make_shared<Centroid>(centroidId_, centroidScores, centroidMagnitude);
+  auto centroid = make_shared<WordVector>(centroidId_, centroidScores, centroidMagnitude, docCount);
   LOG(INFO) << "persisting...";
   persistence_->saveCentroid(centroidId_, centroid).get();
   LOG(INFO) << "persisted..";

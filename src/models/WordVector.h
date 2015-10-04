@@ -8,7 +8,6 @@
 #include <folly/DynamicConverter.h>
 
 #include "serialization/serializers.h"
-#include "models/ProcessedDocument.h"
 #include "gen-cpp2/TextRelevance_types.h"
 #include "util/util.h"
 
@@ -38,7 +37,7 @@ namespace folly {
 
   template<>
   struct DynamicConstructor<WordVector> {
-    static folly::dynamic construct(const WordVector &wordvec) {
+    static folly::dynamic construct(const WordVector &wordVec) {
       auto scores = folly::toDynamic(wordVec.scores);
       folly::dynamic self = folly::dynamic::object;
       self["id"] = wordVec.id;
@@ -55,7 +54,7 @@ namespace folly {
       auto scores = folly::convertTo<std::map<std::string, double>>(dyn["scores"]);
       auto id = folly::convertTo<std::string>(dyn["id"]);
       auto magnitude = folly::convertTo<double>(dyn["magnitude"]);
-      auto weight - folly::convertTo<double>(dyn["documentWeight"]);
+      auto weight = folly::convertTo<double>(dyn["documentWeight"]);
       return WordVector(id, std::move(scores), magnitude, weight);
     }
   };
@@ -86,7 +85,7 @@ namespace serialization {
       serialization::thriftBinaryDeserialize(data, vecDto);
       result->id = vecDto.id;
       result->magnitude = vecDto.magnitude;
-      result->documentCount = vecDto.documentWeight;
+      result->documentWeight = vecDto.documentWeight;
       result->scores = std::move(vecDto.scores);
     }
   };

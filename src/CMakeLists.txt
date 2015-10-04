@@ -20,7 +20,7 @@ set(RELEVANCED_BASE_SOURCES
     "gen-cpp2/Relevance_processmap_compact.cpp"
     "gen-cpp2/TextRelevance_constants.cpp"
     "gen-cpp2/TextRelevance_types.cpp"
-    "models/Centroid.cpp"
+    "models/WordVector.cpp"
     "persistence/InMemoryRockHandle.cpp"
     "persistence/Persistence.cpp"
     "persistence/RockHandle.cpp"

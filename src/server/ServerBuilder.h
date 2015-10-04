@@ -15,8 +15,6 @@
 #include "persistence/Persistence.h"
 #include "persistence/SyncPersistence.h"
 #include "persistence/RockHandle.h"
-#include "models/ProcessedDocument.h"
-#include "serialization/serializers.h"
 #include "server/RelevanceServer.h"
 #include "server/ThriftRelevanceServer.h"
 #include "util/util.h"
