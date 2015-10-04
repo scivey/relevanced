@@ -175,10 +175,10 @@ TEST(SimilarityScoreWorker, TestReloadCentroid) {
     "centroid-1",
     shared_ptr<Centroid>(&c1Old, NonDeleter<Centroid>())
   );
-  EXPECT_EQ(1.2, worker->getLoadedCentroid_("centroid-1").value()->scores["cat"]);
+  EXPECT_EQ(1.2, worker->getLoadedCentroid_("centroid-1").value()->wordVector.scores["cat"]);
 
   worker->reloadCentroid("centroid-1").get();
-  EXPECT_EQ(503.1, worker->getLoadedCentroid_("centroid-1").value()->scores["cat"]);
+  EXPECT_EQ(503.1, worker->getLoadedCentroid_("centroid-1").value()->wordVector.scores["cat"]);
 }
 
 double mag3(double x, double y, double z) {

@@ -77,8 +77,8 @@ TEST(DocumentProcessor, Simple) {
   Document toProcess("doc-id", "this is some text");
   auto result = processor.process(toProcess);
   EXPECT_EQ("doc-id", result.id);
-  EXPECT_EQ(3, result.normalizedWordCounts.size());
-  auto counts = &result.normalizedWordCounts;
+  EXPECT_EQ(3, result.wordVector.scores.size());
+  auto counts = &result.wordVector.scores;
   EXPECT_TRUE(counts->find("this") != counts->end());
   EXPECT_TRUE(counts->find("some") != counts->end());
   EXPECT_TRUE(counts->find("text") != counts->end());

@@ -12,6 +12,8 @@ public:
   ProcessedDocument(){}
   ProcessedDocument(std::string id): id(id){}
   ProcessedDocument(std::string id, WordVector wordVec): id(id), wordVector(wordVec){}
+  ProcessedDocument(std::string id, std::map<std::string, double> scores, double mag):
+    id(id),  wordVector(scores, mag) {}
 };
 
 } // models

@@ -122,7 +122,7 @@ TEST(SyncPersistence, LoadDocumentOptionExists) {
   EXPECT_TRUE(result.hasValue());
   auto docPtr = result.value();
   EXPECT_EQ("doc-id", docPtr->id);
-  EXPECT_EQ(2, docPtr->normalizedWordCounts.size());
+  EXPECT_EQ(2, docPtr->wordVector.scores.size());
 }
 
 TEST(SyncPersistence, LoadDocumentOptionDoesNotExist) {
@@ -160,7 +160,7 @@ TEST(SyncPersistence, LoadDocumentExists) {
   EXPECT_TRUE(result.hasValue());
   auto docPtr = result.value();
   EXPECT_EQ("doc-id", docPtr->id);
-  EXPECT_EQ(2, docPtr->normalizedWordCounts.size());
+  EXPECT_EQ(2, docPtr->wordVector.scores.size());
 }
 
 TEST(SyncPersistence, LoadDocumentDoesNotExist) {
@@ -317,9 +317,9 @@ TEST(SyncPersistence, SaveCentroid) {
   Centroid deserialized;
   serialization::binaryDeserialize<Centroid>(serialized, &deserialized);
   EXPECT_EQ("centroid-id", deserialized.id);
-  EXPECT_EQ(5.8, deserialized.magnitude);
-  EXPECT_EQ(2, deserialized.scores.size());
-  EXPECT_EQ(2.21, deserialized.scores["blarg"]);
+  EXPECT_EQ(5.8, deserialized.wordVector.magnitude);
+  EXPECT_EQ(2, deserialized.wordVector.scores.size());
+  EXPECT_EQ(2.21, deserialized.wordVector.scores["blarg"]);
 }
 
 TEST(SyncPersistence, LoadCentroidDoesNotExist) {
@@ -353,9 +353,9 @@ TEST(SyncPersistence, LoadCentroidExists) {
   EXPECT_FALSE(res.hasException());
   auto centroidPtr = res.value();
   EXPECT_EQ("centroid-id", centroidPtr->id);
-  EXPECT_EQ(5.8, centroidPtr->magnitude);
-  EXPECT_EQ(2, centroidPtr->scores.size());
-  EXPECT_EQ(2.21, centroidPtr->scores["blarg"]);
+  EXPECT_EQ(5.8, centroidPtr->wordVector.magnitude);
+  EXPECT_EQ(2, centroidPtr->wordVector.scores.size());
+  EXPECT_EQ(2.21, centroidPtr->wordVector.scores["blarg"]);
 }
 
 TEST(SyncPersistence, LoadCentroidOptionExists) {
@@ -379,9 +379,10 @@ TEST(SyncPersistence, LoadCentroidOptionExists) {
   EXPECT_TRUE(res.hasValue());
   auto centroidPtr = res.value();
   EXPECT_EQ("centroid-id", centroidPtr->id);
-  EXPECT_EQ(5.8, centroidPtr->magnitude);
-  EXPECT_EQ(2, centroidPtr->scores.size());
-  EXPECT_EQ(2.21, centroidPtr->scores["blarg"]);
+  auto wordVec = centroidPtr->wordVector;
+  EXPECT_EQ(5.8, wordVec.magnitude);
+  EXPECT_EQ(2, wordVec.scores.size());
+  EXPECT_EQ(2.21, wordVec.scores["blarg"]);
 }
 
 TEST(SyncPersistence, LoadCentroidOptionDoesNotExist) {
