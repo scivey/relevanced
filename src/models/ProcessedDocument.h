@@ -11,7 +11,6 @@
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include "gen-cpp2/TextRelevance_types.h"
 #include "serialization/serializers.h"
-#include "serialization/bytes.h"
 
 namespace relevanced {
 namespace models {

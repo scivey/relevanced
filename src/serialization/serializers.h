@@ -5,7 +5,6 @@
 #include <thrift/lib/cpp2/protocol/BinaryProtocol.h>
 #include <thrift/lib/cpp2/protocol/Serializer.h>
 #include <glog/logging.h>
-#include "bytes.h"
 
 namespace relevanced {
 namespace serialization {
@@ -61,7 +60,7 @@ void thriftBinaryDeserialize(std::string &data, T &target) {
 
 template<typename T>
 struct JsonSerializer {
-  static string serialize(T *target) {
+  static std::string serialize(T *target) {
     ((void) target);
     LOG(INFO) << "default json serialization";
     return "";
@@ -79,7 +78,7 @@ struct JsonDeserializer {
 };
 
 template<typename T>
-string jsonSerialize(T *target) {
+std::string jsonSerialize(T *target) {
   return JsonSerializer<T>::serialize(target);
 }
 

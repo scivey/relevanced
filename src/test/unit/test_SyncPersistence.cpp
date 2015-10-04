@@ -113,7 +113,8 @@ TEST(SyncPersistence, LoadDocumentOptionExists) {
     },
     5.6
   );
-  auto serialized = serialization::jsonSerialize<ProcessedDocument>(&doc);
+  string serialized;
+  serialization::binarySerialize<ProcessedDocument>(serialized, doc);
   EXPECT_FALSE(mockRock.exists("documents:doc-id"));
   mockRock.put("documents:doc-id", serialized);
   EXPECT_TRUE(mockRock.exists("documents:doc-id"));
@@ -150,7 +151,8 @@ TEST(SyncPersistence, LoadDocumentExists) {
     },
     5.6
   );
-  auto serialized = serialization::jsonSerialize<ProcessedDocument>(&doc);
+  string serialized;
+  serialization::binarySerialize<ProcessedDocument>(serialized, doc);
   EXPECT_FALSE(mockRock.exists("documents:doc-id"));
   mockRock.put("documents:doc-id", serialized);
   EXPECT_TRUE(mockRock.exists("documents:doc-id"));
@@ -312,7 +314,8 @@ TEST(SyncPersistence, SaveCentroid) {
   auto res = dbHandle.saveCentroid("centroid-id", &centroid);
   EXPECT_FALSE(res.hasException());
   auto serialized = mockRock.get("centroids:centroid-id");
-  auto deserialized = serialization::jsonDeserialize<Centroid>(serialized);
+  Centroid deserialized;
+  serialization::binaryDeserialize<Centroid>(serialized, &deserialized);
   EXPECT_EQ("centroid-id", deserialized.id);
   EXPECT_EQ(5.8, deserialized.magnitude);
   EXPECT_EQ(2, deserialized.scores.size());
@@ -343,7 +346,8 @@ TEST(SyncPersistence, LoadCentroidExists) {
     },
     5.8
   );
-  auto data = serialization::jsonSerialize<Centroid>(&toSerialize);
+  string data;
+  serialization::binarySerialize<Centroid>(data, toSerialize);
   mockRock.put("centroids:centroid-id", data);
   auto res = dbHandle.loadCentroid("centroid-id");
   EXPECT_FALSE(res.hasException());
@@ -368,7 +372,8 @@ TEST(SyncPersistence, LoadCentroidOptionExists) {
     },
     5.8
   );
-  auto data = serialization::jsonSerialize<Centroid>(&toSerialize);
+  string data;
+  serialization::binarySerialize<Centroid>(data, toSerialize);
   mockRock.put("centroids:centroid-id", data);
   auto res = dbHandle.loadCentroidOption("centroid-id");
   EXPECT_TRUE(res.hasValue());

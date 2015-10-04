@@ -13,6 +13,11 @@
 
 using namespace std;
 using namespace folly;
+using namespace relevanced;
+using namespace relevanced::persistence;
+using namespace relevanced::models;
+
+
 
 class MockSyncPersistence: public persistence::SyncPersistenceIf {
 public:
