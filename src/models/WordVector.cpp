@@ -16,13 +16,11 @@ using namespace folly;
 
 WordVector::WordVector(){}
 
-WordVector::WordVector(string id): id(id) {}
+WordVector::WordVector(map<string, double> scores, double magnitude)
+  : scores(scores), magnitude(magnitude) {}
 
-WordVector::WordVector(string id, map<string, double> scores, double magnitude)
-  : id(id), scores(scores), magnitude(magnitude) {}
-
-WordVector::WordVector(string id, map<string, double> scores, double magnitude, double docWeight)
-  : id(id), scores(scores), magnitude(magnitude), documentWeight(docWeight) {}
+WordVector::WordVector(map<string, double> scores, double magnitude, double docWeight)
+  : scores(scores), magnitude(magnitude), documentWeight(docWeight) {}
 
 double WordVector::score(const map<string, double> &otherScores, double otherMagnitude) {
   double dotProd = 0.0;

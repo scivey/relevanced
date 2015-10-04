@@ -9,6 +9,9 @@
 #include <folly/futures/Try.h>
 #include <folly/Optional.h>
 #include "models/WordVector.h"
+#include "models/Centroid.h"
+#include "models/ProcessedDocument.h"
+
 
 #include "persistence/SyncPersistence.h"
 
@@ -18,18 +21,18 @@ namespace persistence {
 class PersistenceIf {
 public:
   virtual folly::Future<bool> doesDocumentExist(const std::string &id) = 0;
-  virtual folly::Future<folly::Try<bool>> saveDocument(std::shared_ptr<models::WordVector> doc) = 0;
+  virtual folly::Future<folly::Try<bool>> saveDocument(std::shared_ptr<models::ProcessedDocument> doc) = 0;
   virtual folly::Future<folly::Try<bool>> deleteDocument(const std::string &id) = 0;
   virtual folly::Future<std::vector<std::string>> listAllDocuments() = 0;
-  virtual folly::Future<folly::Try<std::shared_ptr<models::WordVector>>> loadDocument(const std::string&) = 0;
-  virtual folly::Future<folly::Optional<std::shared_ptr<models::WordVector>>> loadDocumentOption(const std::string&) = 0;
+  virtual folly::Future<folly::Try<std::shared_ptr<models::ProcessedDocument>>> loadDocument(const std::string&) = 0;
+  virtual folly::Future<folly::Optional<std::shared_ptr<models::ProcessedDocument>>> loadDocumentOption(const std::string&) = 0;
 
   virtual folly::Future<bool> doesCentroidExist(const std::string &id) = 0;
   virtual folly::Future<folly::Try<bool>> createNewCentroid(const std::string &id) = 0;
   virtual folly::Future<folly::Try<bool>> deleteCentroid(const std::string &id) = 0;
-  virtual folly::Future<folly::Try<bool>> saveCentroid(const std::string &id, std::shared_ptr<models::WordVector>) = 0;
-  virtual folly::Future<folly::Try<std::shared_ptr<models::WordVector>>> loadCentroid(const std::string &id) = 0;
-  virtual folly::Future<folly::Optional<std::shared_ptr<models::WordVector>>> loadCentroidOption(const std::string &id) = 0;
+  virtual folly::Future<folly::Try<bool>> saveCentroid(const std::string &id, std::shared_ptr<models::Centroid>) = 0;
+  virtual folly::Future<folly::Try<std::shared_ptr<models::Centroid>>> loadCentroid(const std::string &id) = 0;
+  virtual folly::Future<folly::Optional<std::shared_ptr<models::Centroid>>> loadCentroidOption(const std::string &id) = 0;
   virtual folly::Future<std::vector<std::string>> listAllCentroids() = 0;
 
   virtual folly::Future<folly::Try<bool>> addDocumentToCentroid(const std::string&, const std::string&) = 0;
@@ -52,18 +55,18 @@ public:
     std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>> threadPool
   );
   folly::Future<bool> doesDocumentExist(const std::string &id) override;
-  folly::Future<folly::Try<bool>> saveDocument(std::shared_ptr<models::WordVector> doc) override;
+  folly::Future<folly::Try<bool>> saveDocument(std::shared_ptr<models::ProcessedDocument> doc) override;
   folly::Future<folly::Try<bool>> deleteDocument(const std::string &id) override;
   folly::Future<std::vector<std::string>> listAllDocuments() override;
-  folly::Future<folly::Try<std::shared_ptr<models::WordVector>>> loadDocument(const std::string&) override;
-  folly::Future<folly::Optional<std::shared_ptr<models::WordVector>>> loadDocumentOption(const std::string&) override;
+  folly::Future<folly::Try<std::shared_ptr<models::ProcessedDocument>>> loadDocument(const std::string&) override;
+  folly::Future<folly::Optional<std::shared_ptr<models::ProcessedDocument>>> loadDocumentOption(const std::string&) override;
 
   folly::Future<bool> doesCentroidExist(const std::string &id) override;
   folly::Future<folly::Try<bool>> createNewCentroid(const std::string &id) override;
   folly::Future<folly::Try<bool>> deleteCentroid(const std::string &id) override;
-  folly::Future<folly::Try<bool>> saveCentroid(const std::string &id, std::shared_ptr<models::WordVector>) override;
-  folly::Future<folly::Try<std::shared_ptr<models::WordVector>>> loadCentroid(const std::string &id) override;
-  folly::Future<folly::Optional<std::shared_ptr<models::WordVector>>> loadCentroidOption(const std::string &id) override;
+  folly::Future<folly::Try<bool>> saveCentroid(const std::string &id, std::shared_ptr<models::Centroid>) override;
+  folly::Future<folly::Try<std::shared_ptr<models::Centroid>>> loadCentroid(const std::string &id) override;
+  folly::Future<folly::Optional<std::shared_ptr<models::Centroid>>> loadCentroidOption(const std::string &id) override;
   folly::Future<std::vector<std::string>> listAllCentroids() override;
 
   folly::Future<folly::Try<bool>> addDocumentToCentroid(const std::string&, const std::string&) override;

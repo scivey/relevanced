@@ -1,5 +1,6 @@
 #include "document_processing_worker/DocumentProcessingWorker.h"
 #include "models/WordVector.h"
+#include "models/ProcessedDocument.h"
 #include "models/Document.h"
 
 #include <memory>
@@ -16,6 +17,8 @@ using wangle::FutureExecutor;
 using wangle::CPUThreadPoolExecutor;
 using models::Document;
 using models::WordVector;
+using models::ProcessedDocument;
+
 
 DocumentProcessingWorker::DocumentProcessingWorker(
   shared_ptr<DocumentProcessorIf> processor,
@@ -23,7 +26,7 @@ DocumentProcessingWorker::DocumentProcessingWorker(
 ) : processor_(processor), threadPool_(threadPool) {}
 
 
-Future<shared_ptr<WordVector>> DocumentProcessingWorker::processNew(shared_ptr<Document> doc) {
+Future<shared_ptr<ProcessedDocument>> DocumentProcessingWorker::processNew(shared_ptr<Document> doc) {
   return threadPool_->addFuture([this, doc](){
     return processor_->processNew(doc);
   });

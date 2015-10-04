@@ -14,7 +14,9 @@
 #include <rocksdb/db.h>
 #include "serialization/serializers.h"
 #include "persistence/RockHandle.h"
-#include "models/WordVector.h"
+#include "models/Centroid.h"
+#include "models/ProcessedDocument.h"
+
 #include "util/util.h"
 #include "persistence/exceptions.h"
 
@@ -23,7 +25,10 @@ namespace persistence {
 
 using namespace std;
 using namespace folly;
-using models::WordVector;
+using models::ProcessedDocument;
+using models::Centroid;
+
+
 using namespace persistence::exceptions;
 
 SyncPersistence::SyncPersistence(
@@ -35,15 +40,15 @@ bool SyncPersistence::doesDocumentExist(const string &id) {
   return rockHandle_->exists(key);
 }
 
-Try<bool> SyncPersistence::saveDocument(WordVector *doc) {
+Try<bool> SyncPersistence::saveDocument(ProcessedDocument *doc) {
   string data;
-  serialization::binarySerialize<WordVector>(data, *doc);
+  serialization::binarySerialize<ProcessedDocument>(data, *doc);
   auto key = sformat("documents:{}", doc->id);
   rockHandle_->put(key, data);
   return Try<bool>(true);
 }
 
-Try<bool> SyncPersistence::saveDocument(shared_ptr<WordVector> doc) {
+Try<bool> SyncPersistence::saveDocument(shared_ptr<ProcessedDocument> doc) {
   return saveDocument(doc.get());
 }
 
@@ -66,32 +71,32 @@ vector<string> SyncPersistence::listAllDocuments() {
   return docIds;
 }
 
-Optional<WordVector*> SyncPersistence::loadDocumentRaw(const string &docId) {
-  Optional<WordVector*> result;
+Optional<ProcessedDocument*> SyncPersistence::loadDocumentRaw(const string &docId) {
+  Optional<ProcessedDocument*> result;
   auto key = sformat("documents:{}", docId);
   string serialized;
   if (!rockHandle_->get(key, serialized)) {
     return result;
   }
-  auto processed = new WordVector("");
-  serialization::binaryDeserialize<WordVector>(serialized, processed);
+  auto processed = new ProcessedDocument("");
+  serialization::binaryDeserialize<ProcessedDocument>(serialized, processed);
   result.assign(processed);
   return result;
 }
 
-Try<shared_ptr<WordVector>> SyncPersistence::loadDocument(const string &docId) {
+Try<shared_ptr<ProcessedDocument>> SyncPersistence::loadDocument(const string &docId) {
   auto loadedOpt = loadDocumentRaw(docId);
   if (loadedOpt.hasValue()) {
-    return Try<shared_ptr<WordVector>>(shared_ptr<WordVector>(loadedOpt.value()));
+    return Try<shared_ptr<ProcessedDocument>>(shared_ptr<ProcessedDocument>(loadedOpt.value()));
   }
-  return Try<shared_ptr<WordVector>>(make_exception_wrapper<DocumentDoesNotExist>());
+  return Try<shared_ptr<ProcessedDocument>>(make_exception_wrapper<DocumentDoesNotExist>());
 }
 
-Optional<shared_ptr<WordVector>> SyncPersistence::loadDocumentOption(const string &docId) {
-  Optional<shared_ptr<WordVector>> result;
+Optional<shared_ptr<ProcessedDocument>> SyncPersistence::loadDocumentOption(const string &docId) {
+  Optional<shared_ptr<ProcessedDocument>> result;
   auto loadedOpt = loadDocumentRaw(docId);
   if (loadedOpt.hasValue()) {
-    result.assign(shared_ptr<WordVector>(loadedOpt.value()));
+    result.assign(shared_ptr<ProcessedDocument>(loadedOpt.value()));
   }
   return result;
 }
@@ -108,8 +113,8 @@ Try<bool> SyncPersistence::createNewCentroid(const string &id) {
     LOG(INFO) << format("centroid '{}' already exists", id);
     return Try<bool>(make_exception_wrapper<CentroidAlreadyExists>());
   }
-  WordVector wordVector(id);
-  saveCentroid(id, &wordVector);
+  Centroid centroid(id);
+  saveCentroid(id, &centroid);
   return Try<bool>(true);
 }
 
@@ -133,45 +138,45 @@ Try<bool> SyncPersistence::deleteCentroid(const string &id) {
   return Try<bool>(true);
 }
 
-Try<bool> SyncPersistence::saveCentroid(const string &id, WordVector *centroid) {
+Try<bool> SyncPersistence::saveCentroid(const string &id, Centroid *centroid) {
   LOG(INFO) << format("serializing centroid '{}'", id);
   auto key = sformat("centroids:{}", id);
   LOG(INFO) << format("persisting serialized centroid '{}'", id);
   string data;
-  serialization::binarySerialize<WordVector>(data, *centroid);
+  serialization::binarySerialize<Centroid>(data, *centroid);
   rockHandle_->put(key, data);
   return Try<bool>(true);
 }
 
-Try<bool> SyncPersistence::saveCentroid(const string &id, shared_ptr<WordVector> centroid) {
+Try<bool> SyncPersistence::saveCentroid(const string &id, shared_ptr<Centroid> centroid) {
   return saveCentroid(id, centroid.get());
 }
 
-Optional<WordVector*> SyncPersistence::loadCentroidRaw(const string &id) {
-  Optional<WordVector*> result;
+Optional<Centroid*> SyncPersistence::loadCentroidRaw(const string &id) {
+  Optional<Centroid*> result;
   string serialized;
   auto key = sformat("centroids:{}", id);
   if (rockHandle_->get(key, serialized)) {
-    auto centroidRes = new WordVector;
-    serialization::binaryDeserialize<WordVector>(serialized, centroidRes);
+    auto centroidRes = new Centroid;
+    serialization::binaryDeserialize<Centroid>(serialized, centroidRes);
     result.assign(centroidRes);
   }
   return result;
 }
 
-Try<shared_ptr<WordVector>> SyncPersistence::loadCentroid(const string &id) {
+Try<shared_ptr<Centroid>> SyncPersistence::loadCentroid(const string &id) {
   auto loadedRaw = loadCentroidRaw(id);
   if (!loadedRaw.hasValue()) {
-    return Try<shared_ptr<WordVector>>(make_exception_wrapper<CentroidDoesNotExist>());
+    return Try<shared_ptr<Centroid>>(make_exception_wrapper<CentroidDoesNotExist>());
   }
-  return Try<shared_ptr<WordVector>>(shared_ptr<WordVector>(loadedRaw.value()));
+  return Try<shared_ptr<Centroid>>(shared_ptr<Centroid>(loadedRaw.value()));
 }
 
-Optional<shared_ptr<WordVector>> SyncPersistence::loadCentroidOption(const string &id) {
-  Optional<shared_ptr<WordVector>> result;
+Optional<shared_ptr<Centroid>> SyncPersistence::loadCentroidOption(const string &id) {
+  Optional<shared_ptr<Centroid>> result;
   auto loadedRaw = loadCentroidRaw(id);
   if (loadedRaw.hasValue()) {
-    result.assign(shared_ptr<WordVector>(loadedRaw.value()));
+    result.assign(shared_ptr<Centroid>(loadedRaw.value()));
   }
   return result;
 }

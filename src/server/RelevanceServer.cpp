@@ -15,7 +15,8 @@
 #include "document_processing_worker/DocumentProcessor.h"
 #include "gen-cpp2/Relevance.h"
 #include "models/Document.h"
-#include "models/WordVector.h"
+#include "models/ProcessedDocument.h"
+
 
 #include "persistence/exceptions.h"
 #include "persistence/Persistence.h"
@@ -35,8 +36,9 @@ using persistence::exceptions::CentroidDoesNotExist;
 using similarity_score_worker::SimilarityScoreWorkerIf;
 using centroid_update_worker::CentroidUpdateWorkerIf;
 using document_processing_worker::DocumentProcessingWorkerIf;
-using models::WordVector;
 using models::Document;
+using models::ProcessedDocument;
+
 
 using util::UniquePointer;
 
@@ -60,7 +62,7 @@ void RelevanceServer::initialize() {
 
 Future<Try<double>> RelevanceServer::getDocumentSimilarity(unique_ptr<string> centroidId, unique_ptr<string> docId) {
   string cId = *centroidId;
-  return persistence_->loadDocument(*docId).then([this, cId](Try<shared_ptr<WordVector>> doc) {
+  return persistence_->loadDocument(*docId).then([this, cId](Try<shared_ptr<ProcessedDocument>> doc) {
     if (doc.hasException()) {
       return makeFuture<Try<double>>(Try<double>(doc.exception()));
     }
@@ -79,7 +81,7 @@ Future<Try<unique_ptr<map<string, double>>>> RelevanceServer::multiGetTextSimila
   shared_ptr<vector<string>> cIds(
     new vector<string>(*centroidIds)
   );
-  return processingWorker_->processNew(doc).then([this, cIds](shared_ptr<WordVector> processed) {
+  return processingWorker_->processNew(doc).then([this, cIds](shared_ptr<ProcessedDocument> processed) {
     vector<Future<Try<double>>> scores;
     for (size_t i = 0; i < cIds->size(); i++) {
       scores.push_back(scoreWorker_->getDocumentSimilarity(cIds->at(i), processed));
@@ -105,7 +107,7 @@ Future<Try<unique_ptr<map<string, double>>>> RelevanceServer::multiGetTextSimila
 Future<Try<double>> RelevanceServer::getTextSimilarity(unique_ptr<string> centroidId, unique_ptr<string> text) {
   auto doc = std::make_shared<Document>("no-id", *text);
   auto cId = *centroidId;
-  return processingWorker_->processNew(doc).then([this, cId](shared_ptr<WordVector> processed) {
+  return processingWorker_->processNew(doc).then([this, cId](shared_ptr<ProcessedDocument> processed) {
     return scoreWorker_->getDocumentSimilarity(cId, processed);
   });
 }
@@ -117,7 +119,7 @@ Future<Try<unique_ptr<string>>> RelevanceServer::createDocument(unique_ptr<strin
 Future<Try<unique_ptr<string>>> RelevanceServer::internalCreateDocumentWithID(string id, string text) {
   auto doc = std::make_shared<Document>(id, text);
   LOG(INFO) << "creating document: " << id.substr(0, 15) << "  |   " << text.substr(0, 20);
-  return processingWorker_->processNew(doc).then([this, id](shared_ptr<WordVector> processed) {
+  return processingWorker_->processNew(doc).then([this, id](shared_ptr<ProcessedDocument> processed) {
     return persistence_->saveDocument(processed).then([this, id](Try<bool> result) {
       if (result.hasException()) {
         return Try<unique_ptr<string>>(make_exception_wrapper<DocumentAlreadyExists>());
@@ -136,7 +138,7 @@ Future<Try<bool>> RelevanceServer::deleteDocument(unique_ptr<string> id) {
 }
 
 Future<Try<unique_ptr<string>>> RelevanceServer::getDocument(unique_ptr<string> id) {
-  return persistence_->loadDocument(*id).then([](Try<shared_ptr<WordVector>> proced) {
+  return persistence_->loadDocument(*id).then([](Try<shared_ptr<ProcessedDocument>> proced) {
     if (proced.hasException()) {
       return Try<unique_ptr<string>>(proced.exception());
     }

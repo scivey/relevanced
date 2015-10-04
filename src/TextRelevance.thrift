@@ -1,10 +1,19 @@
 namespace cpp2 services
 
 struct WordVectorDTO {
-    1: required string id;
+    1: required double magnitude;
     2: required double documentWeight;
-    3: required double magnitude;
-    4: required map<string, double> scores;
+    3: required map<string, double> scores;
+}
+
+struct CentroidDTO {
+    1: required string id;
+    2: required WordVectorDTO wordVector;
+}
+
+struct ProcessedDocumentDTO {
+    1: required string id;
+    2: required WordVectorDTO wordVector;
 }
 
 enum RelevanceStatus {

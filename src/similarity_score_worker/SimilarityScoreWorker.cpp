@@ -14,6 +14,10 @@
 #include "centroid_update_worker/CentroidUpdateWorker.h"
 #include "document_processing_worker/DocumentProcessor.h"
 #include "models/WordVector.h"
+#include "models/Centroid.h"
+#include "models/ProcessedDocument.h"
+
+
 #include "persistence/exceptions.h"
 #include "persistence/Persistence.h"
 #include "similarity_score_worker/SimilarityScoreWorker.h"
@@ -23,6 +27,8 @@ namespace relevanced {
 namespace similarity_score_worker {
 
 using models::WordVector;
+using models::ProcessedDocument;
+using models::Centroid;
 
 using persistence::exceptions::CentroidDoesNotExist;
 using namespace wangle;
@@ -53,7 +59,7 @@ void SimilarityScoreWorker::initialize() {
 }
 
 Future<bool> SimilarityScoreWorker::reloadCentroid(string id) {
-  return persistence_->loadCentroidOption(id).then([id, this](Optional<shared_ptr<WordVector>> centroid) {
+  return persistence_->loadCentroidOption(id).then([id, this](Optional<shared_ptr<Centroid>> centroid) {
     if (!centroid.hasValue()) {
       LOG(INFO) << format("tried to reload null centroid '{}'", id);
       return false;
@@ -66,8 +72,8 @@ Future<bool> SimilarityScoreWorker::reloadCentroid(string id) {
   });
 }
 
-Optional<shared_ptr<WordVector>> SimilarityScoreWorker::getLoadedCentroid_(const string &id) {
-  Optional<shared_ptr<WordVector>> center;
+Optional<shared_ptr<Centroid>> SimilarityScoreWorker::getLoadedCentroid_(const string &id) {
+  Optional<shared_ptr<Centroid>> center;
   SYNCHRONIZED(centroids_) {
     auto elem = centroids_.find(id);
     if (elem != centroids_.end()) {
@@ -77,24 +83,24 @@ Optional<shared_ptr<WordVector>> SimilarityScoreWorker::getLoadedCentroid_(const
   return center;
 }
 
-void SimilarityScoreWorker::setLoadedCentroid_(const string &id, shared_ptr<WordVector> centroid) {
+void SimilarityScoreWorker::setLoadedCentroid_(const string &id, shared_ptr<Centroid> centroid) {
   SYNCHRONIZED(centroids_) {
     centroids_[id] = centroid;
   }
 }
 
-Future<Try<double>> SimilarityScoreWorker::getDocumentSimilarity(string centroidId, WordVector *doc) {
+Future<Try<double>> SimilarityScoreWorker::getDocumentSimilarity(string centroidId, ProcessedDocument *doc) {
   return threadPool_->addFuture([this, centroidId, doc](){
     auto centroid = getLoadedCentroid_(centroidId);
     if (!centroid.hasValue()) {
       LOG(INFO) << "relevance request against null centroid: " << centroidId;
       return Try<double>(make_exception_wrapper<CentroidDoesNotExist>());
     }
-    return Try<double>(centroid.value()->score(doc));
+    return Try<double>(centroid.value()->score(&doc->wordVector));
   });
 }
 
-Future<Try<double>> SimilarityScoreWorker::getDocumentSimilarity(string centroidId, shared_ptr<WordVector> doc) {
+Future<Try<double>> SimilarityScoreWorker::getDocumentSimilarity(string centroidId, shared_ptr<ProcessedDocument> doc) {
   return getDocumentSimilarity(centroidId, doc.get());
 }
 
@@ -105,7 +111,7 @@ Future<Try<double>> SimilarityScoreWorker::getCentroidSimilarity(string centroid
     if (!centroid1.hasValue() || !centroid2.hasValue()) {
       return Try<double>(make_exception_wrapper<CentroidDoesNotExist>());
     }
-    return Try<double>(centroid1.value()->score(centroid2.value().get()));
+    return Try<double>(centroid1.value()->score(&centroid2.value().get()->wordVector));
   });
 }
 

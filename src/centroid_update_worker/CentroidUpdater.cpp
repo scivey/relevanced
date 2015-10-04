@@ -13,6 +13,8 @@
 
 #include "centroid_update_worker/CentroidUpdater.h"
 #include "models/WordVector.h"
+#include "models/Centroid.h"
+
 #include "persistence/Persistence.h"
 #include "util/util.h"
 
@@ -22,6 +24,7 @@ using namespace folly;
 namespace relevanced {
 namespace centroid_update_worker {
 using models::WordVector;
+using models::Centroid;
 using persistence::exceptions::CentroidDoesNotExist;
 using util::UniquePointer;
 
@@ -56,7 +59,7 @@ Try<bool> CentroidUpdater::run() {
     } else {
       docCount++;
       auto docPtr = doc.value();
-      for (auto &elem: docPtr->scores) {
+      for (auto &elem: docPtr->wordVector.scores) {
         if (centroidScores.find(elem.first) == centroidScores.end()) {
           centroidScores[elem.first] = elem.second;
         } else {
@@ -71,7 +74,10 @@ Try<bool> CentroidUpdater::run() {
   }
   centroidMagnitude = sqrt(centroidMagnitude);
 
-  auto centroid = make_shared<WordVector>(centroidId_, centroidScores, centroidMagnitude, docCount);
+  auto centroid = make_shared<Centroid>(centroidId_);
+  centroid->wordVector.scores = centroidScores;
+  centroid->wordVector.magnitude = centroidMagnitude;
+  centroid->wordVector.documentWeight = docCount;
   LOG(INFO) << "persisting...";
   persistence_->saveCentroid(centroidId_, centroid).get();
   LOG(INFO) << "persisted..";

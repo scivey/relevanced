@@ -16,14 +16,12 @@ namespace models {
 
 class WordVector {
 public:
-  std::string id;
   std::map<std::string, double> scores;
   double magnitude {0.0};
   double documentWeight {1.0};
   WordVector();
-  WordVector(std::string);
-  WordVector(std::string, std::map<std::string, double>, double magnitude);
-  WordVector(std::string, std::map<std::string, double>, double magnitude, double docWeight);
+  WordVector(std::map<std::string, double>, double magnitude);
+  WordVector(std::map<std::string, double>, double magnitude, double docWeight);
   double score(const std::map<std::string, double> &otherScores, double otherMagnitude);
   double score(WordVector *other);
 };
@@ -40,7 +38,6 @@ namespace folly {
     static folly::dynamic construct(const WordVector &wordVec) {
       auto scores = folly::toDynamic(wordVec.scores);
       folly::dynamic self = folly::dynamic::object;
-      self["id"] = wordVec.id;
       self["magnitude"] = wordVec.magnitude;
       self["scores"] = scores;
       self["documentWeight"] = wordVec.documentWeight;
@@ -52,10 +49,9 @@ namespace folly {
   struct DynamicConverter<WordVector> {
     static WordVector convert(const folly::dynamic &dyn) {
       auto scores = folly::convertTo<std::map<std::string, double>>(dyn["scores"]);
-      auto id = folly::convertTo<std::string>(dyn["id"]);
       auto magnitude = folly::convertTo<double>(dyn["magnitude"]);
       auto weight = folly::convertTo<double>(dyn["documentWeight"]);
-      return WordVector(id, std::move(scores), magnitude, weight);
+      return WordVector(std::move(scores), magnitude, weight);
     }
   };
 } // folly
@@ -70,7 +66,6 @@ namespace serialization {
   struct BinarySerializer<WordVector> {
     static void serialize(std::string &result, WordVector &target) {
       services::WordVectorDTO vecDto;
-      vecDto.id = target.id;
       vecDto.scores = target.scores;
       vecDto.documentWeight = target.documentWeight;
       vecDto.magnitude = target.magnitude;
@@ -83,7 +78,6 @@ namespace serialization {
     static void deserialize(std::string &data, WordVector *result) {
       services::WordVectorDTO vecDto;
       serialization::thriftBinaryDeserialize(data, vecDto);
-      result->id = vecDto.id;
       result->magnitude = vecDto.magnitude;
       result->documentWeight = vecDto.documentWeight;
       result->scores = std::move(vecDto.scores);
