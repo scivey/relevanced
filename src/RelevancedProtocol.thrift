@@ -16,7 +16,7 @@ struct ProcessedDocumentDTO {
     2: required WordVectorDTO wordVector;
 }
 
-enum RelevanceStatus {
+enum StatusCode {
     OK = 0,
     CENTROID_DOES_NOT_EXIST = 1,
     CENTROID_ALREADY_EXISTS = 2,
@@ -25,42 +25,47 @@ enum RelevanceStatus {
     UNKNOWN_EXCEPTION = 5
 }
 
+struct Status {
+    1: required StatusCode code;
+    2: required string message;
+}
+
 struct GetDocumentResponse {
-    1: required RelevanceStatus status;
+    1: required Status status;
     2: required string document;
 }
 
-struct DocumentRelevanceResponse {
-    1: required RelevanceStatus status;
-    2: required double relevance;
+struct SimilarityResponse {
+    1: required Status status;
+    2: required double similarity;
 }
 
-struct DocumentMultiRelevanceResponse {
-    1: required RelevanceStatus status;
+struct MultiSimilarityResponse {
+    1: required Status status;
     2: required map<string, double> scores;
 }
 
 struct GetCentroidSizeResponse {
-    1: required RelevanceStatus status;
+    1: required Status status;
     2: required i32 size;
 }
 
 struct ListCentroidDocumentsResponse {
-    1: required RelevanceStatus status;
+    1: required Status status;
     2: required list<string> documents;
 }
 
 struct CrudResponse {
-    1: required RelevanceStatus status;
+    1: required Status status;
     2: required string created;
 }
 
 service Relevanced {
     void ping(),
-    DocumentRelevanceResponse getDocumentSimilarity(1: string centroidId, 2: string docId),
-    DocumentMultiRelevanceResponse multiGetTextSimilarity(1: list<string> centroidIds, 2: string text),
-    double getCentroidSimilarity(1: string centroid1Id, 2: string centroid2Id),
-    DocumentRelevanceResponse getTextSimilarity(1: string centroidId, 2: string text),
+    SimilarityResponse getDocumentSimilarity(1: string centroidId, 2: string docId),
+    MultiSimilarityResponse multiGetTextSimilarity(1: list<string> centroidIds, 2: string text),
+    SimilarityResponse getTextSimilarity(1: string centroidId, 2: string text),
+    SimilarityResponse getCentroidSimilarity(1: string centroid1Id, 2: string centroid2Id),    
     CrudResponse createDocument(1: string text),
     CrudResponse createDocumentWithID(1: string id, 2: string text),
     CrudResponse deleteDocument(1: string id),
@@ -70,7 +75,7 @@ service Relevanced {
     ListCentroidDocumentsResponse listAllDocumentsForCentroid(1: string centroidId),
     CrudResponse addDocumentToCentroid(1: string centroidId, 2: string docId),
     CrudResponse removeDocumentFromCentroid(1: string centroidId, 2: string docId),
-    bool recomputeCentroid(1: string centroidId),
+    Status recomputeCentroid(1: string centroidId),
     list<string> listAllCentroids(),
     list<string> listAllDocuments()
 }

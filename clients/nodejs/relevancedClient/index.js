@@ -3,9 +3,10 @@ var _ = require('lodash');
 var thrift = require('thrift');
 var thriftTransports = require('thrift/lib/thrift/transport');
 var thriftProtocols = require('thrift/lib/thrift/protocol');
-var generated = require('./gen-nodejs/Relevance');
-var ttypes = require('./gen-nodejs/TextRelevance_types');
-var RelevanceStatus = ttypes.RelevanceStatus;
+var generated = require('./gen-nodejs/Relevanced');
+var ttypes = require('./gen-nodejs/RelevancedProtocol_types');
+var Status = ttypes.Status;
+var StatusCode = ttypes.StatusCode;
 
 var getRawClient = function(hostname, portno) {
     var conn = thrift.createConnection(hostname, portno, {
@@ -14,63 +15,86 @@ var getRawClient = function(hostname, portno) {
     });
     return thrift.createClient(generated.Client, conn);
 };
+
 var RelevancedClient = function(hostname, portno) {
     this.hostname = hostname;
     this.portno = portno;
     this.client = getRawClient(hostname, portno);
 };
+
 _.extend(RelevancedClient.prototype, {
-    getRelevanceForDoc: function(classifierId, docId) {
+    _handleResponseStatus: function(response) {
+        // duck typing has started to disgust me
+        var status;
+        if (_.has(response, 'status')) {
+            status = response.status;
+        } else if (_.has(response, 'code')) {
+            status = response;
+        } else {
+            return "";
+        }
+        if (status.code === StatusCode.OK) {
+            return "";
+        }
+        var errorMap = {
+            StatusCode.DOCUMENT_DOES_NOT_EXIST: "Document does not exist",
+            StatusCode.CENTROID_DOES_NOT_EXIST: "Centroid does not exist",
+            StatusCode.DOCUMENT_ALREADY_EXISTS: "Document already exists",
+            StatusCode.CENTROID_ALREADY_EXISTS: "Centroid already exists",
+            StatusCode.UNKNOWN_EXCEPTION: "Unknown exception."
+        };
+        if (_.has(errorMap, status.code)) {
+            return errorMap[status.code];
+        }
+        return "Unknown exception";
+    },
+    getDocumentSimilarity: function(centroidId, docId) {
         var self = this;
         return new Promise(function(resolve, reject) {
-            return self.client.getRelevanceForDoc(classifierId, docId, function(err, res) {
+            return self.client.getDocumentSimilarity(centroidId, docId, function(err, res) {
                 if (err) return reject(err);
-                if (res.status !== RelevanceStatus.OK) {
-                    if (res.status === RelevanceStatus.CLASSIFIER_DOES_NOT_EXIST) {
-                        return reject(
-                            new Error("Classifier does not exist: " + classifierId);
-                        );
-                    } else if (res.status == RelevanceStatus.DOCUMENT_DOES_NOT_EXIST) {
-                        return reject(
-                            new Error("Document does not exist: " + docId)
-                        );
-                    }
-                    return reject(
-                        new Error("Unknown exception.")
-                    );
+                var errMsg = self._handleResponseStatus(res);
+                if (errMsg) {
+                    return reject(new Error(errMsg));
                 }
-                return resolve(res.relevance);
+                return resolve(res.similarity);
             });
         });
     },
-    getRelevanceForText: function(classifierId, text) {
+    getTextSimilarity: function(centroidId, text) {
         var self = this;
         return new Promise(function(resolve, reject) {
-            return self.client.getRelevanceForText(classifierId, text, function(err, res) {
+            return self.client.getTextSimilarity(centroidId, text, function(err, res) {
                 if (err) return reject(err);
-                if (res.status !== RelevanceStatus.OK) {
-                    if (res.status === RelevanceStatus.CLASSIFIER_DOES_NOT_EXIST) {
-                        return reject(
-                            new Error("Classifier does not exist: " + classifierId);
-                        );
-                    }
-                    return reject(
-                        new Error("Unknown exception.")
-                    );
+                var errMsg = self._handleResponseStatus(res);
+                if (errMsg) {
+                    return reject(new Error(errMsg));
                 }
-                return resolve(res.relevance);
+                return resolve(res.similarity);
             });
         });
     },
+    multiGetTextSimilarity: function(centroidIdList, text) {
+        var self = this;
+        return new Promise(function(resolve, reject) {
+            return self.client.multiGetTextSimilarity(centroidIdList, text, function(err, res) {
+                if (err) return reject(err);
+                var errMsg = self._handleResponseStatus(res);
+                if (errMsg) {
+                    return reject(new Error(errMsg));
+                }
+                return resolve(res.scores);
+            });
+        });
+    },    
     createDocument: function(text) {
         var self = this;
         return new Promise(function(resolve, reject) {
             return self.client.createDocument(text, function(err, res) {
                 if (err) return reject(err);
-                if (res.status !== RelevanceStatus.OK) {
-                    return reject(
-                        new Error("Unknown exception.")
-                    );
+                var errMsg = self._handleResponseStatus(res);
+                if (errMsg) {
+                    return reject(new Error(errMsg));
                 }
                 return resolve(res.created);
             });
@@ -81,15 +105,9 @@ _.extend(RelevancedClient.prototype, {
         return new Promise(function(resolve, reject) {
             return self.client.createDocumentWithID(id, text, function(err, res) {
                 if (err) return reject(err);
-                if (res.status !== RelevanceStatus.OK) {
-                    if (res.status === RelevanceStatus.DOCUMENT_ALREADY_EXISTS) {
-                        return reject(
-                            new Error("Document already exists: " + id);
-                        )
-                    }
-                    return reject(
-                        new Error("Unknown exception.")
-                    );
+                var errMsg = self._handleResponseStatus(res);
+                if (errMsg) {
+                    return reject(new Error(errMsg));
                 }
                 return resolve(res.created);
             });
@@ -100,179 +118,94 @@ _.extend(RelevancedClient.prototype, {
         return new Promise(function(resolve, reject) {
             return self.client.deleteDocument(id, function(err, res) {
                 if (err) return reject(err);
-                if (res.status !== RelevanceStatus.OK) {
-                    if (res.status === RelevanceStatus.DOCUMENT_DOES_NOT_EXIST) {
-                        return reject(
-                            new Error("Document does not exist: " + id);
-                        )
-                    }
-                    return reject(
-                        new Error("Unknown exception.")
-                    );
+                var errMsg = self._handleResponseStatus(res);
+                if (errMsg) {
+                    return reject(new Error(errMsg));
                 }
                 return resolve(res.created);
             });
         });
     },
-    createClassifier: function(id) {
+    createCentroid: function(id) {
         var self = this;
         return new Promise(function(resolve, reject) {
-            return self.client.createClassifier(id, function(err, res) {
+            return self.client.createCentroid(id, function(err, res) {
                 if (err) return reject(err);
-                if (res.status !== RelevanceStatus.OK) {
-                    if (res.status === RelevanceStatus.CLASSIFIER_ALREADY_EXISTS) {
-                        return reject(
-                            new Error("Classifier already exists: " + id)
-                        );
-                    }
-                    return reject(
-                        new Error("Unknown exception.")
-                    );
+                var errMsg = self._handleResponseStatus(res);
+                if (errMsg) {
+                    return reject(new Error(errMsg));
                 }
                 return resolve(res.created);
             });
         });
     },
-    deleteClassifier: function(id) {
+    deleteCentroid: function(id) {
         var self = this;
         return new Promise(function(resolve, reject) {
-            return self.client.deleteClassifier(id, function(err, res) {
+            return self.client.deleteCentroid(id, function(err, res) {
                 if (err) return reject(err);
-                if (res.status !== RelevanceStatus.OK) {
-                    if (res.status === RelevanceStatus.CLASSIFIER_DOES_NOT_EXIST) {
-                        return reject(
-                            new Error("Classifier does not exist: " + id)
-                        );
-                    }
-                    return reject(
-                        new Error("Unknown exception.")
-                    );
+                var errMsg = self._handleResponseStatus(res);
+                if (errMsg) {
+                    return reject(new Error(errMsg));
                 }
                 return resolve(res.created);
             });
         });
     },
-    addPositiveDocumentToClassifier: function(classifierId, documentId) {
+    addDocumentToCentroid: function(centroidId, documentId) {
         var self = this;
         return new Promise(function(resolve, reject) {
-            return self.client.addPositiveDocumentToClassifier(classifierId, documentId, function(err, res) {
+            return self.client.addDocumentToCentroid(centroidId, documentId, function(err, res) {
                 if (err) return reject(err);
-                if (res.status !== RelevanceStatus.OK) {
-                    if (res.status === RelevanceStatus.CLASSIFIER_DOES_NOT_EXIST) {
-                        return reject(
-                            new Error("Classifier does not exist: " + classifierId);
-                        );
-                    } else if (res.status === RelevanceStatus.DOCUMENT_DOES_NOT_EXIST) {
-                        return reject(
-                            new Error("Document does not exist: " + documentId)
-                        );
-                    }
-                    return reject(
-                        new Error("Unknown exception.")
-                    );
+                var errMsg = self._handleResponseStatus(res);
+                if (errMsg) {
+                    return reject(new Error(errMsg));
                 }
-                return resolve(res.created);
+                return resolve(true);
             });
         });
     },
-    addNegativeDocumentToClassifier: function(classifierId, documentId) {
+    removeDocumentFromCentroid: function(centroidId, documentId) {
         var self = this;
         return new Promise(function(resolve, reject) {
-            return self.client.addNegativeDocumentToClassifier(classifierId, documentId, function(err, res) {
+            return self.client.removeDocumentFromCentroid(centroidId, documentId, function(err, res) {
                 if (err) return reject(err);
-                if (res.status !== RelevanceStatus.OK) {
-                    if (res.status === RelevanceStatus.CLASSIFIER_DOES_NOT_EXIST) {
-                        return reject(
-                            new Error("Classifier does not exist: " + classifierId);
-                        );
-                    } else if (res.status === RelevanceStatus.DOCUMENT_DOES_NOT_EXIST) {
-                        return reject(
-                            new Error("Document does not exist: " + documentId)
-                        );
-                    }
-                    return reject(
-                        new Error("Unknown exception.")
-                    );
+                var errMsg = self._handleResponseStatus(res);
+                if (errMsg) {
+                    return reject(new Error(errMsg));
                 }
-                return resolve(res.created);
+                return resolve(true);
             });
         });
     },
-    removeDocumentFromClassifier: function(classifierId, documentId) {
+    recomputeCentroid: function(centroidId) {
         var self = this;
         return new Promise(function(resolve, reject) {
-            return self.client.removeDocumentFromClassifier(classifierId, documentId, function(err, res) {
+            return self.client.recomputeCentroid(centroidId, function(err, res) {
                 if (err) return reject(err);
-                if (res.status !== RelevanceStatus.OK) {
-                    if (res.status === RelevanceStatus.CLASSIFIER_DOES_NOT_EXIST) {
-                        return reject(
-                            new Error("Classifier does not exist: " + classifierId);
-                        );
-                    } else if (res.status === RelevanceStatus.DOCUMENT_DOES_NOT_EXIST) {
-                        return reject(
-                            new Error("Document does not exist: " + documentId)
-                        );
-                    }
-                    return reject(
-                        new Error("Unknown exception.")
-                    );
+                var errMsg = self._handleResponseStatus(res);
+                if (errMsg) {
+                    return reject(new Error(errMsg));
                 }
-                return resolve(res.created);
+                return resolve(true);
             });
         });
     },
-    recompute: function(classifierId) {
+    listAllCentroids: function() {
         var self = this;
         return new Promise(function(resolve, reject) {
-            return self.client.recompute(classifierId, function(err, res) {
-                if (err) return reject(err);
-                if (res.status !== RelevanceStatus.OK) {
-                    if (res.status === RelevanceStatus.CLASSIFIER_DOES_NOT_EXIST) {
-                        return reject(
-                            new Error("Classifier does not exist: " + classifierId);
-                        );
-                    }
-                    return reject(
-                        new Error("Unknown exception.")
-                    );
-                }
-                return resolve();
-            });
-        });
-    },
-    listClassifiers: function() {
-        var self = this;
-        return new Promise(function(resolve, reject) {
-            return self.client.listClassifiers(function(err, res) {
+            return self.client.listAllCentroids(function(err, res) {
                 if (err) return reject(err);
                 return resolve(res);
             })
         });
     },
-    listDocuments: function() {
+    listAllDocuments: function() {
         var self = this;
         return new Promise(function(resolve, reject) {
-            self.client.listDocuments(function(err, res) {
+            self.client.listAllDocuments(function(err, res) {
                 if (err) return reject(err);
                 return resolve(res);
-            });
-        });
-    },
-    getClassifierSize: function(classifierId) {
-        return new Promise(function(resolve, reject) {
-            return self.client.getClassifierSize(classifierId, function(err, res) {
-                if (err) return reject(err);
-                if (res.status !== RelevanceStatus.OK) {
-                    if (res.status === RelevanceStatus.CLASSIFIER_DOES_NOT_EXIST) {
-                        return reject(
-                            new Error("Classifier does not exist: " + classifierId);
-                        );
-                    }
-                    return reject(
-                        new Error("Unknown exception.")
-                    );
-                }
-                return resolve(res.size);
             });
         });
     }
