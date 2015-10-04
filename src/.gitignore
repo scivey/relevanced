@@ -1,2 +1,3 @@
 gen-cpp2
 gen-py
+*.o
