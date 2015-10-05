@@ -36,13 +36,11 @@ _.extend(RelevancedClient.prototype, {
         if (status.code === StatusCode.OK) {
             return "";
         }
-        var errorMap = {
-            StatusCode.DOCUMENT_DOES_NOT_EXIST: "Document does not exist",
-            StatusCode.CENTROID_DOES_NOT_EXIST: "Centroid does not exist",
-            StatusCode.DOCUMENT_ALREADY_EXISTS: "Document already exists",
-            StatusCode.CENTROID_ALREADY_EXISTS: "Centroid already exists",
-            StatusCode.UNKNOWN_EXCEPTION: "Unknown exception."
-        };
+        errorMap[StatusCode.DOCUMENT_DOES_NOT_EXIST] = "Document does not exist";
+        errorMap[StatusCode.CENTROID_DOES_NOT_EXIST] = "Centroid does not exist";
+        errorMap[StatusCode.DOCUMENT_ALREADY_EXISTS] = "Document already exists";
+        errorMap[StatusCode.CENTROID_ALREADY_EXISTS] = "Centroid already exists";
+        errorMap[StatusCode.UNKNOWN_EXCEPTION] = "Unknown exception.";
         if (_.has(errorMap, status.code)) {
             return errorMap[status.code];
         }
@@ -86,7 +84,7 @@ _.extend(RelevancedClient.prototype, {
                 return resolve(res.scores);
             });
         });
-    },    
+    },
     createDocument: function(text) {
         var self = this;
         return new Promise(function(resolve, reject) {
