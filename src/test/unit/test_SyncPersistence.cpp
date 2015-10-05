@@ -611,3 +611,67 @@ TEST(SyncPersistence, ListAllDocumentsForCentroidOptionSadPanda2) {
   auto res = dbHandle.listAllDocumentsForCentroid("centroid-id");
   EXPECT_FALSE(res.hasValue());
 }
+
+TEST(SyncPersistence, ListAllDocumentsHappy) {
+  InMemoryRockHandle mockRock("/some-path");
+  UniquePointer<RockHandleIf> rockHandle(
+    &mockRock, NonDeleter<RockHandleIf>()
+  );
+  SyncPersistence dbHandle(std::move(rockHandle));
+  mockRock.put("documents:doc-x", "anything");
+  mockRock.put("documents:doc-y", "anything");
+  auto result = dbHandle.listAllDocuments();
+  vector<string> expected {"doc-x", "doc-y"};
+  EXPECT_EQ(expected, result);
+}
+
+TEST(SyncPersistence, ListAllDocumentsEmpty) {
+  InMemoryRockHandle mockRock("/some-path");
+  UniquePointer<RockHandleIf> rockHandle(
+    &mockRock, NonDeleter<RockHandleIf>()
+  );
+  SyncPersistence dbHandle(std::move(rockHandle));
+  auto result = dbHandle.listAllDocuments();
+  vector<string> expected {};
+  EXPECT_EQ(expected, result);
+}
+
+TEST(SyncPersistence, ListDocumentRangeFromIdHappy) {
+  InMemoryRockHandle mockRock("/some-path");
+  UniquePointer<RockHandleIf> rockHandle(
+    &mockRock, NonDeleter<RockHandleIf>()
+  );
+  SyncPersistence dbHandle(std::move(rockHandle));
+  mockRock.put("documents:doc-x1", "anything");
+  mockRock.put("documents:doc-x2", "anything");
+  mockRock.put("documents:doc-y1", "anything");
+  mockRock.put("documents:doc-y2", "anything");
+  mockRock.put("documents:doc-y3", "anything");
+  auto result = dbHandle.listDocumentRangeFromId("doc-x2", 3);
+  vector<string> expected {
+    "doc-x2", "doc-y1", "doc-y2"
+  };
+  EXPECT_EQ(expected, result);
+}
+
+
+TEST(SyncPersistence, ListDocumentRangeFromOffsetHappy) {
+  InMemoryRockHandle mockRock("/some-path");
+  UniquePointer<RockHandleIf> rockHandle(
+    &mockRock, NonDeleter<RockHandleIf>()
+  );
+  SyncPersistence dbHandle(std::move(rockHandle));
+  mockRock.put("documents:doc-x1", "anything");
+  mockRock.put("documents:doc-x2", "anything");
+  mockRock.put("documents:doc-x3", "anything");
+  mockRock.put("documents:doc-y1", "anything");
+  mockRock.put("documents:doc-y2", "anything");
+  mockRock.put("documents:doc-y3", "anything");
+  mockRock.put("documents:doc-y4", "anything");
+
+  auto result = dbHandle.listDocumentRangeFromOffset(2, 4);
+  vector<string> expected {
+    "doc-x3", "doc-y1", "doc-y2", "doc-y3"
+  };
+  EXPECT_EQ(expected, result);
+}

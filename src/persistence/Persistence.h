@@ -24,6 +24,8 @@ public:
   virtual folly::Future<folly::Try<bool>> saveDocument(std::shared_ptr<models::ProcessedDocument> doc) = 0;
   virtual folly::Future<folly::Try<bool>> deleteDocument(const std::string &id) = 0;
   virtual folly::Future<std::vector<std::string>> listAllDocuments() = 0;
+  virtual folly::Future<std::vector<std::string>> listDocumentRangeFromId(const std::string &id, size_t count) = 0;
+  virtual folly::Future<std::vector<std::string>> listDocumentRangeFromOffset(size_t offset, size_t count) = 0;
   virtual folly::Future<folly::Try<std::shared_ptr<models::ProcessedDocument>>> loadDocument(const std::string&) = 0;
   virtual folly::Future<folly::Optional<std::shared_ptr<models::ProcessedDocument>>> loadDocumentOption(const std::string&) = 0;
 
@@ -58,6 +60,8 @@ public:
   folly::Future<folly::Try<bool>> saveDocument(std::shared_ptr<models::ProcessedDocument> doc) override;
   folly::Future<folly::Try<bool>> deleteDocument(const std::string &id) override;
   folly::Future<std::vector<std::string>> listAllDocuments() override;
+  folly::Future<std::vector<std::string>> listDocumentRangeFromId(const std::string &id, size_t count) override;
+  folly::Future<std::vector<std::string>> listDocumentRangeFromOffset(size_t offset, size_t count) override;
   folly::Future<folly::Try<std::shared_ptr<models::ProcessedDocument>>> loadDocument(const std::string&) override;
   folly::Future<folly::Optional<std::shared_ptr<models::ProcessedDocument>>> loadDocumentOption(const std::string&) override;
 

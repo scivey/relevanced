@@ -71,6 +71,59 @@ vector<string> SyncPersistence::listAllDocuments() {
   return docIds;
 }
 
+vector<string> SyncPersistence::listDocumentRangeFromId(const string &startingDocumentId, size_t numToGet) {
+  vector<string> docIds;
+  bool inRange = false;
+  size_t numAdded = 0;
+  string startKey = sformat("documents:{}", startingDocumentId);
+  rockHandle_->iterPrefix("documents", [&docIds, &inRange, &startKey, &numAdded, numToGet](const string &key, function<void (string&)>, function<void ()> escape) {
+    if (!inRange) {
+      if (key == startKey) {
+        inRange = true;
+      } else {
+        return;
+      }
+    }
+    if (inRange) {
+      numAdded++;
+      if (numAdded >= numToGet) {
+        escape();
+      }
+      auto offset = key.find(':');
+      assert(offset != string::npos);
+      docIds.push_back(key.substr(offset + 1));
+    }
+  });
+  return docIds;
+}
+
+vector<string> SyncPersistence::listDocumentRangeFromOffset(size_t offset, size_t numToGet) {
+  vector<string> docIds;
+  bool inRange = false;
+  size_t numAdded = 0;
+  size_t numSkipped = 0;
+  rockHandle_->iterPrefix("documents", [&docIds, &numSkipped, &inRange, &numAdded, offset, numToGet](const string &key, function<void (string&)>, function<void ()> escape) {
+    if (!inRange) {
+      numSkipped++;
+      if (numSkipped > offset) {
+        inRange = true;
+      } else {
+        return;
+      }
+    }
+    if (inRange) {
+      numAdded++;
+      if (numAdded >= numToGet) {
+        escape();
+      }
+      auto offset = key.find(':');
+      assert(offset != string::npos);
+      docIds.push_back(key.substr(offset + 1));
+    }
+  });
+  return docIds;
+}
+
 Optional<ProcessedDocument*> SyncPersistence::loadDocumentRaw(const string &docId) {
   Optional<ProcessedDocument*> result;
   auto key = sformat("documents:{}", docId);

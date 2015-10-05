@@ -15,6 +15,8 @@
 
 #include "document_processing_worker/DocumentProcessor.h"
 #include "persistence/Persistence.h"
+#include "persistence/exceptions.h"
+
 #include "persistence/SyncPersistence.h"
 #include "similarity_score_worker/SimilarityScoreWorker.h"
 #include "models/ProcessedDocument.h"
@@ -30,6 +32,8 @@ using namespace relevanced;
 using namespace relevanced::models;
 using namespace relevanced::similarity_score_worker;
 using namespace relevanced::persistence;
+using namespace relevanced::persistence::exceptions;
+
 using relevanced::persistence::exceptions::CentroidDoesNotExist;
 using relevanced::stopwords::StopwordFilterIf;
 using relevanced::stemmer::StemmerIf;

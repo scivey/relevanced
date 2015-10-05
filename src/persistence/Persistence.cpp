@@ -57,6 +57,18 @@ Future<vector<string>> Persistence::listAllDocuments() {
   });
 }
 
+Future<vector<string>> Persistence::listDocumentRangeFromId(const string &documentId, size_t count) {
+  return threadPool_->addFuture([this, documentId, count](){
+    return syncHandle_->listDocumentRangeFromId(documentId, count);
+  });
+}
+
+Future<vector<string>> Persistence::listDocumentRangeFromOffset(size_t offset, size_t count) {
+  return threadPool_->addFuture([this, offset, count](){
+    return syncHandle_->listDocumentRangeFromOffset(offset, count);
+  });
+}
+
 Future<Try<shared_ptr<ProcessedDocument>>> Persistence::loadDocument(const string &id) {
   return threadPool_->addFuture([this, id](){
     return syncHandle_->loadDocument(id);
