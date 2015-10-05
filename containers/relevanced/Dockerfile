@@ -1,7 +1,9 @@
-FROM relevanced/base
+FROM relevanced/base:0.8a1
 
 RUN cd /build && \
     git clone https://github.com/scivey/relevanced.git && \
     cd relevanced && \
     make thrift && \
-    make runner -j4
+    mkdir -p build/bin && \
+    cd build/bin && cmake ../../ && \
+    LD_LIBRARY_PATH=/usr/local/lib make relevanced -j4

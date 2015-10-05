@@ -2,8 +2,12 @@
 	"folders":
 	[
 		{
-			"path": "/home/scott/code/relevanced",
-            "folder_exclude_patterns": ["build"]
+			"folder_exclude_patterns":
+			[
+				"build"
+			],
+			"follow_symlinks": true,
+			"path": "/home/scott/code/relevanced"
 		}
 	]
 }

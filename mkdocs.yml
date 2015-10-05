@@ -14,3 +14,4 @@ pages:
 - Installation:
   - Building: installation/building.md
   - Docker Image: installation/docker.md
+- Commands: commands.md

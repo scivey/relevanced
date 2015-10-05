@@ -40,8 +40,10 @@ RUN cd /build && \
     tar -xaf v0.31.0.tar.gz && \
     cd /build/fbthrift-0.31.0/thrift && \
     autoreconf -ivf && \
-    CXX=clang++-3.5 ./configure && \
-    make -j8 && make install
+    CXX=clang++-3.5 ./configure
+
+RUN cd /build/fbthrift-0.31.0/thrift && \
+    CXX=clang++3-5 LD_LIBRARY_PATH=/usr/local/lib make -j4 && make install
 
 RUN cd /build && \
     tar -xaf rocksdb-3.13.1.tar.gz && \
@@ -53,7 +55,7 @@ RUN cd /build && \
     wget https://github.com/mit-nlp/MITIE/archive/v0.4.tar.gz && \
     tar -xaf v0.4.tar.gz && \
     cd /build/MITIE-0.4 && \
-    make -j8
+    make -j4
 
 RUN cp -r /build/MITIE-0.4/mitielib/include/* /usr/local/include/ && \
     cp /build/MITIE-0.4/mitielib/libmitie.* /usr/local/lib
