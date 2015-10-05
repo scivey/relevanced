@@ -18,7 +18,16 @@ public:
   bool iterRange(const std::string &start, const std::string &end, std::function<void (const std::string&, std::function<void(std::string&)>, std::function<void()>)> iterFn) override {
     return false;
   }
+  bool iterRangeFromKey(const std::string &start, size_t, std::function<void (const std::string&, std::function<void(std::string&)>, std::function<void()>)> iterFn) override {
+    return false;
+  }
+  bool iterRangeFromKeyOffset(const std::string &start, size_t, size_t, std::function<void (const std::string&, std::function<void(std::string&)>, std::function<void()>)> iterFn) override {
+    return false;
+  }
   bool iterPrefix(const std::string &prefix, std::function<void (const std::string&, std::function<void(std::string&)>, std::function<void()>)> iterFn) override {
+    return false;
+  }
+  bool iterPrefixFromOffset(const std::string &prefix, size_t, size_t, std::function<void (const std::string&, std::function<void(std::string&)>, std::function<void()>)> iterFn) override {
     return false;
   }
   bool iterAll(std::function<void (const std::string&, std::function<void(std::string&)>, std::function<void()>)> iterFn) override {

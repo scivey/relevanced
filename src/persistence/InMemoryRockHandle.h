@@ -27,7 +27,6 @@ public:
   bool iterAll(std::function<void (const std::string&, std::function<void(std::string&)>, std::function<void()>)> iterFn) override;
   bool iterPrefix(const std::string &prefix, std::function<void (const std::string&, std::function<void(std::string&)>, std::function<void()>)> iterFn) override;
   bool iterPrefixFromOffset(const std::string &prefix, size_t offset, size_t limit, std::function<void (const std::string&, std::function<void(std::string&)>, std::function<void()>)> iterFn) override;
-
 };
 
 } // persistence

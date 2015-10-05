@@ -63,3 +63,14 @@ docs-py:
 
 docs:
 	mkdocs build --site-dir build/site --clean
+
+test-unit:
+	mkdir -p build/bin
+	cd build/bin && cmake ../../ && make unit_test_runner -j4 && ./src/test/unit_test_runner
+
+test-rock:
+	mkdir -p build/bin
+	rm -rf build/bin/test_data && mkdir -p build/bin/test_data
+	cd build/bin && cmake ../../ && make rock_handle_test -j4 && ./src/test/rock_handle_test
+
+.PHONY: test-unit test-rock
