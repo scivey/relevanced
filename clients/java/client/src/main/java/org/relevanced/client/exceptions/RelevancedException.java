@@ -15,13 +15,3 @@ public class RelevancedException extends Exception {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }
-
-public class CentroidDoesNotExist extends RelevancedException {}
-public class DocumentDoesNotExist extends RelevancedException {}
-public class CentroidAlreadyExists extends RelevancedException {}
-public class DocumentAlreadyExists extends RelevancedException {}
-public class UnspecifiedException extends RelevancedException {}
-
-
-
-
