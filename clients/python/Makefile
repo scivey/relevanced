@@ -1,4 +1,4 @@
 lint:
-	pyflakes relevanced_client/client.py relevanced_client/exceptions.py
+	pyflakes client/relevanced_client/client.py client/relevanced_client/exceptions.py
 
 .PHONY: lint
