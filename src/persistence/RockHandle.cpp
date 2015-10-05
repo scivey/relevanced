@@ -14,6 +14,8 @@
 #include <rocksdb/utilities/optimistic_transaction.h>
 #include <rocksdb/utilities/optimistic_transaction_db.h>
 #include <folly/Format.h>
+#include <folly/ScopeGuard.h>
+
 #include "persistence/RockHandle.h"
 
 using namespace std;
@@ -99,37 +101,122 @@ bool RockHandle::del(const string &key) {
 }
 
 bool RockHandle::iterRange(const string &start, const string &end, function<void (const string&, function<void(string&)>, function<void()>)> iterFn) {
-    rocksdb::Iterator *it = db_->NewIterator(readOptions_);
-    bool foundAny = false;
-    bool stop = false;
-    function<void ()> escapeFunc([&stop](){
-      stop = true;
-    });
-    function<void (string &)> readValFunc([&it](string &result){
-      result = it->value().ToString();
-    });
-    for (it->Seek(start); it->Valid() && it->key().ToString() < end; it->Next()) {
-      foundAny = true;
-      iterFn(it->key().ToString(), readValFunc, escapeFunc);
-      if (stop) {
-        break;
-      }
-    }
-    assert(it->status().ok());
+  rocksdb::Iterator *it = db_->NewIterator(readOptions_);
+  ScopeGuard guard = makeGuard([it](){
     delete it;
-    return foundAny;
+  });
+
+  bool foundAny = false;
+  bool stop = false;
+  function<void ()> escapeFunc([&stop](){
+    stop = true;
+  });
+  function<void (string &)> readValFunc([&it](string &result){
+    result = it->value().ToString();
+  });
+  for (it->Seek(start); it->Valid() && it->key().ToString() < end; it->Next()) {
+    foundAny = true;
+    iterFn(it->key().ToString(), readValFunc, escapeFunc);
+    if (stop) {
+      break;
+    }
+  }
+  return foundAny;
+}
+
+bool RockHandle::iterRangeFromKey(const string &startKey, size_t limitCount, function<void (const string&, function<void(string&)>, function<void()>)> iterFn) {
+  rocksdb::Iterator *it = db_->NewIterator(readOptions_);
+  ScopeGuard guard = makeGuard([it](){
+    delete it;
+  });
+
+  bool foundAny = false;
+  bool stop = false;
+  function<void ()> escapeFunc([&stop](){
+    stop = true;
+  });
+  function<void (string &)> readValFunc([&it](string &result){
+    result = it->value().ToString();
+  });
+  size_t numSeen = 0;
+  for (it->Seek(startKey); it->Valid(); it->Next()) {
+    foundAny = true;
+    numSeen++;
+    iterFn(it->key().ToString(), readValFunc, escapeFunc);
+    if (stop || (numSeen > limitCount)) {
+      break;
+    }
+  }
+  return foundAny;
+}
+
+bool RockHandle::iterRangeFromKeyOffset(const string &startKey, size_t offset, size_t limitCount, function<void (const string&, function<void(string&)>, function<void()>)> iterFn) {
+  rocksdb::Iterator *it = db_->NewIterator(readOptions_);
+  ScopeGuard guard = makeGuard([it](){
+    delete it;
+  });
+
+  it->Seek(startKey);
+  if (!it->Valid()) {
+    return false;
+  }
+  for (size_t i = 0; (i < offset) && it->Valid(); i++) {
+    it->Next();
+  }
+  if (!it->Valid()) {
+    return false;
+  }
+
+  bool stop = false;
+  function<void ()> escapeFunc([&stop](){
+    stop = true;
+  });
+  function<void (string &)> readValFunc([&it](string &result){
+    result = it->value().ToString();
+  });
+  bool foundAny = false;
+  for (size_t i = 0; (i < limitCount) && it->Valid(); i++) {
+    foundAny = true;
+    iterFn(it->key().ToString(), readValFunc, escapeFunc);
+    if (stop) {
+      break;
+    }
+    it->Next();
+  }
+  return foundAny;
 }
 
 bool RockHandle::iterPrefix(const string &prefix, function<void (const string&, function<void(string&)>, function<void()>)> iterFn) {
-    string start = prefix + ":";
-    string end = prefix + ";";
-    return iterRange(start, end, iterFn);
+  string start = prefix + ":";
+  string end = prefix + ";";
+  return iterRange(start, end, iterFn);
+}
+
+bool RockHandle::iterPrefixFromOffset(const string &prefix, size_t offset, size_t limitCount, function<void (const string&, function<void(string&)>, function<void()>)> iterFn) {
+  string start = prefix + ":";
+  string end = prefix + ";";
+  size_t offsetSeen = 0;
+  size_t limitSeen = 0;
+  bool anySeen = false;
+  iterRange(start, end, [&anySeen, &offsetSeen, &limitSeen, offset, limitCount, &iterFn](const string &key, function<void(string&)> read, function<void()> escape) {
+    offsetSeen++;
+    if (offsetSeen < offset) {
+      return;
+    }
+    anySeen = true;
+    limitSeen++;
+    if (limitSeen > limitCount) {
+      escape();
+    }
+    iterFn(key, read, escape);
+  });
+  return anySeen;
 }
 
 bool RockHandle::iterAll(function<void (const string&, function<void(string&)>, function<void()>)> iterFn) {
-    string start = "a";
-    string end = "zzz";
-    return iterRange(start, end, iterFn);
+  string start = "a";
+  string end = "zzz";
+  return iterRange(start, end, iterFn);
 }
 
 } // persistence
