@@ -1,12 +1,12 @@
 {
   "name": "relevanced-client",
-  "version": "0.9.0",
+  "version": "0.8.0",
   "description": "relevanced client",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "scivey",
   "license": "MIT",
   "dependencies": {
     "bluebird": "^2.10.1",

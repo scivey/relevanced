@@ -1,11 +1,11 @@
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 from collections import defaultdict
 from thrift.protocol import TBinaryProtocol
 from thrift.transport import TSocket, TTransport
-from .gen_py.RelevancedProtocol import Relevanced
+from relevanced_client.gen_py.RelevancedProtocol import Relevanced
 
-from .gen_py.RelevancedProtocol.ttypes import StatusCode, Status
-from . import exceptions
+from relevanced_client.gen_py.RelevancedProtocol.ttypes import StatusCode, Status
+from relevanced_client import exceptions
 
 def _get_exception_map():
     known = {

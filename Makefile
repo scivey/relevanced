@@ -49,3 +49,9 @@ test-data:
 	mkdir -p testing/tmp
 	cd testing/tmp && wget http://qwone.com/~jason/20Newsgroups/20news-18828.tar.gz
 	cd testing/tmp && tar -xaf 20news-18828.tar.gz
+
+docs-py:
+	mkdir -p build/client_docs
+	rm -rf build/client_docs/python
+	PYTHONPATH=`pwd`/clients/python cd build/client_docs && pdoc --html relevanced_client
+	mv build/client_docs/relevanced_client/ build/client_docs/python/
