@@ -1,4 +1,5 @@
 namespace cpp2 relevanced.thrift_protocol
+namespace java org.relevanced.client.gen_thrift_protocol
 
 struct WordVectorDTO {
     1: required double magnitude;
@@ -65,7 +66,7 @@ service Relevanced {
     SimilarityResponse getDocumentSimilarity(1: string centroidId, 2: string docId),
     MultiSimilarityResponse multiGetTextSimilarity(1: list<string> centroidIds, 2: string text),
     SimilarityResponse getTextSimilarity(1: string centroidId, 2: string text),
-    SimilarityResponse getCentroidSimilarity(1: string centroid1Id, 2: string centroid2Id),    
+    SimilarityResponse getCentroidSimilarity(1: string centroid1Id, 2: string centroid2Id),
     CrudResponse createDocument(1: string text),
     CrudResponse createDocumentWithID(1: string id, 2: string text),
     CrudResponse deleteDocument(1: string id),

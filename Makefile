@@ -17,6 +17,11 @@ thrift-node:
 thrift-rb:
 	thrift-0.9 --gen rb -o ./clients/ruby/relevanced_client src/RelevancedProtocol.thrift
 
+thrift-java:
+	mkdir -p clients/java/src
+	mkdir -p build/thrift
+	thrift-0.9 --gen java -o build/thrift src/RelevancedProtocol.thrift
+	mv ./build/thrift/gen-java/org/relevanced/client/gen_thrift_protocol ./clients/java/src/org/relevanced/client/
 
 build-docker-base:
 	sudo docker build -t relevanced/base containers/base
@@ -43,7 +48,7 @@ serve-doxy:
 serve-docs:
 	mkdocs serve -a localhost:8014
 
-.PHONY: doxy serve-docs serve-doxy test-data
+.PHONY: doxy serve-docs serve-doxy test-data docs-py docs
 
 test-data:
 	mkdir -p testing/tmp
@@ -55,3 +60,6 @@ docs-py:
 	rm -rf build/client_docs/python
 	PYTHONPATH=`pwd`/clients/python cd build/client_docs && pdoc --html relevanced_client
 	mv build/client_docs/relevanced_client/ build/client_docs/python/
+
+docs:
+	mkdocs build --site-dir build/site --clean
