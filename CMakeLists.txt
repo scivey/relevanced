@@ -43,6 +43,7 @@ LOG(${CMAKE_CXX_COMPILER})
 
 include("${CMAKE_SOURCE_DIR}/CMakeLibs")
 include(GetGitVersion)
+include(GetGitRevisionSHA)
 include(CheckCXXCompilerFlag)
 include(CXXFeatureCheck)
 include(AddCXXCompilerFlag)
@@ -77,47 +78,25 @@ endif()
 
 include(CMakeLibs)
 
-# Discover build version from an environment variable or from the git checkout.
-if(DEFINED ENV{RELEVANCED_BUILD_VERSION})
-  set(RELEVANCED_BUILD_VERSION "$ENV{RELEVANCED_BUILD_VERSION}")
+if(DEFINED ENV{RELEVANCED_BUILD_GIT_VERSION})
+  set(RELEVANCED_BUILD_GIT_VERSION "$ENV{RELEVANCED_BUILD_GIT_VERSION}")
 else()
-  # Generate version from git
-  execute_process(
-    COMMAND git describe --tags HEAD --always
-    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-    OUTPUT_VARIABLE RELEVANCED_BUILD_VERSION
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-  )
+  get_git_version(RELEVANCED_BUILD_GIT_VERSION)
 endif()
 
-# We need to link some packages as dynamic/dependent.
-set(CMAKE_FIND_LIBRARY_SUFFIXES .dylib .so .a)
+if(DEFINED ENV{RELEVANCED_BUILD_GIT_REVISION_SHA})
+  set(RELEVANCED_BUILD_GIT_REVISION_SHA "$ENV{RELEVANCED_BUILD_GIT_REVISION_SHA}")
+else()
+  get_git_revision_sha(RELEVANCED_BUILD_GIT_REVISION_SHA)
+endif()
 
-find_library(wangle REQUIRED)
-find_library(folly REQUIRED)
-find_library(mitie REQUIRED)
-find_library(thrift REQUIRED)
-find_library(thriftcpp2 REQUIRED)
-find_library(thriftz REQUIRED)
-find_library(rocksdb REQUIRED)
-find_library(glog REQUIRED)
-find_library(gflags REQUIRED)
-find_library(bz2 REQUIRED)
-find_library(lz REQUIRED)
-find_library(lz4 REQUIRED)
-find_library(boost_thread REQUIRED)
-find_library(boost_system REQUIRED)
-find_library(jemalloc REQUIRED)
-find_library(atomic REQUIRED)
-find_library(pthread REQUIRED)
-find_library(double-conversion REQUIRED)
-find_library(snappy REQUIRED)
+string(TIMESTAMP RELEVANCED_BUILD_TIMESTAMP_UTC)
 
-
-# enable_testing()
-
-include_directories("/usr/local/include")
-link_directories("/usr/local/lib")
+configure_file(
+  "${PROJECT_SOURCE_DIR}/src/config.h.in"
+  "${PROJECT_BINARY_DIR}/src/config.h"
+)
+include_directories("${PROJECT_BINARY_DIR}/src")
 
 add_subdirectory(src)
 add_subdirectory(src/test)

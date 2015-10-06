@@ -1,5 +1,31 @@
 #!/bin/bash
 
+sudo apt-get install \
+    g++ \
+    automake \
+    autoconf \
+    autoconf-archive \
+    libtool \
+    libboost-all-dev \
+    libevent-dev \
+    libdouble-conversion-dev \
+    libgoogle-glog-dev \
+    libgflags-dev \
+    liblz4-dev \
+    liblzma-dev \
+    libsnappy-dev \
+    make \
+    zlib1g-dev \
+    binutils-dev \
+    libjemalloc-dev \
+    libssl-dev \
+    flex \
+    bison \
+    libkrb5-dev \
+    libsasl2-dev \
+    libnuma-dev \
+    pkg-config
+
 mkdir -p external/tmp
 cd external/tmp && \
     git clone https://github.com/facebook/folly && \

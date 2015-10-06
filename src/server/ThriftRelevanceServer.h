@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <memory>
+#include <map>
 #include <folly/futures/Future.h>
 #include <folly/futures/helpers.h>
 #include "gen-cpp2/Relevanced.h"
@@ -29,6 +30,10 @@ public:
     std::shared_ptr<RelevanceServerIf> server
   );
   void ping();
+
+  folly::Future<unique_ptr<std::map<std::string, std::string>>>
+    future_getServerMetadata() override;
+
   folly::Future<unique_ptr<thrift_protocol::SimilarityResponse>>
     future_getDocumentSimilarity(std::unique_ptr<std::string> centroidId, std::unique_ptr<std::string> docId) override;
 

@@ -67,6 +67,7 @@ struct CrudResponse {
 
 service Relevanced {
     void ping(),
+    map<string, string> getServerMetadata(),
     SimilarityResponse getDocumentSimilarity(1: string centroidId, 2: string docId),
     MultiSimilarityResponse multiGetTextSimilarity(1: list<string> centroidIds, 2: string text),
     SimilarityResponse getTextSimilarity(1: string centroidId, 2: string text),

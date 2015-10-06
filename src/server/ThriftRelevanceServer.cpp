@@ -1,6 +1,9 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <map>
+
+
 #include <folly/futures/Future.h>
 #include <folly/futures/Try.h>
 
@@ -272,6 +275,10 @@ Future<unique_ptr<vector<string>>> ThriftRelevanceServer::future_listAllCentroid
 
 Future<unique_ptr<vector<string>>> ThriftRelevanceServer::future_listAllDocuments() {
   return server_->listAllDocuments();
+}
+
+Future<unique_ptr<map<string, string>>> ThriftRelevanceServer::future_getServerMetadata() {
+  return server_->getServerMetadata();
 }
 
 } // server

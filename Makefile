@@ -68,7 +68,7 @@ test-rock:
 	rm -rf build/bin/test_data && mkdir -p build/bin/test_data
 	cd build/bin && cmake ../../ && make rock_handle_test -j4 && ./src/test/rock_handle_test
 
-.PHONY: test-unit test-rock test-all run
+.PHONY: test-unit test-rock test-all run package
 
 test-all: test-unit test-rock
 
@@ -76,3 +76,7 @@ run:
 	mkdir -p build/bin
 	rm -rf build/bin/data && mkdir -p build/bin/data
 	cd build/bin && cmake ../../ && make relevanced -j4 && ./src/relevanced
+
+package:
+	./scripts/packaging/build_deb.sh
+

@@ -17,6 +17,7 @@
 #include "models/ProcessedDocument.h"
 #include "persistence/exceptions.h"
 #include "persistence/Persistence.h"
+#include "release_metadata/release_metadata.h"
 #include "serialization/serializers.h"
 #include "server/RelevanceServer.h"
 #include "similarity_score_worker/SimilarityScoreWorker.h"
@@ -213,6 +214,17 @@ Future<unique_ptr<vector<string>>> RelevanceServer::listAllDocuments() {
     return std::move(std::make_unique<vector<string>>(docIds));
   });
 }
+
+Future<unique_ptr<map<string, string>>> RelevanceServer::getServerMetadata() {
+  string revision = release_metadata::getGitRevisionSha();
+  string version = release_metadata::getGitVersion();
+  auto metadata = folly::make_unique<map<string, string>>();
+  metadata->insert(make_pair("relevanced_git_revision", revision));
+  metadata->insert(make_pair("relevanced_version", version));
+  metadata->insert(make_pair("relevanced_utc_build_timestamp", release_metadata::getUtcBuildTimestamp()));
+  return makeFuture(std::move(metadata));
+}
+
 
 } // server
 } // relevanced

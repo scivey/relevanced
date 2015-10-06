@@ -6,8 +6,11 @@ a.out
 runner
 gen-py
 *.pyc
+.vagrant
 data
 unit_test_runner
 build
 .codemod.bookmark
 *.sublime-workspace
+*~
+

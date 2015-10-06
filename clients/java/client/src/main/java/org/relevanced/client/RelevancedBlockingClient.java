@@ -26,7 +26,7 @@ import org.relevanced.client.exceptions.ConnectionError;
 import org.relevanced.client.exceptions.DocumentAlreadyExists;
 import org.relevanced.client.exceptions.DocumentDoesNotExist;
 import org.relevanced.client.exceptions.RelevancedException;
-import org.relevanced.client.exceptions.UnspecifiedException;
+import org.relevanced.client.exceptions.UnknownException;
 
 public class RelevancedBlockingClient {
     public Relevanced.Client thriftClient_;
@@ -62,7 +62,7 @@ public class RelevancedBlockingClient {
             case DOCUMENT_ALREADY_EXISTS:
                 throw new DocumentAlreadyExists(status.message);
             default:
-                throw new UnspecifiedException(status.message);
+                throw new UnknownException(status.message);
         }
     }
 

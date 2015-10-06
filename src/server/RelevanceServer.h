@@ -22,6 +22,8 @@ class RelevanceServerIf {
 public:
   virtual void ping() = 0;
   virtual void initialize() = 0;
+  virtual folly::Future<std::unique_ptr<std::map<std::string, std::string>>>
+    getServerMetadata() = 0;
   virtual folly::Future<folly::Try<double>> getDocumentSimilarity(std::unique_ptr<std::string> centroidId, std::unique_ptr<std::string> docId) = 0;
   virtual folly::Future<folly::Try<std::unique_ptr<std::map<std::string, double>>>>
     multiGetTextSimilarity(std::unique_ptr<std::vector<std::string>> centroidIds, std::unique_ptr<std::string> text) = 0;
@@ -76,6 +78,8 @@ public:
   );
   void initialize() override;
   void ping() override;
+  folly::Future<std::unique_ptr<std::map<std::string, std::string>>>
+    getServerMetadata() override;
   folly::Future<folly::Try<double>> getDocumentSimilarity(std::unique_ptr<std::string> centroidId, std::unique_ptr<std::string> docId) override;
   folly::Future<folly::Try<std::unique_ptr<std::map<std::string, double>>>>
     multiGetTextSimilarity(std::unique_ptr<std::vector<std::string>> centroidIds, std::unique_ptr<std::string> text) override;
