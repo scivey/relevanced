@@ -6,15 +6,18 @@
 #include <string>
 #include <thread>
 #include <vector>
+
 #include <glog/logging.h>
+
 #include <folly/Format.h>
 #include <folly/futures/Try.h>
+#include <folly/futures/Future.h>
+#include <folly/futures/helpers.h>
 #include <folly/Optional.h>
 
 #include "centroid_update_worker/CentroidUpdater.h"
 #include "models/WordVector.h"
 #include "models/Centroid.h"
-
 #include "persistence/Persistence.h"
 #include "util/util.h"
 
@@ -42,32 +45,70 @@ Try<bool> CentroidUpdater::run() {
     return Try<bool>(make_exception_wrapper<CentroidDoesNotExist>());
   }
 
-  auto centroidIdsOpt = persistence_->listAllDocumentsForCentroidOption(centroidId_).get();
-  if (!centroidIdsOpt.hasValue()) {
-    LOG(INFO) << format("falsy document list for centroid '{}'; aborting.", centroidId_);
-    return Try<bool>(false);
+  const size_t idListBatchSize = 500;
+  const size_t documentBatchSize = 20;
+
+
+  LOG(INFO) << "listing iniitial document ids...";
+  auto firstIdSet = persistence_->listCentroidDocumentRangeFromOffsetOption(centroidId_, 0, idListBatchSize).get();
+  if (!firstIdSet.hasValue()) {
+    LOG(INFO) << format("received falsy document list for centroid '{}'; it must have been deleted. aborting.", centroidId_);
+    return Try<bool>(make_exception_wrapper<CentroidDoesNotExist>());
   }
 
-  auto centroidIds = centroidIdsOpt.value();
+  vector<string> idSet = firstIdSet.value();
   map<string, double> centroidScores;
   size_t docCount {0};
-  for (auto &id: centroidIds) {
-    auto doc = persistence_->loadDocumentOption(id).get();
-    if (!doc.hasValue()) {
-      LOG(INFO) << "missing document: " << id;
-      persistence_->removeDocumentFromCentroid(centroidId_, id);
-    } else {
-      docCount++;
-      auto docPtr = doc.value();
-      for (auto &elem: docPtr->wordVector.scores) {
-        if (centroidScores.find(elem.first) == centroidScores.end()) {
-          centroidScores[elem.first] = elem.second;
-        } else {
-          centroidScores[elem.first] += elem.second;
+  do {
+    LOG(INFO) << format("looping: current id set batch size: {}", idSet.size());
+    // start the next set of IDs loading here so they'll be done
+    // at the end of the current loop.
+    auto nextIdSetFuture = persistence_->listCentroidDocumentRangeFromDocumentIdOption(
+      centroidId_, idSet.back(), idListBatchSize
+    );
+
+    for (size_t docNum = 0; docNum < idSet.size(); docNum += documentBatchSize) {
+      size_t lastDocIndex = min(idSet.size() - 1, docNum + documentBatchSize);
+      vector<Future<Optional<shared_ptr<ProcessedDocument>>>> documentFutures;
+
+      // get batch of documents in parallel
+      for (size_t i = docNum; i < lastDocIndex; i++) {
+        documentFutures.push_back(persistence_->loadDocumentOption(idSet.at(i)));
+      }
+
+      LOG(INFO) << "loading document batch...";
+      auto loadedDocuments = collect(documentFutures).get();
+
+      // add non-falsy documents to the centroid
+      for (size_t i = 0; i < loadedDocuments.size(); i++) {
+        auto doc = loadedDocuments.at(i);
+        if (!doc.hasValue()) {
+          auto docId = idSet.at(i);
+          LOG(INFO) << format("missing document '{}' from centroid '{}'", docId, centroidId_);
+          persistence_->removeDocumentFromCentroid(centroidId_, docId);
+          continue;
+        }
+        LOG(INFO) << format("adding document: '{}'", idSet.at(i));
+        docCount++;
+        for (auto &elem: doc.value()->wordVector.scores) {
+          if (centroidScores.find(elem.first) == centroidScores.end()) {
+            centroidScores[elem.first] = elem.second;
+          } else {
+            centroidScores[elem.first] += elem.second;
+          }
         }
       }
     }
-  }
+
+    auto nextIdSet = nextIdSetFuture.get();
+    if (!nextIdSet.hasValue()) {
+      LOG(INFO) << format("received falsy document list for centroid '{}'; it must have been deleted. aborting.", centroidId_);
+      return Try<bool>(make_exception_wrapper<CentroidDoesNotExist>());
+    }
+    idSet = std::move(nextIdSet.value());
+
+  } while (idSet.size() >= idListBatchSize);
+
   double centroidMagnitude = 0.0;
   for (auto &elem: centroidScores) {
     centroidMagnitude += pow(elem.second, 2);

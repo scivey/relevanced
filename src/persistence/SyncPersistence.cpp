@@ -73,7 +73,7 @@ vector<string> SyncPersistence::listAllDocuments() {
 
 vector<string> SyncPersistence::listDocumentRangeFromId(const string &startingDocumentId, size_t numToGet) {
   vector<string> docIds;
-  rockHandle_->iterPrefixFromMember("documents", startingDocumentId, numToGet, [&docIds](const string &key, function<void (string&)>, function<void ()> escape) {
+  rockHandle_->iterPrefixFromMember("documents", startingDocumentId, numToGet, [&docIds](const string &key, function<void (string&)>, function<void ()>) {
     auto offset = key.find(':');
     assert(offset != string::npos);
     docIds.push_back(key.substr(offset + 1));
@@ -83,7 +83,7 @@ vector<string> SyncPersistence::listDocumentRangeFromId(const string &startingDo
 
 vector<string> SyncPersistence::listDocumentRangeFromOffset(size_t offset, size_t numToGet) {
   vector<string> docIds;
-  rockHandle_->iterPrefixFromOffset("documents", offset, numToGet, [&docIds](const string &key, function<void (string&)>, function<void ()> escape) {
+  rockHandle_->iterPrefixFromOffset("documents", offset, numToGet, [&docIds](const string &key, function<void (string&)>, function<void ()>) {
     auto offset = key.find(':');
     assert(offset != string::npos);
     docIds.push_back(key.substr(offset + 1));
