@@ -73,53 +73,20 @@ vector<string> SyncPersistence::listAllDocuments() {
 
 vector<string> SyncPersistence::listDocumentRangeFromId(const string &startingDocumentId, size_t numToGet) {
   vector<string> docIds;
-  bool inRange = false;
-  size_t numAdded = 0;
-  string startKey = sformat("documents:{}", startingDocumentId);
-  rockHandle_->iterPrefix("documents", [&docIds, &inRange, &startKey, &numAdded, numToGet](const string &key, function<void (string&)>, function<void ()> escape) {
-    if (!inRange) {
-      if (key == startKey) {
-        inRange = true;
-      } else {
-        return;
-      }
-    }
-    if (inRange) {
-      numAdded++;
-      if (numAdded >= numToGet) {
-        escape();
-      }
-      auto offset = key.find(':');
-      assert(offset != string::npos);
-      docIds.push_back(key.substr(offset + 1));
-    }
+  rockHandle_->iterPrefixFromMember("documents", startingDocumentId, numToGet, [&docIds](const string &key, function<void (string&)>, function<void ()> escape) {
+    auto offset = key.find(':');
+    assert(offset != string::npos);
+    docIds.push_back(key.substr(offset + 1));
   });
   return docIds;
 }
 
 vector<string> SyncPersistence::listDocumentRangeFromOffset(size_t offset, size_t numToGet) {
   vector<string> docIds;
-  bool inRange = false;
-  size_t numAdded = 0;
-  size_t numSkipped = 0;
-  rockHandle_->iterPrefix("documents", [&docIds, &numSkipped, &inRange, &numAdded, offset, numToGet](const string &key, function<void (string&)>, function<void ()> escape) {
-    if (!inRange) {
-      numSkipped++;
-      if (numSkipped > offset) {
-        inRange = true;
-      } else {
-        return;
-      }
-    }
-    if (inRange) {
-      numAdded++;
-      if (numAdded >= numToGet) {
-        escape();
-      }
-      auto offset = key.find(':');
-      assert(offset != string::npos);
-      docIds.push_back(key.substr(offset + 1));
-    }
+  rockHandle_->iterPrefixFromOffset("documents", offset, numToGet, [&docIds](const string &key, function<void (string&)>, function<void ()> escape) {
+    auto offset = key.find(':');
+    assert(offset != string::npos);
+    docIds.push_back(key.substr(offset + 1));
   });
   return docIds;
 }
@@ -245,6 +212,28 @@ vector<string> SyncPersistence::listAllCentroids() {
   return centroidIds;
 }
 
+vector<string> SyncPersistence::listCentroidRangeFromOffset(size_t offset, size_t limit) {
+  string prefix = "centroids";
+  vector<string> centroidIds;
+  rockHandle_->iterPrefixFromOffset(prefix, offset, limit, [&centroidIds](const string &key, function<void (string&)>, function<void()>) {
+    auto offset = key.find(':');
+    assert(offset != string::npos);
+    centroidIds.push_back(key.substr(offset + 1));
+  });
+  return centroidIds;
+}
+
+vector<string> SyncPersistence::listCentroidRangeFromId(const string &startingCentroidId, size_t limit) {
+  string prefix = "centroids";
+  vector<string> centroidIds;
+  rockHandle_->iterPrefixFromMember(prefix, startingCentroidId, limit, [&centroidIds](const string &key, function<void (string&)>, function<void()>) {
+    auto offset = key.find(':');
+    assert(offset != string::npos);
+    centroidIds.push_back(key.substr(offset + 1));
+  });
+  return centroidIds;
+}
+
 Try<bool> SyncPersistence::addDocumentToCentroid(const string& centroidId, const string& documentId) {
   if (!doesCentroidExist(centroidId)) {
     return Try<bool>(make_exception_wrapper<CentroidDoesNotExist>());
@@ -308,6 +297,66 @@ Optional<vector<string>> SyncPersistence::listAllDocumentsForCentroidOption(cons
   }
   result.assign(docs);
   return result;
+}
+
+vector<string> SyncPersistence::listCentroidDocumentRangeFromOffsetRaw(const string& centroidId, size_t offset, size_t limit) {
+  vector<string> documentIds;
+  auto prefix = sformat("{}__documents", centroidId);
+  rockHandle_->iterPrefixFromOffset(prefix, offset, limit, [&documentIds](const string &key, function<void(string&)>, function<void()>) {
+    auto offset = key.find(':');
+    assert(offset != string::npos);
+    documentIds.push_back(key.substr(offset + 1));
+  });
+  return documentIds;
+}
+
+Optional<vector<string>> SyncPersistence::listCentroidDocumentRangeFromOffsetOption(const string& centroidId, size_t offset, size_t limit) {
+  Optional<vector<string>> result;
+  auto docs = listCentroidDocumentRangeFromOffsetRaw(centroidId, offset, limit);
+  if (!docs.size() && !doesCentroidExist(centroidId)) {
+    return result;
+  }
+  result.assign(docs);
+  return result;
+}
+
+Try<vector<string>> SyncPersistence::listCentroidDocumentRangeFromOffset(const string& centroidId, size_t offset, size_t limit) {
+  Optional<vector<string>> result;
+  auto docs = listCentroidDocumentRangeFromOffsetRaw(centroidId, offset, limit);
+  if (!docs.size() && !doesCentroidExist(centroidId)) {
+    return Try<vector<string>>(make_exception_wrapper<CentroidDoesNotExist>());
+  }
+  return Try<vector<string>>(docs);
+}
+
+vector<string> SyncPersistence::listCentroidDocumentRangeFromDocumentIdRaw(const string& centroidId, const string &startingDocumentId, size_t limit) {
+  vector<string> documentIds;
+  auto prefix = sformat("{}__documents", centroidId);
+  rockHandle_->iterPrefixFromMember(prefix, startingDocumentId, limit, [&documentIds](const string &key, function<void(string&)>, function<void()>) {
+    auto offset = key.find(':');
+    assert(offset != string::npos);
+    documentIds.push_back(key.substr(offset + 1));
+  });
+  return documentIds;
+}
+
+Optional<vector<string>> SyncPersistence::listCentroidDocumentRangeFromDocumentIdOption(const string& centroidId, const string &documentId, size_t limit) {
+  Optional<vector<string>> result;
+  auto docs = listCentroidDocumentRangeFromDocumentIdRaw(centroidId, documentId, limit);
+  if (!docs.size() && !doesCentroidExist(centroidId)) {
+    return result;
+  }
+  result.assign(docs);
+  return result;
+}
+
+Try<vector<string>> SyncPersistence::listCentroidDocumentRangeFromDocumentId(const string& centroidId, const string &documentId, size_t limit) {
+  Optional<vector<string>> result;
+  auto docs = listCentroidDocumentRangeFromDocumentIdRaw(centroidId, documentId, limit);
+  if (!docs.size() && !doesCentroidExist(centroidId)) {
+    return Try<vector<string>>(make_exception_wrapper<CentroidDoesNotExist>());
+  }
+  return Try<vector<string>>(docs);
 }
 
 } // persistence

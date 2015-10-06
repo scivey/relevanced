@@ -22,11 +22,10 @@ public:
   bool exists(const std::string &key) override;
   bool del(const std::string &key) override;
   bool iterRange(const std::string &start, const std::string &end, std::function<void (const std::string&, std::function<void(std::string&)>, std::function<void()>)> iterFn) override;
-  bool iterRangeFromKey(const std::string &startKey, size_t count, std::function<void (const std::string&, std::function<void(std::string&)>, std::function<void()>)> iterFn) override;
-  bool iterRangeFromKeyOffset(const std::string &startKey, size_t offset, size_t count, std::function<void (const std::string&, std::function<void(std::string&)>, std::function<void()>)> iterFn) override;
   bool iterAll(std::function<void (const std::string&, std::function<void(std::string&)>, std::function<void()>)> iterFn) override;
   bool iterPrefix(const std::string &prefix, std::function<void (const std::string&, std::function<void(std::string&)>, std::function<void()>)> iterFn) override;
   bool iterPrefixFromOffset(const std::string &prefix, size_t offset, size_t limit, std::function<void (const std::string&, std::function<void(std::string&)>, std::function<void()>)> iterFn) override;
+  bool iterPrefixFromMember(const std::string &prefix, const std::string &member, size_t limitCount, std::function<void (const std::string&, std::function<void(std::string&)>, std::function<void()>)> iterFn) override;
 };
 
 } // persistence

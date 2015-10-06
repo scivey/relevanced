@@ -230,4 +230,208 @@ TEST(InMemoryRockHandle, TestIterPrefix) {
   EXPECT_EQ("foo-y-val", valuesSeen.at(1));
 }
 
+TEST(TestRockHandle, TestIterPrefixFromOffset1) {
+  InMemoryRockHandle handle("foo");
+  handle.put("x:key1", "val1");
+  handle.put("x:key2", "val2");
+  handle.put("x:key3", "val3");
+  handle.put("x:key4", "val4");
+  handle.put("x:key5", "val5");
+  handle.put("x:key6", "val6");
+  handle.put("x:key7", "val7");
+  handle.put("x:key8", "val8");
+  handle.put("x:key9", "val9");
+
+  vector<string> keys;
+  vector<string> values;
+  handle.iterPrefixFromOffset("x", 2, 5, [&keys, &values](const string &key, function<void(string&)> read, function<void()>) {
+    keys.push_back(key);
+    string val;
+    read(val);
+    values.push_back(val);
+  });
+  vector<string> expectedKeys {
+    "x:key3", "x:key4", "x:key5", "x:key6", "x:key7"
+  };
+  vector<string> expectedVals {
+    "val3", "val4", "val5", "val6", "val7"
+  };
+  EXPECT_EQ(expectedVals, values);
+  EXPECT_EQ(expectedKeys, keys);
+}
+
+TEST(TestRockHandle, TestIterPrefixFromOffsetZero) {
+  InMemoryRockHandle handle("foo");
+  handle.put("x:key1", "val1");
+  handle.put("x:key2", "val2");
+  handle.put("x:key3", "val3");
+  handle.put("x:key4", "val4");
+  handle.put("x:key5", "val5");
+  handle.put("x:key6", "val6");
+  handle.put("x:key7", "val7");
+  handle.put("x:key8", "val8");
+  handle.put("x:key9", "val9");
+
+  vector<string> keys;
+  vector<string> values;
+  handle.iterPrefixFromOffset("x", 0, 5, [&keys, &values](const string &key, function<void(string&)> read, function<void()>) {
+    keys.push_back(key);
+    string val;
+    read(val);
+    values.push_back(val);
+  });
+  vector<string> expectedKeys {
+    "x:key1", "x:key2", "x:key3", "x:key4", "x:key5"
+  };
+  vector<string> expectedVals {
+    "val1", "val2", "val3", "val4", "val5"
+  };
+  EXPECT_EQ(expectedVals, values);
+  EXPECT_EQ(expectedKeys, keys);
+}
+
+TEST(TestRockHandle, TestIterPrefixFromOffsetNotEnough) {
+  InMemoryRockHandle handle("foo");
+  handle.put("x:key1", "val1");
+  handle.put("x:key2", "val2");
+  handle.put("x:key3", "val3");
+  handle.put("x:key4", "val4");
+  handle.put("x:key5", "val5");
+
+  vector<string> keys;
+  vector<string> values;
+  handle.iterPrefixFromOffset("x", 2, 5, [&keys, &values](const string &key, function<void(string&)> read, function<void()>) {
+    keys.push_back(key);
+    string val;
+    read(val);
+    values.push_back(val);
+  });
+  vector<string> expectedKeys {
+    "x:key3", "x:key4", "x:key5"
+  };
+  vector<string> expectedVals {
+    "val3", "val4", "val5"
+  };
+  EXPECT_EQ(expectedVals, values);
+  EXPECT_EQ(expectedKeys, keys);
+}
+
+TEST(TestRockHandle, TestIterPrefixFromOffsetTooFar) {
+  InMemoryRockHandle handle("foo");
+  handle.put("x:key1", "val1");
+  handle.put("x:key2", "val2");
+  handle.put("x:key3", "val3");
+  handle.put("x:key4", "val4");
+  handle.put("x:key5", "val5");
+
+  vector<string> keys;
+  vector<string> values;
+  bool iterated = false;
+  handle.iterPrefixFromOffset("x", 10, 5, [&iterated, &keys, &values](const string &key, function<void(string&)> read, function<void()>) {
+    iterated = true;
+    keys.push_back(key);
+    string val;
+    read(val);
+    values.push_back(val);
+  });
+  vector<string> expectedKeys {};
+  vector<string> expectedVals {};
+  EXPECT_FALSE(iterated);
+  EXPECT_EQ(expectedVals, values);
+  EXPECT_EQ(expectedKeys, keys);
+}
+
+
+TEST(TestRockHandle, TestIterPrefixFromOffsetNone) {
+  InMemoryRockHandle handle("foo");
+  vector<string> keys;
+  vector<string> values;
+  bool iterated = false;
+  handle.iterPrefixFromOffset("x", 2, 5, [&iterated, &keys, &values](const string &key, function<void(string&)> read, function<void()>) {
+    iterated = true;
+    keys.push_back(key);
+    string val;
+    read(val);
+    values.push_back(val);
+  });
+  vector<string> expectedKeys {};
+  vector<string> expectedVals {};
+  EXPECT_FALSE(iterated);
+  EXPECT_EQ(expectedVals, values);
+  EXPECT_EQ(expectedKeys, keys);
+}
+
+
+TEST(TestRockHandle, TestIterPrefixFromOffsetEscape) {
+  InMemoryRockHandle handle("foo");
+  handle.put("x:key1", "val1");
+  handle.put("x:key2", "val2");
+  handle.put("x:key3", "val3");
+  handle.put("x:key4", "val4");
+  handle.put("x:key5", "val5");
+  handle.put("x:key6", "val6");
+  handle.put("x:key7", "val7");
+  handle.put("x:key8", "val8");
+  handle.put("x:key9", "val9");
+
+  vector<string> keys;
+  vector<string> values;
+  size_t counter = 0;
+  handle.iterPrefixFromOffset("x", 2, 7, [&keys, &values, &counter](const string &key, function<void(string&)> read, function<void()> escape) {
+    counter++;
+    if (counter > 3) {
+      escape();
+      return;
+    }
+    keys.push_back(key);
+    string val;
+    read(val);
+    values.push_back(val);
+  });
+  vector<string> expectedKeys {
+    "x:key3", "x:key4", "x:key5"
+  };
+  vector<string> expectedVals {
+    "val3", "val4", "val5"
+  };
+  EXPECT_EQ(expectedVals, values);
+  EXPECT_EQ(expectedKeys, keys);
+}
+
+
+TEST(TestRockHandle, TestIterPrefixFromOffsetZeroEscape) {
+  InMemoryRockHandle handle("foo");
+  handle.put("x:key1", "val1");
+  handle.put("x:key2", "val2");
+  handle.put("x:key3", "val3");
+  handle.put("x:key4", "val4");
+  handle.put("x:key5", "val5");
+  handle.put("x:key6", "val6");
+  handle.put("x:key7", "val7");
+  handle.put("x:key8", "val8");
+  handle.put("x:key9", "val9");
+
+  vector<string> keys;
+  vector<string> values;
+  size_t counter = 0;
+  handle.iterPrefixFromOffset("x", 0, 6, [&keys, &values, &counter](const string &key, function<void(string&)> read, function<void()> escape) {
+    counter++;
+    if (counter > 3) {
+      escape();
+      return;
+    }
+    keys.push_back(key);
+    string val;
+    read(val);
+    values.push_back(val);
+  });
+  vector<string> expectedKeys {
+    "x:key1", "x:key2", "x:key3"
+  };
+  vector<string> expectedVals {
+    "val1", "val2", "val3"
+  };
+  EXPECT_EQ(expectedVals, values);
+  EXPECT_EQ(expectedKeys, keys);
+}
 

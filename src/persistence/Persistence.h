@@ -36,14 +36,27 @@ public:
   virtual folly::Future<folly::Try<std::shared_ptr<models::Centroid>>> loadCentroid(const std::string &id) = 0;
   virtual folly::Future<folly::Optional<std::shared_ptr<models::Centroid>>> loadCentroidOption(const std::string &id) = 0;
   virtual folly::Future<std::vector<std::string>> listAllCentroids() = 0;
+  virtual folly::Future<std::vector<std::string>> listCentroidRangeFromOffset(size_t, size_t) = 0;
+  virtual folly::Future<std::vector<std::string>> listCentroidRangeFromId(const std::string&, size_t) = 0;
 
   virtual folly::Future<folly::Try<bool>> addDocumentToCentroid(const std::string&, const std::string&) = 0;
   virtual folly::Future<folly::Try<bool>> removeDocumentFromCentroid(const std::string&, const std::string&) = 0;
   virtual folly::Future<folly::Try<bool>> doesCentroidHaveDocument(const std::string&, const std::string&) = 0;
+
   virtual folly::Future<folly::Try<std::vector<std::string>>>
     listAllDocumentsForCentroid(const std::string&) = 0;
   virtual folly::Future<folly::Optional<std::vector<std::string>>>
     listAllDocumentsForCentroidOption(const std::string&) = 0;
+
+  virtual folly::Future<folly::Try<std::vector<std::string>>>
+    listCentroidDocumentRangeFromOffset(const std::string&, size_t offset, size_t limit) = 0;
+  virtual folly::Future<folly::Optional<std::vector<std::string>>>
+    listCentroidDocumentRangeFromOffsetOption(const std::string&, size_t offset, size_t limit) = 0;
+
+  virtual folly::Future<folly::Try<std::vector<std::string>>>
+    listCentroidDocumentRangeFromDocumentId(const std::string&, const std::string&, size_t limit) = 0;
+  virtual folly::Future<folly::Optional<std::vector<std::string>>>
+    listCentroidDocumentRangeFromDocumentIdOption(const std::string&, const std::string&, size_t limit) = 0;
 
   virtual ~PersistenceIf() = default;
 };
@@ -72,6 +85,8 @@ public:
   folly::Future<folly::Try<std::shared_ptr<models::Centroid>>> loadCentroid(const std::string &id) override;
   folly::Future<folly::Optional<std::shared_ptr<models::Centroid>>> loadCentroidOption(const std::string &id) override;
   folly::Future<std::vector<std::string>> listAllCentroids() override;
+  folly::Future<std::vector<std::string>> listCentroidRangeFromOffset(size_t, size_t) override;
+  folly::Future<std::vector<std::string>> listCentroidRangeFromId(const std::string&, size_t) override;
 
   folly::Future<folly::Try<bool>> addDocumentToCentroid(const std::string&, const std::string&) override;
   folly::Future<folly::Try<bool>> removeDocumentFromCentroid(const std::string&, const std::string&) override;
@@ -80,6 +95,17 @@ public:
     listAllDocumentsForCentroid(const std::string&) override;
   folly::Future<folly::Optional<std::vector<std::string>>>
     listAllDocumentsForCentroidOption(const std::string&) override;
+
+  folly::Future<folly::Try<std::vector<std::string>>>
+    listCentroidDocumentRangeFromOffset(const std::string&, size_t offset, size_t limit) override;
+  folly::Future<folly::Optional<std::vector<std::string>>>
+    listCentroidDocumentRangeFromOffsetOption(const std::string&, size_t offset, size_t limit) override;
+
+  folly::Future<folly::Try<std::vector<std::string>>>
+    listCentroidDocumentRangeFromDocumentId(const std::string&, const std::string&, size_t limit) override;
+  folly::Future<folly::Optional<std::vector<std::string>>>
+    listCentroidDocumentRangeFromDocumentIdOption(const std::string&, const std::string&, size_t limit) override;
+
 };
 
 

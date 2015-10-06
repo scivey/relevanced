@@ -73,4 +73,7 @@ test-rock:
 	rm -rf build/bin/test_data && mkdir -p build/bin/test_data
 	cd build/bin && cmake ../../ && make rock_handle_test -j4 && ./src/test/rock_handle_test
 
-.PHONY: test-unit test-rock
+.PHONY: test-unit test-rock test-all
+
+test-all: test-unit test-rock
+

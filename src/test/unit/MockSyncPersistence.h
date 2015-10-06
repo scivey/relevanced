@@ -38,10 +38,19 @@ public:
   MOCK_METHOD1(loadCentroid, Try<shared_ptr<Centroid>>(const string&));
   MOCK_METHOD1(loadCentroidOption, Optional<shared_ptr<Centroid>>(const string&));
   MOCK_METHOD0(listAllCentroids, vector<string>(void));
+  MOCK_METHOD2(listCentroidRangeFromOffset, vector<string>(size_t, size_t));
+  MOCK_METHOD2(listCentroidRangeFromId, vector<string>(const string&, size_t));
 
   MOCK_METHOD2(addDocumentToCentroid, Try<bool>(const string&, const string&));
   MOCK_METHOD2(removeDocumentFromCentroid, Try<bool>(const string&, const string&));
   MOCK_METHOD2(doesCentroidHaveDocument, Try<bool>(const string&, const string&));
   MOCK_METHOD1(listAllDocumentsForCentroid, Try<vector<string>>(const string&));
   MOCK_METHOD1(listAllDocumentsForCentroidOption, Optional<vector<string>>(const string&));
+  MOCK_METHOD3(listCentroidDocumentRangeFromOffset, Try<vector<string>>(const string&, size_t, size_t));
+  MOCK_METHOD3(listCentroidDocumentRangeFromOffsetOption, Optional<vector<string>>(const string&, size_t, size_t));
+
+  MOCK_METHOD3(listCentroidDocumentRangeFromDocumentId, Try<vector<string>>(const string&, const string&, size_t));
+  MOCK_METHOD3(listCentroidDocumentRangeFromDocumentIdOption, Optional<vector<string>>(const string&, const string&, size_t));
+
+
 };

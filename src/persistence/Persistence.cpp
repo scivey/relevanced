@@ -124,6 +124,18 @@ Future<vector<string>> Persistence::listAllCentroids() {
   });
 }
 
+Future<vector<string>> Persistence::listCentroidRangeFromOffset(size_t offset, size_t limit) {
+  return threadPool_->addFuture([this, offset, limit](){
+    return syncHandle_->listCentroidRangeFromOffset(offset, limit);
+  });
+}
+
+Future<vector<string>> Persistence::listCentroidRangeFromId(const string &startingCentroidId, size_t limit) {
+  return threadPool_->addFuture([this, startingCentroidId, limit](){
+    return syncHandle_->listCentroidRangeFromId(startingCentroidId, limit);
+  });
+}
+
 Future<Try<bool>> Persistence::addDocumentToCentroid(const string &centroidId, const string &docId) {
   return threadPool_->addFuture([this, centroidId, docId](){
     return syncHandle_->addDocumentToCentroid(centroidId, docId);
@@ -153,6 +165,31 @@ Future<Optional<vector<string>>> Persistence::listAllDocumentsForCentroidOption(
     return syncHandle_->listAllDocumentsForCentroidOption(centroidId);
   });
 }
+
+Future<Try<vector<string>>> Persistence::listCentroidDocumentRangeFromOffset(const string &centroidId, size_t offset, size_t limit) {
+  return threadPool_->addFuture([this, centroidId, offset, limit](){
+    return syncHandle_->listCentroidDocumentRangeFromOffset(centroidId, offset, limit);
+  });
+}
+
+Future<Optional<vector<string>>> Persistence::listCentroidDocumentRangeFromOffsetOption(const string &centroidId, size_t offset, size_t limit) {
+  return threadPool_->addFuture([this, centroidId, offset, limit](){
+    return syncHandle_->listCentroidDocumentRangeFromOffsetOption(centroidId, offset, limit);
+  });
+}
+
+Future<Try<vector<string>>> Persistence::listCentroidDocumentRangeFromDocumentId(const string &centroidId, const string &documentId, size_t limit) {
+  return threadPool_->addFuture([this, centroidId, documentId, limit](){
+    return syncHandle_->listCentroidDocumentRangeFromDocumentId(centroidId, documentId, limit);
+  });
+}
+
+Future<Optional<vector<string>>> Persistence::listCentroidDocumentRangeFromDocumentIdOption(const string &centroidId, const string &documentId, size_t limit) {
+  return threadPool_->addFuture([this, centroidId, documentId, limit](){
+    return syncHandle_->listCentroidDocumentRangeFromDocumentIdOption(centroidId, documentId, limit);
+  });
+}
+
 
 } // persistence
 } // relevanced

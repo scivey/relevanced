@@ -106,45 +106,6 @@ bool InMemoryRockHandle::iterRange(const string &start, const string &end, funct
   return anyVisited;
 }
 
-
-bool InMemoryRockHandle::iterRangeFromKey(const string &start, size_t limitCount, function<void (const string&, function<void(string&)>, function<void()>)> iterFn) {
-  // as with iterRange, this is terrible.
-  // but it's only for testing.
-  bool anyVisited = false;
-  size_t numSeen = 0;
-  iterRange(start, "zzzzzz", [&anyVisited, &iterFn, &numSeen, limitCount](const string &key, function<void (string&)> read, function<void ()> escape) {
-    numSeen++;
-    anyVisited = true;
-    if (numSeen > limitCount) {
-      escape();
-    }
-    iterFn(key, read, escape);
-  });
-  return anyVisited;
-}
-
-bool InMemoryRockHandle::iterRangeFromKeyOffset(const string &start, size_t offset, size_t limitCount, function<void (const string&, function<void(string&)>, function<void()>)> iterFn) {
-  // as with iterRange, this is terrible.
-  // but it's only for testing.
-  bool anyVisited = false;
-  size_t numSeen = 0;
-  size_t offsetSeen = 0;
-  iterRange(start, "zzzzzz", [&anyVisited, &iterFn, &numSeen, &offsetSeen, offset, limitCount](const string &key, function<void (string&)> read, function<void ()> escape) {
-    if (offsetSeen < offset) {
-      offsetSeen++;
-      return;
-    }
-    numSeen++;
-    anyVisited = true;
-    if (numSeen > limitCount) {
-      escape();
-    }
-    iterFn(key, read, escape);
-  });
-  return anyVisited;
-}
-
-
 bool InMemoryRockHandle::iterAll(function<void (const string&, function<void(string&)>, function<void()>)> iterFn) {
   return iterRange("a", "zzz", iterFn);
 }
@@ -163,18 +124,37 @@ bool InMemoryRockHandle::iterPrefixFromOffset(const string &prefix, size_t offse
   bool anySeen = false;
   iterRange(start, end, [&anySeen, &offsetSeen, &limitSeen, offset, limitCount, &iterFn](const string &key, function<void(string&)> read, function<void()> escape) {
     offsetSeen++;
-    if (offsetSeen < offset) {
+    if (offsetSeen <= offset) {
       return;
     }
     anySeen = true;
     limitSeen++;
     if (limitSeen > limitCount) {
       escape();
+      return;
     }
     iterFn(key, read, escape);
   });
   return anySeen;
 }
+
+bool InMemoryRockHandle::iterPrefixFromMember(const string &prefix, const string &member, size_t limitCount, function<void (const string&, function<void(string&)>, function<void()>)> iterFn) {
+  string start = sformat("{}:{}", prefix, member);
+  string end = prefix + ";";
+  size_t limitSeen = 0;
+  bool anySeen = false;
+  iterRange(start, end, [&anySeen, &limitSeen, limitCount, &iterFn](const string &key, function<void(string&)> read, function<void()> escape) {
+    anySeen = true;
+    limitSeen++;
+    if (limitSeen > limitCount) {
+      escape();
+      return;
+    }
+    iterFn(key, read, escape);
+  });
+  return anySeen;
+}
+
 
 
 } // persistence
