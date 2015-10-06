@@ -65,8 +65,8 @@ def main():
     init_documents(client)
     if not len(client.list_all_centroids()) == 2:
         init_centroids(client)
-        client.recompute_centroid('wiki_math')
-        client.recompute_centroid('wiki_poli')
+        client.join_centroid('wiki_math')
+        client.join_centroid('wiki_poli')
         time.sleep(1)
     print('\n\n')
     print('math vs math')

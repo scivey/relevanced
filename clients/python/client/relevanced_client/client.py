@@ -14,9 +14,13 @@ def _get_exception_map():
         StatusCode.DOCUMENT_DOES_NOT_EXIST: exceptions.DocumentDoesNotExist,
         StatusCode.CENTROID_ALREADY_EXISTS: exceptions.CentroidAlreadyExists,
         StatusCode.DOCUMENT_ALREADY_EXISTS: exceptions.DocumentAlreadyExists,
-        StatusCode.UNKNOWN_EXCEPTION: exceptions.UnexpectedResponse
+        StatusCode.UNKNOWN_EXCEPTION: exceptions.UnknownException,
+        StatusCode.DOCUMENT_NOT_IN_CENTROID: exceptions.DocumentNotInCentroid,
+        StatusCode.DOCUMENT_ALREADY_IN_CENTROID: exceptions.DocumentAlreadyInCentroid,
+        StatusCode.OUT_OF_MEMORY: exceptions.OutOfMemory,
+        StatusCode.OUT_OF_MEMORY: exceptions.NoDiskSpace
     }
-    mapping = defaultdict(lambda: exceptions.UnexpectedResponse)
+    mapping = defaultdict(lambda: exceptions.UnknownException)
     for k, v in known.iteritems():
         mapping[k] = v
     return mapping
@@ -186,22 +190,24 @@ class Client(object):
         self._handle_response_status(res)
         return True
 
-    def recompute_centroid(self, centroid_id):
+    def join_centroid(self, centroid_id):
         """
-        Force a recomputation of the centroid with id = `centroid_id`.
+        If the centroid is up-to-date, returns.
+        If the centroid is not up to date and an update is in progress,
+        returns once that update is complete.
+        If centroid is not up to date and update is not running
+        (generally due to cool-down period between document addition / removal),
+        immediately performs an update and then returns.
 
         If no centroid exists with the given ID, raises
         `.exceptions.CentroidDoesNotExist`.
 
         This command is not necessary under ordinary circumstances,
         as the server automatically recalculates centroids
-        as documents are added and removed.  It is mainly used for testing.
-
-        This call does not return until recomputation has completed
-        on the server side, so it can potentially block for seconds to
-        tens of seconds. (Up to a minute or two, for very large centroids).
+        as documents are added and removed.  It is mainly used for testing
+        and examples.
         """
-        res = self.thrift_client.recomputeCentroid(centroid_id)
+        res = self.thrift_client.joinCentroid(centroid_id)
         self._handle_response_status(res)
         return centroid_id
 

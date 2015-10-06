@@ -23,7 +23,11 @@ enum StatusCode {
     CENTROID_ALREADY_EXISTS = 2,
     DOCUMENT_DOES_NOT_EXIST = 3,
     DOCUMENT_ALREADY_EXISTS = 4,
-    UNKNOWN_EXCEPTION = 5
+    UNKNOWN_EXCEPTION = 5,
+    DOCUMENT_ALREADY_IN_CENTROID = 6,
+    DOCUMENT_NOT_IN_CENTROID = 7,
+    OUT_OF_MEMORY = 8,
+    NO_DISK_SPACE = 9
 }
 
 struct Status {
@@ -76,7 +80,7 @@ service Relevanced {
     ListCentroidDocumentsResponse listAllDocumentsForCentroid(1: string centroidId),
     CrudResponse addDocumentToCentroid(1: string centroidId, 2: string docId),
     CrudResponse removeDocumentFromCentroid(1: string centroidId, 2: string docId),
-    Status recomputeCentroid(1: string centroidId),
+    Status joinCentroid(1: string centroidId),
     list<string> listAllCentroids(),
     list<string> listAllDocuments()
 }

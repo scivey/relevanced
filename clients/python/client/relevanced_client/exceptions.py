@@ -15,5 +15,17 @@ class DocumentDoesNotExist(RelevancedClientError):
 class DocumentAlreadyExists(RelevancedClientError):
     pass
 
-class UnexpectedResponse(RelevancedClientError):
+class UnknownException(RelevancedClientError):
+    pass
+
+class DocumentAlreadyInCentroid(RelevancedClientError):
+    pass
+
+class DocumentNotInCentroid(RelevancedClientError):
+    pass
+
+class OutOfMemory(RelevancedClientError):
+    pass
+
+class NoDiskSpace(RelevancedClientError):
     pass

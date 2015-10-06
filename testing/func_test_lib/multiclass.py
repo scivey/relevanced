@@ -53,7 +53,7 @@ def recompute():
     client = get_client()
     for name, _ in get_centroid_url_pairs():
         print('recomputing: %s' % name)
-        client.recompute_centroid(name)
+        client.join_centroid(name)
 
 def test():
     client = get_client()

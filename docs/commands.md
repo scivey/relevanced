@@ -51,6 +51,19 @@ If either centroid is missing, the protocol returns status code `CENTROID_DOES_N
 Note that the protocol does not distinguish between cases where both centroids are missing and those where only one is missing.  In either case, the status is `CENTROID_DOES_NOT_EXIST`.
 
 ---
+## `joinCentroid`
+#### `(centroidId: string) -> void`
+
+Ensures a centroid is up to date before proceeding.
+The server automatically recomputes centroids as documents are added and removed, so this is really a way of synchronizing with that process.  The specific behavior is:
+
+- If the centroid is up to date, returns immediately.
+- If an update job is currently in progress, returns once that job has completed.
+- If the centroid is not up to date and no job is executing (because of the cool-off period), immediately starts the update and returns once it is complete.
+
+If the centroid given by `centroidId` does not exist, the protocol returns status code `CENTROID_DOES_NOT_EXIST` and higher-level clients throw an error or return a failed promise (depending on language).
+
+---
 ## `createDocument`
 #### `(text: string) -> string`
 

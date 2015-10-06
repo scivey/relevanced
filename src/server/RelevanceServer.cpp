@@ -190,7 +190,7 @@ Future<Try<bool>> RelevanceServer::removeDocumentFromCentroid(unique_ptr<string>
   });
 }
 
-Future<Try<bool>> RelevanceServer::recomputeCentroid(unique_ptr<string> centroidId) {
+Future<Try<bool>> RelevanceServer::joinCentroid(unique_ptr<string> centroidId) {
   auto cId = *centroidId;
   LOG(INFO) << "recomputing centroid: " << cId;
   return centroidUpdateWorker_->joinUpdate(cId).then([](Try<string> result) {

@@ -254,8 +254,8 @@ Future<unique_ptr<CrudResponse>> ThriftRelevanceServer::future_removeDocumentFro
   });
 }
 
-Future<unique_ptr<Status>> ThriftRelevanceServer::future_recomputeCentroid(unique_ptr<string> centroidId) {
-  return server_->recomputeCentroid(std::move(centroidId)).then([](Try<bool> result) {
+Future<unique_ptr<Status>> ThriftRelevanceServer::future_joinCentroid(unique_ptr<string> centroidId) {
+  return server_->joinCentroid(std::move(centroidId)).then([](Try<bool> result) {
     auto response = std::make_unique<Status>();
     if (result.hasException()) {
       response->code = StatusCode::CENTROID_DOES_NOT_EXIST;

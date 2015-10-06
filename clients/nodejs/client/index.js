@@ -176,10 +176,10 @@ _.extend(RelevancedClient.prototype, {
             });
         });
     },
-    recomputeCentroid: function(centroidId) {
+    joinCentroid: function(centroidId) {
         var self = this;
         return new Promise(function(resolve, reject) {
-            return self.client.recomputeCentroid(centroidId, function(err, res) {
+            return self.client.joinCentroid(centroidId, function(err, res) {
                 if (err) return reject(err);
                 var errMsg = self._handleResponseStatus(res);
                 if (errMsg) {

@@ -5,21 +5,18 @@ thrift:
 	python -m thrift_compiler.main --gen cpp2 -o src src/RelevancedProtocol.thrift
 
 thrift-py:
-	thrift-0.9 --gen py -o ./clients/python/relevanced_client src/RelevancedProtocol.thrift
-	rm -rf ./clients/python/relevanced_client/gen_py
-	mv ./clients/python/relevanced_client/gen-py ./clients/python/relevanced_client/gen_py
+	thrift-0.9 --gen py -o ./clients/python/client/relevanced_client src/RelevancedProtocol.thrift
+	rm -rf ./clients/python/client/relevanced_client/gen_py
+	mv ./clients/python/client/relevanced_client/gen-py ./clients/python/client/relevanced_client/gen_py
 
 thrift-node:
-	thrift-0.9 --gen js:node -o ./clients/nodejs/relevancedClient src/RelevancedProtocol.thrift
-
-thrift-rb:
-	thrift-0.9 --gen rb -o ./clients/ruby/relevanced_client src/RelevancedProtocol.thrift
+	thrift-0.9 --gen js:node -o ./clients/nodejs/client/relevancedClient src/RelevancedProtocol.thrift
 
 thrift-java:
 	mkdir -p clients/java/src
 	mkdir -p build/thrift
 	thrift-0.9 --gen java -o build/thrift src/RelevancedProtocol.thrift
-	mv ./build/thrift/gen-java/org/relevanced/client/gen_thrift_protocol ./clients/java/src/org/relevanced/client/
+	mv ./build/thrift/gen-java/org/relevanced/client/gen_thrift_protocol ./clients/java/client/src/org/relevanced/client/
 
 build-docker-base:
 	sudo docker build -t relevanced/base containers/base

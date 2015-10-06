@@ -12,11 +12,11 @@ namespace server {
 /**
  * `ThriftRelevanceServer` is not really responsible for relevanced's
  * core functionality.
- * 
+ *
  * Its job is to proxy requests back to its injected `RelevanceServerIf` instance,
  * and then interpret the responses in a way that makes sense for the defined
  * Thrift protocol.
- * 
+ *
  * A major aspect of this is translating wrapped exceptions like `CentroidDoesNotExist`
  * and `DocumentDoesNotExist` into corresponding status codes for the client, e.g.
  * `RelevanceStatus::CENTROID_DOES_NOT_EXIST`.
@@ -68,7 +68,7 @@ public:
   folly::Future<unique_ptr<thrift_protocol::CrudResponse>>
     future_removeDocumentFromCentroid(std::unique_ptr<std::string> centroidId, std::unique_ptr<std::string> docId) override;
 
-  folly::Future<unique_ptr<thrift_protocol::Status>> future_recomputeCentroid(std::unique_ptr<std::string> centroidId) override;
+  folly::Future<unique_ptr<thrift_protocol::Status>> future_joinCentroid(std::unique_ptr<std::string> centroidId) override;
 
   folly::Future<std::unique_ptr<std::vector<std::string>>> future_listAllCentroids() override;
   folly::Future<std::unique_ptr<std::vector<std::string>>> future_listAllDocuments() override;
