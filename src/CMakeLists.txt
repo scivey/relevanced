@@ -47,6 +47,7 @@ set(RELEVANCED_LINK_LIBRARIES
     "rocksdb"
     "mitie"
     "glog"
+    "gflags"
     "z"
     "snappy"
     "lz4"

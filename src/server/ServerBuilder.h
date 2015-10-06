@@ -45,15 +45,15 @@ using util::UniquePointer;
 
 /**
  * This is an AbstractNonsenseArchitectureAstronautFactoryManager.
- * 
+ *
  * There is some indirection in the rest of the code for the sake of
  * testability.  For instance, the `DocumentProcessor` and `CentroidUpdater` are
  * defined in terms of interfaces even though the "real" `RelevanceServer`
  * only needs one implementation of each.
- * 
+ *
  * `ServerBuilder`'s job is to stitch those layers of indirection together into
  * a usable `RelevancedServer` or `ThriftRelevanceServer` instance.
- * 
+ *
  * The main goal here is to contain the abstract nonsense to one place.
  */
 class ServerBuilder {
@@ -71,7 +71,7 @@ public:
     typename PersistenceT
   >
   void buildPersistence() {
-    string rockDir = options_->dataDir + "/rock";
+    string rockDir = options_->getDataDir() + "/rock";
     UniquePointer<RockHandleIf> rockHandle(
       new RockHandleT(rockDir)
     );
@@ -151,8 +151,8 @@ public:
       saslPolicy, allowInsecureLoopback
     );
     thriftServer->setInterface(service);
-    thriftServer->setTaskExpireTime(options_->taskExpireTime);
-    thriftServer->setPort(options_->thriftPort);
+    thriftServer->setTaskExpireTime(options_->getTaskExpireTime());
+    thriftServer->setPort(options_->getThriftPort());
     return thriftServer;
   }
 

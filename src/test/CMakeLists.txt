@@ -63,6 +63,7 @@ set(UNIT_TEST_SOURCES
   "unit/test_SimilarityScoreWorker.cpp"
   "unit/test_StopwordFilter.cpp"
   "unit/test_SyncPersistence.cpp"
+  "unit/test_Persistence.cpp"
   "unit/test_Tokenizer.cpp"
   "unit/runTests.cpp"
 )
