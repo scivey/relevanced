@@ -7,7 +7,9 @@
 #include <wangle/concurrent/CPUThreadPoolExecutor.h>
 #include <wangle/concurrent/FutureExecutor.h>
 #include <folly/futures/Future.h>
+#include <folly/futures/Promise.h>
 #include <folly/futures/Try.h>
+#include <folly/futures/helpers.h>
 
 #include "centroid_update_worker/CentroidUpdateWorker.h"
 #include "centroid_update_worker/CentroidUpdaterFactory.h"
@@ -49,9 +51,23 @@ Future<Try<bool>> CentroidUpdateWorker::update(const string &centroidId) {
 
 Future<Try<bool>> CentroidUpdateWorker::update(const string &centroidId, chrono::milliseconds updateDelay) {
   return threadPool_->addFuture([this, centroidId, updateDelay](){
+    bool shouldUpdate = false;
+    SYNCHRONIZED(updatingSet_) {
+      if (updatingSet_.find(centroidId) == updatingSet_.end()) {
+        shouldUpdate = true;
+        updatingSet_.insert(centroidId);
+      }
+    }
+    if (!shouldUpdate) {
+      auto result = Try<bool>(false);
+      return makeFuture(result);
+    }
     auto updater = updaterFactory_->makeForCentroidId(centroidId);
     auto result = updater->run();
     return makeFuture(centroidId).delayed(updateDelay).then([this, result](string centroidId) {
+      SYNCHRONIZED(updatingSet_) {
+        updatingSet_.erase(centroidId);
+      }
       if (!result.hasException()) {
         this->echoUpdated(centroidId);
       }
@@ -59,7 +75,6 @@ Future<Try<bool>> CentroidUpdateWorker::update(const string &centroidId, chrono:
     });
   });
 }
-
 
 void CentroidUpdateWorker::echoUpdated(const string &centroidId) {
   SYNCHRONIZED(updateCallbacks_) {
@@ -97,6 +112,15 @@ void CentroidUpdateWorker::onUpdateSpecificOnce(const string &id, function<void 
     }
     callbacksPair->second.push_back(callback);
   }
+}
+
+folly::Future<Try<string>> CentroidUpdateWorker::joinUpdate(const string &id) {
+  auto promise = make_shared<Promise<Try<string>>>();
+  onUpdateSpecificOnce(id, [promise](Try<string> result) {
+    promise->setValue(result);
+  });
+  update(id);
+  return promise->getFuture();
 }
 
 void CentroidUpdateWorker::triggerUpdate(const string &centroidId) {

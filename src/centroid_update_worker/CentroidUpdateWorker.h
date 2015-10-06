@@ -1,11 +1,14 @@
 #pragma once
 
-#include <string>
-#include <memory>
-#include <vector>
-#include <chrono>
 #include <atomic>
+#include <chrono>
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
 #include <thread>
+#include <vector>
+
 #include <wangle/concurrent/CPUThreadPoolExecutor.h>
 #include <wangle/concurrent/FutureExecutor.h>
 #include <folly/futures/Future.h>
@@ -25,6 +28,7 @@ class CentroidUpdateWorkerIf {
 public:
   virtual void initialize() = 0;
   virtual void echoUpdated(const std::string&) = 0;
+  virtual folly::Future<folly::Try<std::string>> joinUpdate(const std::string&) = 0;
   virtual void onUpdate(std::function<void (const std::string&)>) = 0;
   virtual void onUpdateSpecificOnce(const std::string &id, std::function<void (folly::Try<std::string>)>) = 0;
   virtual void triggerUpdate(const std::string &centroidId) = 0;
@@ -40,6 +44,7 @@ protected:
   std::shared_ptr<util::Debouncer<std::string>> updateQueue_;
   folly::Synchronized<std::vector<std::function<void(const std::string&)>>> updateCallbacks_;
   folly::Synchronized<std::map<std::string, std::vector<std::function<void (folly::Try<std::string>)>>>> perCentroidUpdateCallbacks_;
+  folly::Synchronized<std::set<std::string>> updatingSet_;
   std::atomic<bool> stopping_ {false};
 public:
   CentroidUpdateWorker(
@@ -49,6 +54,7 @@ public:
   void stop();
   void initialize() override;
   void echoUpdated(const std::string&) override;
+  folly::Future<folly::Try<std::string>> joinUpdate(const std::string&) override;
   void onUpdate(std::function<void (const std::string&)>) override;
   void onUpdateSpecificOnce(const std::string &id, std::function<void (folly::Try<std::string>)>) override;
   void triggerUpdate(const std::string &centroidId) override;

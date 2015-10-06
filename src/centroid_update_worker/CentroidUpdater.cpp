@@ -61,6 +61,7 @@ Try<bool> CentroidUpdater::run() {
   size_t docCount {0};
   do {
     LOG(INFO) << format("looping: current id set batch size: {}", idSet.size());
+
     // start the next set of IDs loading here so they'll be done
     // at the end of the current loop.
     auto nextIdSetFuture = persistence_->listCentroidDocumentRangeFromDocumentIdOption(

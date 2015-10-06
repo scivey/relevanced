@@ -193,16 +193,13 @@ Future<Try<bool>> RelevanceServer::removeDocumentFromCentroid(unique_ptr<string>
 Future<Try<bool>> RelevanceServer::recomputeCentroid(unique_ptr<string> centroidId) {
   auto cId = *centroidId;
   LOG(INFO) << "recomputing centroid: " << cId;
-  auto promise = make_shared<Promise<Try<bool>>>();
-  centroidUpdateWorker_->onUpdateSpecificOnce(cId, [promise](Try<string> result) {
+  return centroidUpdateWorker_->joinUpdate(cId).then([](Try<string> result) {
     if (result.hasException()) {
-      promise->setValue(Try<bool>(make_exception_wrapper<CentroidDoesNotExist>()));
+      return Try<bool>(make_exception_wrapper<CentroidDoesNotExist>());
     } else {
-      promise->setValue(Try<bool>(true));
+      return Try<bool>(true);
     }
   });
-  centroidUpdateWorker_->triggerUpdate(cId);
-  return promise->getFuture();
 }
 
 Future<unique_ptr<vector<string>>> RelevanceServer::listAllCentroids() {
