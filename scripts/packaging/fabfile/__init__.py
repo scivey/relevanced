@@ -127,3 +127,14 @@ def build_deps():
             run('make mitielib -j4')
             sudo('cp mitielib/libmitie.* /usr/local/lib')
             sudo('cp -r mitielib/include/* /usr/local/include')
+
+@task
+def build_relevanced(git_tag):
+    with cd(env.build):
+        if not files.exists('relevanced'):
+            run('git clone https://github.com/scivey/relevanced.git')
+    with cd('%s/relevanced' % env.build):
+        run('git checkout %s' % git_tag)
+        run('CXX=clang++-3.6 make build-server-static')
+        run('CXX=clang++-3.6 make package')
+        run('cp build/deb/*.deb /vagrant/')

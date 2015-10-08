@@ -13,4 +13,5 @@ build
 .codemod.bookmark
 *.sublime-workspace
 *~
+*.deb
 
