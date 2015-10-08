@@ -35,8 +35,8 @@ endmacro(LOG)
 #   set(CMAKE_CXX_COMPILER "clang++")
 # endif()
 
-set(CMAKE_CXX_COMPILER "clang++-3.5")
-set(CMAKE_C_COMPILER "clang")
+# set(CMAKE_CXX_COMPILER "clang++-3.5")
+# set(CMAKE_C_COMPILER "clang")
 
 
 LOG(${CMAKE_CXX_COMPILER})
@@ -49,7 +49,7 @@ include(CXXFeatureCheck)
 include(AddCXXCompilerFlag)
 include_directories("${CMAKE_SOURCE_DIR}/src")
 
-add_cxx_compiler_flag(--std=c++14)
+add_cxx_compiler_flag(--std=c++11)
 if(DEFINED USING_CLANG)
   add_cxx_compiler_flag(-stdlib=libstdc++)
 endif()
