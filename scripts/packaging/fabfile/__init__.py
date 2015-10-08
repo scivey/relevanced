@@ -99,7 +99,18 @@ def _cmake_build():
     sudo('cd build && make install')
 
 @task
+def build_vm_prereqs():
+    require.deb.packages([
+        'ruby',
+        'ruby-dev',
+        'libffi-dev'
+    ])
+    if not run('which fpm', warn_only=True).succeeded:
+        sudo('gem install --no-ri --no-rdoc fpm')
+
+@task
 def build_deps():
+    build_vm_prereqs()
     pull_fb_libs()
     if not files.exists('/usr/local/include/folly'):
         with cd('%s/folly/folly' % env.build):
@@ -136,6 +147,7 @@ def build_relevanced(git_tag):
     with cd('%s/relevanced' % env.build):
         run('git remote update')
         run('git checkout %s' % git_tag)
+        run('git pull')
         run('make thrift')
         run('CXX=clang++-3.6 make build-server-static')
         run('CXX=clang++-3.6 make package')

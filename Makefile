@@ -18,11 +18,8 @@ thrift-java:
 	thrift-0.9 --gen java -o build/thrift src/RelevancedProtocol.thrift
 	mv ./build/thrift/gen-java/org/relevanced/client/gen_thrift_protocol ./clients/java/client/src/org/relevanced/client/
 
-build-docker-base:
-	sudo docker build -t relevanced/base containers/base
-
-build-docker-relevanced:
-	sudo docker build -t relevanced/relevanced containers/relevanced
+build-docker-standalone:
+	sudo docker build -t relevanced/relevanced scripts/packaging/containers/standalone_server
 
 GTEST_LIB = ./external/gtest-1.7.0-min/gtest-all.o
 GMOCK_LIB = ./external/gmock-1.7.0/src/gmock-all.o
