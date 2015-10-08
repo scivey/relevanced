@@ -29,7 +29,7 @@ public:
   ThriftRelevanceServer(
     std::shared_ptr<RelevanceServerIf> server
   );
-  void ping();
+  void ping() override;
 
   folly::Future<unique_ptr<std::map<std::string, std::string>>>
     future_getServerMetadata() override;

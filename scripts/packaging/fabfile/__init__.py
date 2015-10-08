@@ -134,6 +134,7 @@ def build_relevanced(git_tag):
         if not files.exists('relevanced'):
             run('git clone https://github.com/scivey/relevanced.git')
     with cd('%s/relevanced' % env.build):
+        run('git remote update')
         run('git checkout %s' % git_tag)
         run('make thrift')
         run('CXX=clang++-3.6 make build-server-static')

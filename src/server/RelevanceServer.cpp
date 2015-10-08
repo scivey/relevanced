@@ -89,7 +89,7 @@ Future<Try<unique_ptr<map<string, double>>>> RelevanceServer::multiGetTextSimila
         return Try<unique_ptr<map<string, double>>>(scores.exception());
       }
       auto scoreVals = scores.value();
-      auto response = std::make_unique<map<string, double>>();
+      auto response = folly::make_unique<map<string, double>>();
       for (size_t i = 0; i < cIds->size(); i++) {
         auto currentScoreVal = scoreVals.at(i);
         if (currentScoreVal.hasException()) {
@@ -122,7 +122,7 @@ Future<Try<unique_ptr<string>>> RelevanceServer::internalCreateDocumentWithID(st
       if (result.hasException()) {
         return Try<unique_ptr<string>>(make_exception_wrapper<DocumentAlreadyExists>());
       }
-      return Try<unique_ptr<string>>(std::make_unique<string>(id));
+      return Try<unique_ptr<string>>(folly::make_unique<string>(id));
     });
   });
 }
@@ -140,7 +140,7 @@ Future<Try<unique_ptr<string>>> RelevanceServer::getDocument(unique_ptr<string> 
     if (proced.hasException()) {
       return Try<unique_ptr<string>>(proced.exception());
     }
-    auto uniq = std::make_unique<string>(serialization::jsonSerialize(proced.value().get()));
+    auto uniq = folly::make_unique<string>(serialization::jsonSerialize(proced.value().get()));
     return Try<unique_ptr<string>>(std::move(uniq));
   });
 }
@@ -165,7 +165,7 @@ Future<Try<unique_ptr<vector<string>>>> RelevanceServer::listAllDocumentsForCent
       return Try<unique_ptr<vector<string>>>(docIds.exception());
     }
     vector<string> docs = docIds.value();
-    return Try<unique_ptr<vector<string>>>(std::make_unique<vector<string>>(std::move(docs)));
+    return Try<unique_ptr<vector<string>>>(folly::make_unique<vector<string>>(std::move(docs)));
   });
 }
 
@@ -205,13 +205,13 @@ Future<Try<bool>> RelevanceServer::joinCentroid(unique_ptr<string> centroidId) {
 
 Future<unique_ptr<vector<string>>> RelevanceServer::listAllCentroids() {
   return persistence_->listAllCentroids().then([](vector<string> centroidIds){
-    return std::move(std::make_unique<vector<string>>(centroidIds));
+    return std::move(folly::make_unique<vector<string>>(centroidIds));
   });
 }
 
 Future<unique_ptr<vector<string>>> RelevanceServer::listAllDocuments() {
   return persistence_->listAllDocuments().then([](vector<string> docIds) {
-    return std::move(std::make_unique<vector<string>>(docIds));
+    return std::move(folly::make_unique<vector<string>>(docIds));
   });
 }
 
