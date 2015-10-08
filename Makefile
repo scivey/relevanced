@@ -78,6 +78,5 @@ build-server-static:
 	mkdir -p build/bin
 	cd build/bin && cmake ../../ && make relevanced_static -j4
 
-package:
+deb-package-local:
 	./scripts/packaging/build_deb.sh
-

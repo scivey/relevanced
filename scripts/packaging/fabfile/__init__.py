@@ -1,12 +1,28 @@
+from __future__ import print_function
 import os
 from cStringIO import StringIO
-from fabric.api import task, run, sudo, runs_once
+from fabric.api import task, run, sudo, runs_once, local
 from fabric.api import env, cd
 from fabric.contrib import files
 from fabtools import require
 env.user = 'vagrant'
 env.home = '/home/%s' % env.user
 env.build = '%s/build' % env.home
+
+def get_fab_dir():
+    return os.path.dirname(os.path.realpath(__file__))
+
+def in_fab_dir(file_path):
+    return os.path.join(get_fab_dir(), file_path)
+
+def in_build_vm_dir(file_path):
+    return os.path.join(in_fab_dir('../build_vm/'), file_path)
+
+def get_project_dir():
+    return os.path.realpath(os.path.join(get_fab_dir(), '../../../'))
+
+def in_project_dir(file_path):
+    return os.path.join(get_project_dir(), file_path)
 
 @task
 def copy_ssh_key():
@@ -140,6 +156,7 @@ def build_deps():
             sudo('cp -r mitielib/include/* /usr/local/include')
 
 @task
+@runs_once
 def build_relevanced(git_tag):
     with cd(env.build):
         if not files.exists('relevanced'):
@@ -150,5 +167,11 @@ def build_relevanced(git_tag):
         run('git pull')
         run('make thrift')
         run('CXX=clang++-3.6 make build-server-static')
-        run('CXX=clang++-3.6 make package')
+        run('CXX=clang++-3.6 make deb-package-local')
         run('cp build/deb/*.deb /vagrant/')
+
+    dest_dir = in_project_dir('build/deb')
+    local('mkdir -p %s' % dest_dir)
+    local('rm -f %s/*.deb' % dest_dir)
+    local_source = in_build_vm_dir('*.deb')
+    local('mv %s %s' % (local_source, dest_dir))
