@@ -1,5 +1,6 @@
 from __future__ import print_function
 import os
+from pprint import pprint
 from cStringIO import StringIO
 from fabric.api import task, run, sudo, runs_once, local
 from fabric.api import env, cd
@@ -9,14 +10,21 @@ env.user = 'vagrant'
 env.home = '/home/%s' % env.user
 env.build = '%s/build' % env.home
 
+UBUNTU_BUILD_HOST = '192.168.31.10'
+UBUNTU_TEST_HOST = '192.168.31.11'
+
+
 def get_fab_dir():
     return os.path.dirname(os.path.realpath(__file__))
 
 def in_fab_dir(file_path):
     return os.path.join(get_fab_dir(), file_path)
 
+def get_build_vm_dir():
+    return os.path.join(get_fab_dir(), '../build_vm/')
+
 def in_build_vm_dir(file_path):
-    return os.path.join(in_fab_dir('../build_vm/'), file_path)
+    return os.path.join(get_build_vm_dir(), file_path)
 
 def get_project_dir():
     return os.path.realpath(os.path.join(get_fab_dir(), '../../../'))
@@ -34,12 +42,30 @@ def copy_ssh_key():
 @task
 @runs_once
 def build_vm():
-    env.host_string = '192.168.31.10'
+    env.host_string = UBUNTU_BUILD_HOST
 
 @task
 @runs_once
 def test_vm():
-    env.host_string = '192.168.31.11'
+    env.host_string = UBUNTU_TEST_HOST
+
+@task
+@runs_once
+def debug():
+    pprint({'fabric_env': env})
+    pprint({
+        'dirs': {
+            'fabric': get_fab_dir(),
+            'project': get_project_dir(),
+            'build_vm': get_build_vm_dir()
+        }
+    })
+    pprint({
+        'hosts': {
+            'ubuntu_build': UBUNTU_BUILD_HOST,
+            'ubuntu_test': UBUNTU_TEST_HOST
+        }
+    })
 
 @task
 def init():
@@ -157,7 +183,8 @@ def build_deps():
 
 @task
 @runs_once
-def build_relevanced(git_tag):
+def build_relevanced_for_revision(git_tag):
+    build_vm()
     with cd(env.build):
         if not files.exists('relevanced'):
             run('git clone https://github.com/scivey/relevanced.git')
@@ -175,3 +202,8 @@ def build_relevanced(git_tag):
     local('rm -f %s/*.deb' % dest_dir)
     local_source = in_build_vm_dir('*.deb')
     local('mv %s %s' % (local_source, dest_dir))
+
+@task
+def build_relevanced_for_current_branch():
+    branch = local('git rev-parse --abbrev-ref HEAD', capture=True).strip()
+    build_relevanced_for_revision(branch)

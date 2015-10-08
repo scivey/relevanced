@@ -19,6 +19,7 @@ thrift-java:
 	mv ./build/thrift/gen-java/org/relevanced/client/gen_thrift_protocol ./clients/java/client/src/org/relevanced/client/
 
 build-docker-standalone:
+	cp build/deb/*.deb scripts/packaging/containers/standalone_server/data/
 	sudo docker build -t relevanced/relevanced scripts/packaging/containers/standalone_server
 
 GTEST_LIB = ./external/gtest-1.7.0-min/gtest-all.o
