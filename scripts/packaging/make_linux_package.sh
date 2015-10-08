@@ -32,7 +32,7 @@ OUTPUT_PKG_PATH="$BUILD_DIR/$PACKAGE_NAME-$PACKAGE_VERSION."
 INITD_SRC="$SCRIPT_DIR/relevanced.initd"
 INITD_DST="/etc/init.d/relevanced"
 RELEVANCED_LOG_DIR="/var/log/relevanced/"
-RELEVANCED_VAR_DIR="/var/relevanced"
+RELEVANCED_VAR_DIR="/var/lib/relevanced"
 RELEVANCED_ETC_DIR="/etc/relevanced"
 
 WORKING_DIR=/tmp/relevanced_packaging
