@@ -190,8 +190,8 @@ def build_relevanced_for_revision(git_tag):
             run('git clone https://github.com/scivey/relevanced.git')
     with cd('%s/relevanced' % env.build):
         run('git remote update')
+        run('git checkout master && git pull')
         run('git checkout %s' % git_tag)
-        run('git pull')
         run('make thrift')
         run('CXX=clang++-3.6 make build-server-static')
         run('CXX=clang++-3.6 make deb-package-local')
@@ -205,5 +205,13 @@ def build_relevanced_for_revision(git_tag):
 
 @task
 def build_relevanced_for_current_branch():
-    branch = local('git rev-parse --abbrev-ref HEAD', capture=True).strip()
-    build_relevanced_for_revision(branch)
+    tag = None
+    try:
+        tags = local('git describe', capture=True).strip().split(' ')
+        tag = tags[0]
+    except Exception:
+        print('no tag found; using branch')
+        branch = local('git rev-parse --abbrev-ref HEAD', capture=True).strip()
+        tag = branch
+    build_relevanced_for_revision(tag)
+
