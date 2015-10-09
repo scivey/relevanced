@@ -61,27 +61,58 @@ struct ListCentroidDocumentsResponse {
 }
 
 struct CrudResponse {
-    1: required Status status;
-    2: required string created;
+    1: required string id;
+}
+
+exception TCentroidDoesNotExist {
+    1: string id;
+    2: string message;
+}
+
+exception TCentroidAlreadyExists {
+    1: string id;
+    2: string message;
+}
+
+exception TDocumentDoesNotExist {
+    1: string id;
+    2: string message;
+}
+
+exception TDocumentAlreadyExists {
+    1: string id;
+    2: string message;
+}
+
+exception TDocumentNotInCentroid {
+    1: string documentId;
+    2: string centroidId;
+    3: string message;
+}
+
+exception TDocumentAlreadyInCentroid {
+    1: string documentId;
+    2: string centroidId;
+    3: string message;
 }
 
 service Relevanced {
     void ping(),
     map<string, string> getServerMetadata(),
-    SimilarityResponse getDocumentSimilarity(1: string centroidId, 2: string docId),
-    MultiSimilarityResponse multiGetTextSimilarity(1: list<string> centroidIds, 2: string text),
-    SimilarityResponse getTextSimilarity(1: string centroidId, 2: string text),
-    SimilarityResponse getCentroidSimilarity(1: string centroid1Id, 2: string centroid2Id),
+    SimilarityResponse getDocumentSimilarity(1: string centroidId, 2: string docId) throws (1: TCentroidDoesNotExist centroidErr, 2: TDocumentDoesNotExist docErr),
+    MultiSimilarityResponse multiGetTextSimilarity(1: list<string> centroidIds, 2: string text) throws (1: TCentroidDoesNotExist err),
+    SimilarityResponse getTextSimilarity(1: string centroidId, 2: string text) throws (1: TCentroidDoesNotExist err),
+    SimilarityResponse getCentroidSimilarity(1: string centroid1Id, 2: string centroid2Id) throws (1: TCentroidDoesNotExist err),
     CrudResponse createDocument(1: string text),
-    CrudResponse createDocumentWithID(1: string id, 2: string text),
-    CrudResponse deleteDocument(1: string id),
-    GetDocumentResponse getDocument(1: string id),
-    CrudResponse createCentroid(1: string centroidId),
-    CrudResponse deleteCentroid(1: string centroidId),
-    ListCentroidDocumentsResponse listAllDocumentsForCentroid(1: string centroidId),
-    CrudResponse addDocumentToCentroid(1: string centroidId, 2: string docId),
-    CrudResponse removeDocumentFromCentroid(1: string centroidId, 2: string docId),
-    Status joinCentroid(1: string centroidId),
+    CrudResponse createDocumentWithID(1: string id, 2: string text) throws (1: TDocumentAlreadyExists err),
+    CrudResponse deleteDocument(1: string id) throws(1: TDocumentDoesNotExist err),
+    GetDocumentResponse getDocument(1: string id) throws(1: TDocumentDoesNotExist err),
+    CrudResponse createCentroid(1: string centroidId) throws(1: TCentroidAlreadyExists err),
+    CrudResponse deleteCentroid(1: string centroidId) throws(1: TCentroidDoesNotExist err),
+    ListCentroidDocumentsResponse listAllDocumentsForCentroid(1: string centroidId) throws (1: TCentroidDoesNotExist err),
+    CrudResponse addDocumentToCentroid(1: string centroidId, 2: string docId) throws (1: TCentroidDoesNotExist centroidErr, 2: TDocumentDoesNotExist docErr, 3: TDocumentAlreadyInCentroid bothErr),
+    CrudResponse removeDocumentFromCentroid(1: string centroidId, 2: string docId) throws (1: TCentroidDoesNotExist centroidErr, 2: TDocumentDoesNotExist docErr, 3: TDocumentNotInCentroid bothErr),
+    bool joinCentroid(1: string centroidId) throws (1: TCentroidDoesNotExist err),
     list<string> listAllCentroids(),
     list<string> listAllDocuments()
 }

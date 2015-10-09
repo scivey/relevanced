@@ -69,7 +69,7 @@ Future<unique_ptr<SimilarityResponse>> ThriftRelevanceServer::future_getTextSimi
   });
 }
 
-Future<unique_ptr<thrift_protocol::SimilarityResponse>> ThriftRelevanceServer::future_getCentroidSimilarity(unique_ptr<string> centroid1Id, unique_ptr<string> centroid2Id) {
+Future<unique_ptr<SimilarityResponse>> ThriftRelevanceServer::future_getCentroidSimilarity(unique_ptr<string> centroid1Id, unique_ptr<string> centroid2Id) {
   return server_->getCentroidSimilarity(std::move(centroid1Id), std::move(centroid2Id)).then([this](Try<double> result) {
     auto response = folly::make_unique<SimilarityResponse>();
     if (result.hasException()) {
@@ -89,9 +89,9 @@ Future<unique_ptr<thrift_protocol::SimilarityResponse>> ThriftRelevanceServer::f
 }
 
 
-Future<unique_ptr<thrift_protocol::MultiSimilarityResponse>> ThriftRelevanceServer::future_multiGetTextSimilarity(unique_ptr<vector<string>> centroidIds, unique_ptr<string> text) {
+Future<unique_ptr<MultiSimilarityResponse>> ThriftRelevanceServer::future_multiGetTextSimilarity(unique_ptr<vector<string>> centroidIds, unique_ptr<string> text) {
   return server_->multiGetTextSimilarity(std::move(centroidIds), std::move(text)).then([this](Try<unique_ptr<map<string, double>>> result) {
-    auto response = folly::make_unique<thrift_protocol::MultiSimilarityResponse>();
+    auto response = folly::make_unique<MultiSimilarityResponse>();
     if (result.hasException()) {
       if (result.hasException<CentroidDoesNotExist>()) {
         response->status.code = StatusCode::CENTROID_DOES_NOT_EXIST;
@@ -109,163 +109,166 @@ Future<unique_ptr<thrift_protocol::MultiSimilarityResponse>> ThriftRelevanceServ
 
 Future<unique_ptr<CrudResponse>> ThriftRelevanceServer::future_createDocument(unique_ptr<string> text) {
   return server_->createDocument(std::move(text)).then([this](Try<unique_ptr<string>> result) {
+    result.throwIfFailed();
     auto response = folly::make_unique<CrudResponse>();
-    if (!result.hasException()) {
-      response->status.code = StatusCode::OK;
-      response->created = *result.value();
-      return std::move(response);
-    }
-    // can't think of any specific exceptions we're anticipating here
-    response->status.code = StatusCode::UNKNOWN_EXCEPTION;
+    response->id = *result.value();
     return std::move(response);
   });
 }
 
 Future<unique_ptr<CrudResponse>> ThriftRelevanceServer::future_createDocumentWithID(unique_ptr<string> id, unique_ptr<string> text) {
-  return server_->createDocumentWithID(std::move(id), std::move(text)).then([this](Try<unique_ptr<string>> result) {
+  string docId = *id;
+  return server_->createDocumentWithID(std::move(id), std::move(text)).then([this, docId](Try<unique_ptr<string>> result) {
+    if (result.hasException()) {
+      if (result.hasException<DocumentAlreadyExists>()) {
+        TDocumentAlreadyExists exn;
+        exn.id = docId;
+        throw exn;
+      }
+      result.throwIfFailed();
+    }
     auto response = folly::make_unique<CrudResponse>();
-    if (!result.hasException()) {
-      response->status.code = StatusCode::OK;
-      response->created = *result.value();
-      return std::move(response);
-    }
-    if (result.hasException<DocumentAlreadyExists>()) {
-      response->status.code = StatusCode::DOCUMENT_ALREADY_EXISTS;
-    } else {
-      response->status.code = StatusCode::UNKNOWN_EXCEPTION;
-    }
+    response->id = docId;
     return std::move(response);
   });
 }
 
 Future<unique_ptr<CrudResponse>> ThriftRelevanceServer::future_deleteDocument(unique_ptr<string> id) {
-  return server_->deleteDocument(std::move(id)).then([this](Try<bool> result) {
+  string docId = *id;
+  return server_->deleteDocument(std::move(id)).then([this, docId](Try<bool> result) {
+    if (result.hasException()) {
+      if (result.hasException<DocumentDoesNotExist>()) {
+        TDocumentDoesNotExist exn;
+        exn.id = docId;
+        throw exn;
+      }
+      result.throwIfFailed();
+    }
     auto response = folly::make_unique<CrudResponse>();
-    if (!result.hasException()) {
-      response->status.code = StatusCode::OK;
-      return std::move(response);
-    }
-    if (result.hasException<DocumentDoesNotExist>()) {
-      response->status.code = StatusCode::DOCUMENT_DOES_NOT_EXIST;
-    } else {
-      response->status.code = StatusCode::UNKNOWN_EXCEPTION;
-    }
+    response->id = docId;
     return std::move(response);
   });
 }
 
 Future<unique_ptr<GetDocumentResponse>> ThriftRelevanceServer::future_getDocument(unique_ptr<string> id) {
-  return server_->getDocument(std::move(id)).then([](Try<unique_ptr<string>> result) {
+  auto docId = *id;
+  return server_->getDocument(std::move(id)).then([docId](Try<unique_ptr<string>> result) {
     auto response = folly::make_unique<GetDocumentResponse>();
     if (result.hasException()) {
       if (result.hasException<DocumentDoesNotExist>()) {
-        response->status.code = StatusCode::DOCUMENT_DOES_NOT_EXIST;
-      } else {
-        response->status.code = StatusCode::UNKNOWN_EXCEPTION;
+        TDocumentDoesNotExist exn;
+        exn.id = docId;
+        throw exn;
       }
-    } else {
-      response->status.code = StatusCode::OK;
-      response->document = *result.value();
+      result.throwIfFailed();
     }
+    response->status.code = StatusCode::OK;
+    response->document = *result.value();
     return std::move(response);
   });
 }
 
 Future<unique_ptr<CrudResponse>> ThriftRelevanceServer::future_createCentroid(unique_ptr<string> centroidId) {
-  return server_->createCentroid(std::move(centroidId)).then([](Try<bool> result) {
-    auto response = folly::make_unique<CrudResponse>();
+  string cId = *centroidId;
+  return server_->createCentroid(std::move(centroidId)).then([cId](Try<bool> result) {
     if (result.hasException()) {
       if (result.hasException<CentroidAlreadyExists>()) {
-        response->status.code = StatusCode::CENTROID_ALREADY_EXISTS;
+        TCentroidAlreadyExists exn;
+        exn.id = cId;
+        throw exn;
       } else {
-        response->status.code = StatusCode::UNKNOWN_EXCEPTION;
+        result.throwIfFailed();
       }
-    } else {
-      response->status.code = StatusCode::OK;
     }
+    auto response = folly::make_unique<CrudResponse>();
+    response->id = cId;
     return std::move(response);
   });
 }
 
 Future<unique_ptr<CrudResponse>> ThriftRelevanceServer::future_deleteCentroid(unique_ptr<string> centroidId) {
-  return server_->deleteCentroid(std::move(centroidId)).then([](Try<bool> result) {
-    auto response = folly::make_unique<CrudResponse>();
+  string cId = *centroidId;
+  return server_->deleteCentroid(std::move(centroidId)).then([cId](Try<bool> result) {
     if (result.hasException()) {
       if (result.hasException<CentroidDoesNotExist>()) {
-        response->status.code = StatusCode::CENTROID_DOES_NOT_EXIST;
+        TCentroidDoesNotExist exn;
+        exn.id = cId;
+        throw exn;
       } else {
-        response->status.code = StatusCode::UNKNOWN_EXCEPTION;
+        result.throwIfFailed();
       }
-    } else {
-      response->status.code = StatusCode::OK;
     }
+    auto response = folly::make_unique<CrudResponse>();
+    response->id = cId;
     return std::move(response);
   });
 }
 
 Future<unique_ptr<ListCentroidDocumentsResponse>> ThriftRelevanceServer::future_listAllDocumentsForCentroid(unique_ptr<string> centroidId) {
-  return server_->listAllDocumentsForCentroid(std::move(centroidId)).then([](Try<unique_ptr<vector<string>>> result) {
-    auto response = folly::make_unique<ListCentroidDocumentsResponse>();
-    if (!result.hasException()) {
-      response->status.code = StatusCode::OK;
-      vector<string> docIds = *result.value();
-      response->documents = std::move(docIds);
-    } else {
+  auto cId = *centroidId;
+  return server_->listAllDocumentsForCentroid(std::move(centroidId)).then([cId](Try<unique_ptr<vector<string>>> result) {
+    if (result.hasException()) {
       if (result.hasException<CentroidDoesNotExist>()) {
-        response->status.code = StatusCode::CENTROID_DOES_NOT_EXIST;
-      } else {
-        response->status.code = StatusCode::UNKNOWN_EXCEPTION;
+        TCentroidDoesNotExist exn;
+        exn.id = cId;
+        throw exn;
       }
+      result.throwIfFailed();
     }
+    auto response = folly::make_unique<ListCentroidDocumentsResponse>();
+    vector<string> docIds = *result.value();
+    response->documents = std::move(docIds);
     return std::move(response);
   });
 }
 
 Future<unique_ptr<CrudResponse>> ThriftRelevanceServer::future_addDocumentToCentroid(unique_ptr<string> centroidId, unique_ptr<string> docId) {
   return server_->addDocumentToCentroid(std::move(centroidId), std::move(docId)).then([](Try<bool> result) {
-    auto response = folly::make_unique<CrudResponse>();
     if (result.hasException()) {
       if (result.hasException<DocumentDoesNotExist>()) {
-        response->status.code = StatusCode::DOCUMENT_DOES_NOT_EXIST;
+        TDocumentDoesNotExist exn;
+        throw exn;
       } else if (result.hasException<CentroidDoesNotExist>()) {
-        response->status.code = StatusCode::CENTROID_DOES_NOT_EXIST;
+        TCentroidDoesNotExist exn;
+        throw exn;
       } else {
-        response->status.code = StatusCode::UNKNOWN_EXCEPTION;
+        result.throwIfFailed();
       }
-    } else {
-      response->status.code = StatusCode::OK;
     }
+    auto response = folly::make_unique<CrudResponse>();
     return std::move(response);
   });
 }
 
 Future<unique_ptr<CrudResponse>> ThriftRelevanceServer::future_removeDocumentFromCentroid(unique_ptr<string> centroidId, unique_ptr<string> docId) {
-  return server_->removeDocumentFromCentroid(std::move(centroidId), std::move(docId)).then([](Try<bool> result) {
-    auto response = folly::make_unique<CrudResponse>();
+  auto dId = *docId;
+  return server_->removeDocumentFromCentroid(std::move(centroidId), std::move(docId)).then([dId](Try<bool> result) {
     if (result.hasException()) {
       if (result.hasException<DocumentDoesNotExist>()) {
-        response->status.code = StatusCode::DOCUMENT_DOES_NOT_EXIST;
+        TDocumentDoesNotExist exn;
+        throw exn;
       } else if (result.hasException<CentroidDoesNotExist>()) {
-        response->status.code = StatusCode::CENTROID_DOES_NOT_EXIST;
-      } else {
-        response->status.code = StatusCode::UNKNOWN_EXCEPTION;
+        TCentroidDoesNotExist exn;
+        throw exn;
       }
-    } else {
-      response->status.code = StatusCode::OK;
+      result.throwIfFailed();
     }
+    auto response = folly::make_unique<CrudResponse>();
+    response->id = dId;
     return std::move(response);
   });
 }
 
-Future<unique_ptr<Status>> ThriftRelevanceServer::future_joinCentroid(unique_ptr<string> centroidId) {
+Future<bool> ThriftRelevanceServer::future_joinCentroid(unique_ptr<string> centroidId) {
   return server_->joinCentroid(std::move(centroidId)).then([](Try<bool> result) {
-    auto response = folly::make_unique<Status>();
     if (result.hasException()) {
-      response->code = StatusCode::CENTROID_DOES_NOT_EXIST;
-    } else {
-      response->code = StatusCode::OK;
+      if (result.hasException<CentroidDoesNotExist>()) {
+        TCentroidDoesNotExist exn;
+        throw exn;
+      }
+      result.throwIfFailed();
     }
-    return std::move(response);
+    return result.value();
   });
 }
 

@@ -63,7 +63,7 @@ def init_centroids(client):
 def main():
     client = get_client()
     init_documents(client)
-    if not len(client.list_all_centroids()) == 2:
+    if not len(client.list_all_centroids()) >= 2:
         init_centroids(client)
         client.join_centroid('wiki_math')
         client.join_centroid('wiki_poli')

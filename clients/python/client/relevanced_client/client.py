@@ -5,25 +5,6 @@ from thrift.transport import TSocket, TTransport
 from relevanced_client.gen_py.RelevancedProtocol import Relevanced
 
 from relevanced_client.gen_py.RelevancedProtocol.ttypes import StatusCode, Status
-from relevanced_client import exceptions
-
-def _get_exception_map():
-    known = {
-        StatusCode.OK: None,
-        StatusCode.CENTROID_DOES_NOT_EXIST: exceptions.CentroidDoesNotExist,
-        StatusCode.DOCUMENT_DOES_NOT_EXIST: exceptions.DocumentDoesNotExist,
-        StatusCode.CENTROID_ALREADY_EXISTS: exceptions.CentroidAlreadyExists,
-        StatusCode.DOCUMENT_ALREADY_EXISTS: exceptions.DocumentAlreadyExists,
-        StatusCode.UNKNOWN_EXCEPTION: exceptions.UnknownException,
-        StatusCode.DOCUMENT_NOT_IN_CENTROID: exceptions.DocumentNotInCentroid,
-        StatusCode.DOCUMENT_ALREADY_IN_CENTROID: exceptions.DocumentAlreadyInCentroid,
-        StatusCode.OUT_OF_MEMORY: exceptions.OutOfMemory,
-        StatusCode.OUT_OF_MEMORY: exceptions.NoDiskSpace
-    }
-    mapping = defaultdict(lambda: exceptions.UnknownException)
-    for k, v in known.iteritems():
-        mapping[k] = v
-    return mapping
 
 class Client(object):
     def __init__(self, host, port):
@@ -40,28 +21,6 @@ class Client(object):
             transport.open()
         return self._thrift_client
 
-    @property
-    def _exception_map(self):
-        # two underscores == twice as sneaky
-        if not hasattr(self, '__exception_map'):
-            self.__exception_map = _get_exception_map()
-        return self.__exception_map
-
-    def _handle_response_status(self, response):
-        status = None
-        if isinstance(response, Status):
-            status = response
-        else:
-            if hasattr(response, 'status') and hasattr(response.status, 'code'):
-                status = response.status
-        if not status:
-            return
-
-        ErrType = self._exception_map[status.code]
-        if ErrType:
-            message = getattr(status, 'message', 'Exception')
-            raise ErrType(message)
-
     def list_all_centroids(self):
         """
         Return a list of all centroid IDs defined on the server.
@@ -75,11 +34,10 @@ class Client(object):
         On success, returns the string `name`.
 
         If a centroid already exists with identifier `name`,
-        raises `.exceptions.CentroidAlreadyExists`.
+        raises `TCentroidAlreadyExists`.
         """
         res = self.thrift_client.createCentroid(name)
-        self._handle_response_status(res)
-        return res.created
+        return res.id
 
     def list_all_documents(self):
         """
@@ -95,15 +53,14 @@ class Client(object):
         On success, returns `True`.
 
         If no centroid exists with id `centroid_id`, raises
-        `.exceptions.CentroidDoesNotExist`.
+        `TCentroidDoesNotExist`.
 
         If no document exists with id `document_id`, raises
-        `.exceptions.DocumentDoesNotExist`.
+        `TDocumentDoesNotExist`.
         """
         res = self.thrift_client.addDocumentToCentroid(
             centroid_id, document_id
         )
-        self._handle_response_status(res)
         return True
 
     def remove_document_from_centroid(self, centroid_id, document_id):
@@ -114,16 +71,15 @@ class Client(object):
         On success, returns `True`.
 
         If no centroid exists with id `centroid_id`, raises
-        `.exceptions.CentroidDoesNotExist`.
+        `TCentroidDoesNotExist`.
 
         If no document exists with id `document_id`, raises
-        `.exceptions.DocumentDoesNotExist`.
+        `TDocumentDoesNotExist`.
         """
 
         res = self.thrift_client.removeDocumentFromCentroid(
             centroid_id, document_id
         )
-        self._handle_response_status(res)
         return True
 
     def create_document_with_id(self, document_id, document_text):
@@ -134,15 +90,14 @@ class Client(object):
         On success, returns `document_id`.
 
         If a document already exists with the given ID, raises
-        `.exceptions.DocumentAlreadyExists`.
+        `TDocumentAlreadyExists`.
         """
 
         res = self.thrift_client.createDocumentWithID(
             document_id.encode('utf-8'),
             document_text.encode('utf-8')
         )
-        self._handle_response_status(res)
-        return res.created
+        return res.id
 
     def create_document(self, document_text):
         """
@@ -152,43 +107,40 @@ class Client(object):
         Returns the UUID of the new document.
         """
         res = self.thrift_client.createDocument(document_text.encode('utf-8'))
-        self._handle_response_status(res)
-        return res.created
+        return res.id
 
     def delete_document(self, document_id):
         """
         Delete the document with id = `document_id`.
         This is not reversible.
 
-        On success, returns `True`.
+        On success, returns id of the document.
 
         The document is automatically removed from any
         centroids it has been added to.
 
         If no document exists with the given ID, raises
-        `.exceptions.DocumentDoesNotExist`.
+        `TDocumentDoesNotExist`.
         """
         res = self.thrift_client.deleteDocument(document_id)
-        self._handle_response_status(res)
-        return True
+        return res.id
 
     def delete_centroid(self, centroid_id):
         """
         Delete the centroid with id = `centroid_id`.
         This is not reversible.
 
-        On success, returns `True`.
+        On success, returns id of the centroid.
 
         Does not delete any documents contained in
         the centroid, but does remove any record of
         which documents it was associated with.
 
         If no centroid exists with the given ID, raises
-        `.exceptions.CentroidDoesNotExist`.
+        `TCentroidDoesNotExist`.
         """
         res = self.thrift_client.deleteCentroid(centroid_id)
-        self._handle_response_status(res)
-        return True
+        return res.id
 
     def join_centroid(self, centroid_id):
         """
@@ -200,16 +152,14 @@ class Client(object):
         immediately performs an update and then returns.
 
         If no centroid exists with the given ID, raises
-        `.exceptions.CentroidDoesNotExist`.
+        `TCentroidDoesNotExist`.
 
         This command is not necessary under ordinary circumstances,
         as the server automatically recalculates centroids
         as documents are added and removed.  It is mainly used for testing
         and examples.
         """
-        res = self.thrift_client.joinCentroid(centroid_id)
-        self._handle_response_status(res)
-        return centroid_id
+        return self.thrift_client.joinCentroid(centroid_id)
 
     def list_all_documents_for_centroid(self, centroid_id):
         """
@@ -217,13 +167,12 @@ class Client(object):
         `centroid_id`.
 
         If no centroid exists with the given ID, raises
-        `.exceptions.CentroidDoesNotExist`.
+        `TCentroidDoesNotExist`.
 
         If the centroid exists but no documents have been added to it,
         returns an empty list. (I.e. this is not considered an error condition).
         """
         res = self.thrift_client.listAllDocumentsForCentroid(centroid_id)
-        self._handle_response_status(res)
         return res.documents
 
     def get_centroid_similarity(self, centroid_1_id, centroid_2_id):
@@ -232,11 +181,10 @@ class Client(object):
         `centroid_2_id`, as double-precision floating point.
 
         If either centroid does not exist, raises
-        `.exceptions.CentroidDoesNotExist`.
+        `TCentroidDoesNotExist`.
         """
 
         res = self.thrift_client.getCentroidSimilarity(centroid_1_id, centroid_2_id)
-        self._handle_response_status(res)
         return res.similarity
 
     def get_text_similarity(self, centroid_id, text):
@@ -250,12 +198,11 @@ class Client(object):
         `get_document_similarity` to avoid this extra work.
 
         If the centroid does not exist, raises
-        `.exceptions.CentroidDoesNotExist`.
+        `TCentroidDoesNotExist`.
         """
         res = self.thrift_client.getTextSimilarity(
             centroid_id, text.encode('utf-8')
         )
-        self._handle_response_status(res)
         return res.similarity
 
     def multi_get_text_similarity(self, centroid_ids, text):
@@ -264,7 +211,7 @@ class Client(object):
         `centroid_ids` to its cosine similarity against `text`.
 
         If any of the centroids do not exist, raises
-        `.exceptions.CentroidDoesNotExist`.
+        `TCentroidDoesNotExist`.
 
         Example:
             scores = client.multi_get_text_similarity(
@@ -281,7 +228,6 @@ class Client(object):
         res = self.thrift_client.multiGetTextSimilarity(
             centroid_ids, text.encode('utf-8')
         )
-        self._handle_response_status(res)
         return res.scores
 
     def get_document_similarity(self, centroid_id, document_id):
@@ -296,15 +242,20 @@ class Client(object):
         where the document has already been saved on the server.
 
         If the centroid does not exist, raises
-        `.exceptions.CentroidDoesNotExist`.
+        `TCentroidDoesNotExist`.
 
         If the document does not exist, raises
-        `.exceptions.DocumentDoesNotExist`.
+        `TDocumentDoesNotExist`.
         """
 
         res = self.thrift_client.getDocumentSimilarity(
             centroid_id, document_id
         )
-        self._handle_response_status(res)
         return res.similarity
 
+    def get_server_metadata(self):
+        """
+        Return server metadata.  Includes release version,
+        git revision, build timestamp, etc.
+        """
+        return self.thrift_client.getServerMetadata()

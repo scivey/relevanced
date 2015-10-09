@@ -73,7 +73,7 @@ public:
   folly::Future<unique_ptr<thrift_protocol::CrudResponse>>
     future_removeDocumentFromCentroid(std::unique_ptr<std::string> centroidId, std::unique_ptr<std::string> docId) override;
 
-  folly::Future<unique_ptr<thrift_protocol::Status>> future_joinCentroid(std::unique_ptr<std::string> centroidId) override;
+  folly::Future<bool> future_joinCentroid(std::unique_ptr<std::string> centroidId) override;
 
   folly::Future<std::unique_ptr<std::vector<std::string>>> future_listAllCentroids() override;
   folly::Future<std::unique_ptr<std::vector<std::string>>> future_listAllDocuments() override;

@@ -23,38 +23,11 @@ var RelevancedClient = function(hostname, portno) {
 };
 
 _.extend(RelevancedClient.prototype, {
-    _handleResponseStatus: function(response) {
-        // duck typing has started to disgust me
-        var status;
-        if (_.has(response, 'status')) {
-            status = response.status;
-        } else if (_.has(response, 'code')) {
-            status = response;
-        } else {
-            return "";
-        }
-        if (status.code === StatusCode.OK) {
-            return "";
-        }
-        errorMap[StatusCode.DOCUMENT_DOES_NOT_EXIST] = "Document does not exist";
-        errorMap[StatusCode.CENTROID_DOES_NOT_EXIST] = "Centroid does not exist";
-        errorMap[StatusCode.DOCUMENT_ALREADY_EXISTS] = "Document already exists";
-        errorMap[StatusCode.CENTROID_ALREADY_EXISTS] = "Centroid already exists";
-        errorMap[StatusCode.UNKNOWN_EXCEPTION] = "Unknown exception.";
-        if (_.has(errorMap, status.code)) {
-            return errorMap[status.code];
-        }
-        return "Unknown exception";
-    },
     getDocumentSimilarity: function(centroidId, docId) {
         var self = this;
         return new Promise(function(resolve, reject) {
             return self.client.getDocumentSimilarity(centroidId, docId, function(err, res) {
                 if (err) return reject(err);
-                var errMsg = self._handleResponseStatus(res);
-                if (errMsg) {
-                    return reject(new Error(errMsg));
-                }
                 return resolve(res.similarity);
             });
         });
@@ -64,10 +37,6 @@ _.extend(RelevancedClient.prototype, {
         return new Promise(function(resolve, reject) {
             return self.client.getTextSimilarity(centroidId, text, function(err, res) {
                 if (err) return reject(err);
-                var errMsg = self._handleResponseStatus(res);
-                if (errMsg) {
-                    return reject(new Error(errMsg));
-                }
                 return resolve(res.similarity);
             });
         });
@@ -77,10 +46,6 @@ _.extend(RelevancedClient.prototype, {
         return new Promise(function(resolve, reject) {
             return self.client.multiGetTextSimilarity(centroidIdList, text, function(err, res) {
                 if (err) return reject(err);
-                var errMsg = self._handleResponseStatus(res);
-                if (errMsg) {
-                    return reject(new Error(errMsg));
-                }
                 return resolve(res.scores);
             });
         });
@@ -90,11 +55,7 @@ _.extend(RelevancedClient.prototype, {
         return new Promise(function(resolve, reject) {
             return self.client.createDocument(text, function(err, res) {
                 if (err) return reject(err);
-                var errMsg = self._handleResponseStatus(res);
-                if (errMsg) {
-                    return reject(new Error(errMsg));
-                }
-                return resolve(res.created);
+                return resolve(res.id);
             });
         });
     },
@@ -103,11 +64,7 @@ _.extend(RelevancedClient.prototype, {
         return new Promise(function(resolve, reject) {
             return self.client.createDocumentWithID(id, text, function(err, res) {
                 if (err) return reject(err);
-                var errMsg = self._handleResponseStatus(res);
-                if (errMsg) {
-                    return reject(new Error(errMsg));
-                }
-                return resolve(res.created);
+                return resolve(res.id);
             });
         });
     },
@@ -116,11 +73,7 @@ _.extend(RelevancedClient.prototype, {
         return new Promise(function(resolve, reject) {
             return self.client.deleteDocument(id, function(err, res) {
                 if (err) return reject(err);
-                var errMsg = self._handleResponseStatus(res);
-                if (errMsg) {
-                    return reject(new Error(errMsg));
-                }
-                return resolve(res.created);
+                return resolve(res.id);
             });
         });
     },
@@ -129,11 +82,7 @@ _.extend(RelevancedClient.prototype, {
         return new Promise(function(resolve, reject) {
             return self.client.createCentroid(id, function(err, res) {
                 if (err) return reject(err);
-                var errMsg = self._handleResponseStatus(res);
-                if (errMsg) {
-                    return reject(new Error(errMsg));
-                }
-                return resolve(res.created);
+                return resolve(res.id);
             });
         });
     },
@@ -142,11 +91,7 @@ _.extend(RelevancedClient.prototype, {
         return new Promise(function(resolve, reject) {
             return self.client.deleteCentroid(id, function(err, res) {
                 if (err) return reject(err);
-                var errMsg = self._handleResponseStatus(res);
-                if (errMsg) {
-                    return reject(new Error(errMsg));
-                }
-                return resolve(res.created);
+                return resolve(res.id);
             });
         });
     },
@@ -155,10 +100,6 @@ _.extend(RelevancedClient.prototype, {
         return new Promise(function(resolve, reject) {
             return self.client.addDocumentToCentroid(centroidId, documentId, function(err, res) {
                 if (err) return reject(err);
-                var errMsg = self._handleResponseStatus(res);
-                if (errMsg) {
-                    return reject(new Error(errMsg));
-                }
                 return resolve(true);
             });
         });
@@ -168,10 +109,6 @@ _.extend(RelevancedClient.prototype, {
         return new Promise(function(resolve, reject) {
             return self.client.removeDocumentFromCentroid(centroidId, documentId, function(err, res) {
                 if (err) return reject(err);
-                var errMsg = self._handleResponseStatus(res);
-                if (errMsg) {
-                    return reject(new Error(errMsg));
-                }
                 return resolve(true);
             });
         });
@@ -181,10 +118,6 @@ _.extend(RelevancedClient.prototype, {
         return new Promise(function(resolve, reject) {
             return self.client.joinCentroid(centroidId, function(err, res) {
                 if (err) return reject(err);
-                var errMsg = self._handleResponseStatus(res);
-                if (errMsg) {
-                    return reject(new Error(errMsg));
-                }
                 return resolve(true);
             });
         });
@@ -202,6 +135,15 @@ _.extend(RelevancedClient.prototype, {
         var self = this;
         return new Promise(function(resolve, reject) {
             self.client.listAllDocuments(function(err, res) {
+                if (err) return reject(err);
+                return resolve(res);
+            });
+        });
+    },
+    getServerMetadata: function() {
+        var self = this;
+        return new Promise(function(resolve, reject) {
+            self.client.getServerMetadata(function(err, res) {
                 if (err) return reject(err);
                 return resolve(res);
             });
