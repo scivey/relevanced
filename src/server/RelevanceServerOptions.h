@@ -15,7 +15,7 @@ namespace server {
  * there.
  */
 class RelevanceServerOptions {
-  std::string dataDir_ {"./data"};
+  std::string dataDir_ {"/var/lib/relevanced/data"};
   int thriftPort_ {8097};
   std::chrono::milliseconds taskExpireTime_{60000};
   bool integrationTestMode_ {false};
