@@ -101,5 +101,4 @@ publish-node:
 	cd ./clients/nodejs/client/ && npm publish
 
 publish-python:
-	cd ./clients/python/client && python register -r pypi
-	cd ./clients/python/client && python sdist upload -r pypi
+	cd ./clients/python/client && python setup.py register -r pypi && python setup.py sdist upload -r pypi
