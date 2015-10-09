@@ -4,6 +4,10 @@ var log = _.bind(console.log, console);
 
 var main = function() {
     var client = new RelevancedClient('localhost', 8097);
+    client.getServerMetadata().then(function(metadata) {
+        log('server metadata: ');
+        log(metadata);
+    }).catch(log);
     client.listAllCentroids().then(function(centroids) {
         log("Centroid count: ", centroids.length);
         log(centroids);

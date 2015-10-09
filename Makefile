@@ -10,7 +10,10 @@ thrift-py:
 	mv ./clients/python/client/relevanced_client/gen-py ./clients/python/client/relevanced_client/gen_py
 
 thrift-node:
-	thrift-0.9 --gen js:node -o ./clients/nodejs/client/relevancedClient src/RelevancedProtocol.thrift
+	rm -rf ./clients/nodejs/client/gen-nodejs
+	mkdir -p build/thrift
+	thrift-0.9 --gen js:node -o build/thrift src/RelevancedProtocol.thrift
+	mv ./build/thrift/gen-nodejs ./clients/nodejs/client/
 
 thrift-java:
 	rm -rf clients/java/client/src/main/java/org/relevanced/client/gen_thrift_protocol
@@ -87,3 +90,16 @@ deb-package-remote:
 
 docker-sh:
 	sudo docker run --rm -t -i relevanced/relevanced /bin/bash
+
+smoketest-node:
+	node ./clients/nodejs/client/test/functionalSmoketest.js
+
+smoketest-java:
+	cd ./clients/java/client && sbt run
+
+publish-node:
+	cd ./clients/nodejs/client/ && npm publish
+
+publish-python:
+	cd ./clients/python/client && python register -r pypi
+	cd ./clients/python/client && python sdist upload -r pypi

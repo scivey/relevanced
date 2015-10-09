@@ -21,5 +21,6 @@ mainClass in (Compile, run) := Some("org.relevanced.client.Main")
 
 // library dependencies. (org name) % (project name) % (version)
 libraryDependencies ++= Seq(
-   "org.apache.thrift" % "libthrift" % "0.9.2"
+   "org.apache.thrift" % "libthrift" % "0.9.2",
+   "org.slf4j"         % "slf4j-jdk14" % "1.7.12"
 )

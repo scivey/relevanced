@@ -20,14 +20,6 @@ import org.relevanced.client.gen_thrift_protocol.SimilarityResponse;
 import org.relevanced.client.gen_thrift_protocol.Status;
 import org.relevanced.client.gen_thrift_protocol.StatusCode;
 
-import org.relevanced.client.exceptions.CentroidAlreadyExists;
-import org.relevanced.client.exceptions.CentroidDoesNotExist;
-import org.relevanced.client.exceptions.ConnectionError;
-import org.relevanced.client.exceptions.DocumentAlreadyExists;
-import org.relevanced.client.exceptions.DocumentDoesNotExist;
-import org.relevanced.client.exceptions.RelevancedException;
-import org.relevanced.client.exceptions.UnknownException;
-
 public class RelevancedBlockingClient {
     public Relevanced.Client thriftClient_;
     public TTransport thriftTransport_;
@@ -38,6 +30,9 @@ public class RelevancedBlockingClient {
     public RelevancedBlockingClient(String host, int port) {
         hostname_ = host;
         portNum_ = port;
+    }
+
+    public void connect() throws TException {
         try {
             thriftTransport_ = new TSocket(hostname_, portNum_);
             thriftTransport_.open();
@@ -45,6 +40,7 @@ public class RelevancedBlockingClient {
             thriftClient_ = new Relevanced.Client(thriftProtocol_);
         } catch (TException err) {
             err.printStackTrace();
+            throw err;
         }
     }
 
@@ -96,7 +92,7 @@ public class RelevancedBlockingClient {
         return response.id;
     }
 
-    public Boolean deleteCentroid(String name) throws TException {
+    public String deleteCentroid(String name) throws TException {
         CrudResponse response;
         response = thriftClient_.deleteCentroid(name);
         return response.id;
@@ -120,8 +116,7 @@ public class RelevancedBlockingClient {
     }
 
     public List<String> listAllCentroids() throws TException {
-        List<String> centroids = thriftClient_.listAllCentroids();
-        return centroids;
+        return thriftClient_.listAllCentroids();
     }
 
     public List<String> listAllDocumentsForCentroid(String centroidId) throws TException {
