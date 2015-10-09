@@ -48,172 +48,90 @@ public class RelevancedBlockingClient {
         }
     }
 
-    protected void handleResponseStatus(Status status) throws RelevancedException {
-        if (status.code == StatusCode.OK) {
-            return;
-        }
-        switch (status.code) {
-            case CENTROID_DOES_NOT_EXIST:
-                throw new CentroidDoesNotExist(status.message);
-            case CENTROID_ALREADY_EXISTS:
-                throw new CentroidAlreadyExists(status.message);
-            case DOCUMENT_DOES_NOT_EXIST:
-                throw new DocumentDoesNotExist(status.message);
-            case DOCUMENT_ALREADY_EXISTS:
-                throw new DocumentAlreadyExists(status.message);
-            default:
-                throw new UnknownException(status.message);
-        }
-    }
-
-    public Map<String, Double> multiGetTextSimilarity(List<String> centroidIds, String text) throws RelevancedException {
+    public Map<String, Double> multiGetTextSimilarity(List<String> centroidIds, String text) throws TException {
         MultiSimilarityResponse response;
-        try {
-            response = thriftClient_.multiGetTextSimilarity(centroidIds, text);
-        } catch (TException err) {
-            throw new ConnectionError(err);
-        }
-        handleResponseStatus(response.status);
+        response = thriftClient_.multiGetTextSimilarity(centroidIds, text);
         return response.scores;
     }
 
-    public Double getTextSimilarity(String centroidId, String text) throws RelevancedException {
+    public Double getTextSimilarity(String centroidId, String text) throws TException {
         SimilarityResponse response;
-        try {
-            response = thriftClient_.getTextSimilarity(centroidId, text);
-        } catch (TException err) {
-            throw new ConnectionError(err);
-        }
-        handleResponseStatus(response.status);
+        response = thriftClient_.getTextSimilarity(centroidId, text);
         return response.similarity;
     }
 
-    public Double getDocumentSimilarity(String centroidId, String documentId) throws RelevancedException {
+    public Double getDocumentSimilarity(String centroidId, String documentId) throws TException {
         SimilarityResponse response;
-        try {
-            response = thriftClient_.getDocumentSimilarity(centroidId, documentId);
-        } catch (TException err) {
-            throw new ConnectionError(err);
-        }
-        handleResponseStatus(response.status);
+        response = thriftClient_.getDocumentSimilarity(centroidId, documentId);
         return response.similarity;
     }
 
-    public Double getCentroidSimilarity(String centroidId1, String centroidId2) throws RelevancedException {
+    public Double getCentroidSimilarity(String centroidId1, String centroidId2) throws TException {
         SimilarityResponse response;
-        try {
-            response = thriftClient_.getCentroidSimilarity(centroidId1, centroidId2);
-        } catch (TException err) {
-            throw new ConnectionError(err);
-        }
-        handleResponseStatus(response.status);
+        response = thriftClient_.getCentroidSimilarity(centroidId1, centroidId2);
         return response.similarity;
     }
 
-    public String createDocument(String text) throws RelevancedException {
+    public String createDocument(String text) throws TException {
         CrudResponse response;
-        try {
-            response = thriftClient_.createDocument(text);
-        } catch (TException err) {
-            throw new ConnectionError(err);
-        }
-        handleResponseStatus(response.status);
-        return response.created;
+        response = thriftClient_.createDocument(text);
+        return response.id;
     }
 
-    public String createDocumentWithID(String id, String text) throws RelevancedException {
+    public String createDocumentWithID(String id, String text) throws TException {
         CrudResponse response;
-        try {
-            response = thriftClient_.createDocumentWithID(id, text);
-        } catch (TException err) {
-            throw new ConnectionError(err);
-        }
-        handleResponseStatus(response.status);
-        return response.created;
+        response = thriftClient_.createDocumentWithID(id, text);
+        return response.id;
     }
 
-    public Boolean deleteDocument(String documentId) throws RelevancedException {
+    public String deleteDocument(String documentId) throws TException {
         CrudResponse response;
-        try {
-            response = thriftClient_.deleteDocument(documentId);
-        } catch (TException err) {
-            throw new ConnectionError(err);
-        }
-        handleResponseStatus(response.status);
+        response = thriftClient_.deleteDocument(documentId);
+        return response.id;
+    }
+
+    public String createCentroid(String name) throws TException {
+        CrudResponse response;
+        response = thriftClient_.createCentroid(name);
+        return response.id;
+    }
+
+    public Boolean deleteCentroid(String name) throws TException {
+        CrudResponse response;
+        response = thriftClient_.deleteCentroid(name);
+        return response.id;
+    }
+
+    public Boolean addDocumentToCentroid(String centroidId, String documentId) throws TException {
+        CrudResponse response;
+        response = thriftClient_.addDocumentToCentroid(centroidId, documentId);
         return true;
     }
 
-    public String createCentroid(String name) throws RelevancedException {
+    public Boolean removeDocumentFromCentroid(String centroidId, String documentId) throws TException {
         CrudResponse response;
-        try {
-            response = thriftClient_.createCentroid(name);
-        } catch (TException err) {
-            throw new ConnectionError(err);
-        }
-        handleResponseStatus(response.status);
-        return response.created;
-    }
-
-    public Boolean deleteCentroid(String name) throws RelevancedException {
-        CrudResponse response;
-        try {
-            response = thriftClient_.deleteCentroid(name);
-        } catch (TException err) {
-            throw new ConnectionError(err);
-        }
-        handleResponseStatus(response.status);
+        response = thriftClient_.removeDocumentFromCentroid(centroidId, documentId);
         return true;
     }
 
-    public Boolean addDocumentToCentroid(String centroidId, String documentId) throws RelevancedException {
-        CrudResponse response;
-        try {
-            response = thriftClient_.addDocumentToCentroid(centroidId, documentId);
-        } catch (TException err) {
-            throw new ConnectionError(err);
-        }
-        handleResponseStatus(response.status);
-        return true;
+    public List<String> listAllDocuments() throws TException {
+        List<String> documents = thriftClient_.listAllDocuments();
+        return documents;
     }
 
-    public Boolean removeDocumentFromCentroid(String centroidId, String documentId) throws RelevancedException {
-        CrudResponse response;
-        try {
-            response = thriftClient_.removeDocumentFromCentroid(centroidId, documentId);
-        } catch (TException err) {
-            throw new ConnectionError(err);
-        }
-        handleResponseStatus(response.status);
-        return true;
+    public List<String> listAllCentroids() throws TException {
+        List<String> centroids = thriftClient_.listAllCentroids();
+        return centroids;
     }
 
-    public List<String> listAllDocuments() throws RelevancedException {
-        try {
-            List<String> documents = thriftClient_.listAllDocuments();
-            return documents;
-        } catch (TException err) {
-            throw new ConnectionError(err);
-        }
-    }
-
-    public List<String> listAllCentroids() throws RelevancedException {
-        try {
-            List<String> centroids = thriftClient_.listAllCentroids();
-            return centroids;
-        } catch (TException err) {
-            throw new ConnectionError(err);
-        }
-    }
-
-    public List<String> listAllDocumentsForCentroid(String centroidId) throws RelevancedException {
+    public List<String> listAllDocumentsForCentroid(String centroidId) throws TException {
         ListCentroidDocumentsResponse response;
-        try {
-            response = thriftClient_.listAllDocumentsForCentroid(centroidId);
-        } catch (TException err) {
-            throw new ConnectionError(err);
-        }
-        handleResponseStatus(response.status);
+        response = thriftClient_.listAllDocumentsForCentroid(centroidId);
         return response.documents;
+    }
+
+    public Map<String, String> getServerMetadata() throws TException {
+        return thriftClient_.getServerMetadata();
     }
 
 }

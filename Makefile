@@ -13,10 +13,10 @@ thrift-node:
 	thrift-0.9 --gen js:node -o ./clients/nodejs/client/relevancedClient src/RelevancedProtocol.thrift
 
 thrift-java:
-	mkdir -p clients/java/src
+	rm -rf clients/java/client/src/main/java/org/relevanced/client/gen_thrift_protocol
 	mkdir -p build/thrift
 	thrift-0.9 --gen java -o build/thrift src/RelevancedProtocol.thrift
-	mv ./build/thrift/gen-java/org/relevanced/client/gen_thrift_protocol ./clients/java/client/src/org/relevanced/client/
+	mv ./build/thrift/gen-java/org/relevanced/client/gen_thrift_protocol ./clients/java/client/src/main/java/org/relevanced/client/
 
 build-docker-standalone:
 	cp build/deb/*.deb scripts/packaging/containers/standalone_server/data/
