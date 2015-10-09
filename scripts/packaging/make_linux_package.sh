@@ -94,7 +94,7 @@ function main() {
 
   # Create the prefix log dir and copy source configs
   log "copying configurations"
-  mkdir -p $INSTALL_PREFIX/$RELEVANCED_VAR_DIR
+  mkdir -p $INSTALL_PREFIX/$RELEVANCED_VAR_DIR/data
   mkdir -p $INSTALL_PREFIX/$RELEVANCED_LOG_DIR
   mkdir -p $INSTALL_PREFIX/$RELEVANCED_ETC_DIR
   cp $SCRIPT_DIR/relevanced_config.conf $INSTALL_PREFIX/$RELEVANCED_ETC_DIR/relevanced_config.conf

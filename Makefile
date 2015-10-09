@@ -81,3 +81,9 @@ build-server-static:
 
 deb-package-local:
 	./scripts/packaging/build_deb.sh
+
+deb-package-remote:
+	cd scripts/packaging && fab build_relevanced_for_current_branch
+
+docker-sh:
+	sudo docker run --rm -t -i relevanced/relevanced /bin/bash
