@@ -1,14 +1,17 @@
 #pragma once
 
 #include <memory>
+#include <vector>
+#include <cassert>
+
 #include <wangle/concurrent/CPUThreadPoolExecutor.h>
 #include <wangle/concurrent/FutureExecutor.h>
 #include <folly/futures/Future.h>
 
 #include <folly/Synchronized.h>
-#include <vector>
-#include <cassert>
+
 #include "persistence/Persistence.h"
+#include "persistence/CentroidMetadataDb.h"
 #include "models/WordVector.h"
 #include "models/ProcessedDocument.h"
 
@@ -35,7 +38,7 @@ public:
  *   `score` method from a thread in its dedicated pool.
  * - It keeps all centroids loaded in memory so it can quickly response to requests,
      and reloads them whenever instructed to make sure they stay current.
- * 
+ *
  * In practice, similarity scores are requested by the parent `RelevanceServer` in response
  * to a corresponding client request.  Similarly, requests to reload the centroid are
  * sent by the `RelevanceServer` when it becomes aware of new data.
@@ -45,11 +48,14 @@ public:
 class SimilarityScoreWorker: public SimilarityScoreWorkerIf {
 protected:
   std::shared_ptr<persistence::PersistenceIf> persistence_;
+  std::shared_ptr<persistence::CentroidMetadataDbIf> centroidMetadataDb_;
+
   std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>> threadPool_;
   folly::Synchronized<std::map<std::string, std::shared_ptr<models::Centroid>>> centroids_;
 public:
   SimilarityScoreWorker(
     std::shared_ptr<persistence::PersistenceIf> persistence,
+    std::shared_ptr<persistence::CentroidMetadataDbIf> metadataDb,
     std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>> threadPool
   );
   void setLoadedCentroid_(const std::string &id, std::shared_ptr<models::Centroid>);

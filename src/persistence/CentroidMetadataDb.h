@@ -29,9 +29,9 @@ public:
  */
 
 class CentroidMetadataDb: public CentroidMetadataDbIf {
-  std::shared_ptr<Persistence> persistence_;
+  std::shared_ptr<PersistenceIf> persistence_;
 public:
-  CentroidMetadataDb(std::shared_ptr<Persistence>);
+  CentroidMetadataDb(std::shared_ptr<PersistenceIf>);
   folly::Future<folly::Optional<uint64_t>> getCreatedTimestamp(const std::string&) override;
   folly::Future<folly::Optional<uint64_t>> getLastCalculatedTimestamp(const std::string&) override;
   folly::Future<folly::Optional<uint64_t>> getLastDocumentChangeTimestamp(const std::string&) override;

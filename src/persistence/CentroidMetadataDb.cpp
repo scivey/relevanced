@@ -14,7 +14,7 @@ using namespace folly;
 namespace relevanced {
 namespace persistence {
 
-CentroidMetadataDb::CentroidMetadataDb(shared_ptr<Persistence> persistence)
+CentroidMetadataDb::CentroidMetadataDb(shared_ptr<PersistenceIf> persistence)
   : persistence_(persistence) {}
 
 Future<Optional<uint64_t>> CentroidMetadataDb::getCreatedTimestamp(const std::string& centroidId) {

@@ -12,6 +12,14 @@
 namespace relevanced {
 namespace util {
 
+
+// used to make phony shared_ptr<T> instances that don't call `free()`
+template<typename T>
+struct NoDelete {
+    void operator()(T*) const {
+    }
+};
+
 template<typename T>
 void defaultDelete(T *t) {
     delete t;

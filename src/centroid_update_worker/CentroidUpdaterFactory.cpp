@@ -7,12 +7,12 @@
 namespace relevanced {
 namespace centroid_update_worker {
 
-CentroidUpdaterFactory::CentroidUpdaterFactory(shared_ptr<persistence::PersistenceIf> persistence)
-  : persistence_(persistence) {}
+CentroidUpdaterFactory::CentroidUpdaterFactory(shared_ptr<persistence::PersistenceIf> persistence, shared_ptr<persistence::CentroidMetadataDbIf> metadata)
+  : persistence_(persistence), centroidMetadataDb_(metadata) {}
 
 shared_ptr<CentroidUpdaterIf> CentroidUpdaterFactory::makeForCentroidId(const string &centroidId) {
   return shared_ptr<CentroidUpdaterIf>(
-    new CentroidUpdater(persistence_, centroidId)
+    new CentroidUpdater(persistence_, centroidMetadataDb_, centroidId)
   );
 }
 

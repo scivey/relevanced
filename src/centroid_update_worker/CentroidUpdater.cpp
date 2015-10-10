@@ -19,6 +19,7 @@
 #include "models/WordVector.h"
 #include "models/Centroid.h"
 #include "persistence/Persistence.h"
+#include "persistence/CentroidMetadataDb.h"
 #include "util/util.h"
 
 using namespace std;
@@ -34,9 +35,11 @@ using util::UniquePointer;
 
 CentroidUpdater::CentroidUpdater(
   shared_ptr<persistence::PersistenceIf> persistence,
+  shared_ptr<persistence::CentroidMetadataDbIf> metadataDb,
   string centroidId
-): persistence_(persistence), centroidId_(centroidId) {}
-
+): persistence_(persistence),
+   centroidMetadataDb_(metadataDb),
+   centroidId_(centroidId) {}
 
 Try<bool> CentroidUpdater::run() {
   LOG(INFO) << "CentroidUpdater::run";

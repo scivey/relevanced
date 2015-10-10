@@ -65,6 +65,7 @@ public:
  */
 class RelevanceServer: public RelevanceServerIf {
   shared_ptr<persistence::PersistenceIf> persistence_;
+  shared_ptr<persistence::CentroidMetadataDbIf> centroidMetadataDb_;
   shared_ptr<similarity_score_worker::SimilarityScoreWorkerIf> scoreWorker_;
   shared_ptr<document_processing_worker::DocumentProcessingWorkerIf> processingWorker_;
   shared_ptr<centroid_update_worker::CentroidUpdateWorkerIf> centroidUpdateWorker_;
@@ -72,6 +73,7 @@ class RelevanceServer: public RelevanceServerIf {
 public:
   RelevanceServer(
     shared_ptr<persistence::PersistenceIf> persistenceSv,
+    shared_ptr<persistence::CentroidMetadataDbIf> metadata,
     shared_ptr<similarity_score_worker::SimilarityScoreWorkerIf> scoreWorker,
     shared_ptr<document_processing_worker::DocumentProcessingWorkerIf> docProcessingWorker,
     shared_ptr<centroid_update_worker::CentroidUpdateWorkerIf> centroidUpdateWorker

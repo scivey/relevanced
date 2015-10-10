@@ -7,6 +7,7 @@
 #include "persistence/Persistence.h"
 #include "persistence/SyncPersistence.h"
 #include "persistence/RockHandle.h"
+#include "persistence/CentroidMetadataDb.h"
 #include "server/RelevanceServer.h"
 #include "server/RelevanceServerOptions.h"
 #include "server/ServerBuilder.h"
@@ -39,7 +40,7 @@ shared_ptr<ThriftServerWrapper> buildNormalThriftServer(shared_ptr<RelevanceServ
   ServerBuilder builder(options);
   builder.buildClock<util::Clock>();
   builder.buildPersistence<
-    RockHandle, SyncPersistence, Persistence
+    RockHandle, SyncPersistence, Persistence, CentroidMetadataDb
   >();
   builder.buildDocumentProcessor<
     DocumentProcessingWorker, DocumentProcessor,

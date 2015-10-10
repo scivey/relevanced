@@ -15,6 +15,7 @@
 #include "persistence/Persistence.h"
 #include "persistence/SyncPersistence.h"
 #include "persistence/RockHandle.h"
+#include "persistence/CentroidMetadataDb.h"
 #include "server/RelevanceServer.h"
 #include "server/ThriftRelevanceServer.h"
 #include "util/util.h"
@@ -60,6 +61,7 @@ using util::UniquePointer;
  */
 class ServerBuilder {
   shared_ptr<PersistenceIf> persistence_;
+  shared_ptr<CentroidMetadataDbIf> centroidMetadataDb_;
   shared_ptr<DocumentProcessingWorkerIf> processor_;
   shared_ptr<SimilarityScoreWorkerIf> similarityWorker_;
   shared_ptr<CentroidUpdateWorkerIf> centroidUpdater_;
@@ -72,7 +74,8 @@ public:
   template<
     typename RockHandleT,
     typename SyncPersistenceT,
-    typename PersistenceT
+    typename PersistenceT,
+    typename CentroidMetadataT
   >
   void buildPersistence() {
     string rockDir = options_->getDataDir() + "/rock";
@@ -88,6 +91,7 @@ public:
           options_->getRocksDbThreadCount()
         )
     ));
+    centroidMetadataDb_.reset(new CentroidMetadataT(persistence_));
   }
 
   template<typename ClockT>
@@ -125,7 +129,7 @@ public:
   void buildCentroidUpdateWorker() {
     assert(persistence_.get() != nullptr);
     shared_ptr<CentroidUpdaterFactoryIf> updaterFactory(
-      new CentroidUpdaterFactoryT(persistence_)
+      new CentroidUpdaterFactoryT(persistence_, centroidMetadataDb_)
     );
     auto threadPool = make_shared<FutureExecutor<CPUThreadPoolExecutor>>(
       options_->getCentroidUpdateThreadCount()
@@ -142,7 +146,7 @@ public:
       options_->getSimilarityScoreThreadCount()
     );
     similarityWorker_.reset(
-      new SimilarityScoreWorkerT(persistence_, threadPool)
+      new SimilarityScoreWorkerT(persistence_, centroidMetadataDb_, threadPool)
     );
   }
 
@@ -153,7 +157,7 @@ public:
     assert(similarityWorker_.get() != nullptr);
     assert(centroidUpdater_.get() != nullptr);
     auto server = make_shared<RelevanceServerT>(
-      persistence_, similarityWorker_, processor_, centroidUpdater_
+      persistence_, centroidMetadataDb_, similarityWorker_, processor_, centroidUpdater_
     );
     server->initialize();
     return server;

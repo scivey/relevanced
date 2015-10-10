@@ -11,8 +11,10 @@
 #include <folly/Optional.h>
 
 #include "persistence/Persistence.h"
-#include "util/util.h"
 #include "persistence/SyncPersistence.h"
+#include "persistence/CentroidMetadataDb.h"
+
+#include "util/util.h"
 #include "models/WordVector.h"
 #include "models/Centroid.h"
 #include "models/ProcessedDocument.h"
@@ -201,6 +203,8 @@ Future<Try<bool>> Persistence::setCentroidMetadata(const string &centroidId, con
     return syncHandle_->setCentroidMetadata(centroidId, metadataName, value);
   });
 }
+
+
 
 } // persistence
 } // relevanced

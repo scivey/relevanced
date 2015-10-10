@@ -17,6 +17,7 @@
 #include "models/ProcessedDocument.h"
 #include "persistence/exceptions.h"
 #include "persistence/Persistence.h"
+#include "persistence/CentroidMetadataDb.h"
 #include "release_metadata/release_metadata.h"
 #include "serialization/serializers.h"
 #include "server/RelevanceServer.h"
@@ -42,11 +43,15 @@ using util::UniquePointer;
 
 RelevanceServer::RelevanceServer(
   shared_ptr<persistence::PersistenceIf> persistenceSv,
+  shared_ptr<persistence::CentroidMetadataDbIf> metadataDb,
   shared_ptr<SimilarityScoreWorkerIf> scoreWorker,
   shared_ptr<DocumentProcessingWorkerIf> docProcessor,
   shared_ptr<CentroidUpdateWorkerIf> centroidUpdater
-): persistence_(persistenceSv), scoreWorker_(scoreWorker),
-   processingWorker_(docProcessor), centroidUpdateWorker_(centroidUpdater) {}
+): persistence_(persistenceSv),
+   centroidMetadataDb_(metadataDb),
+   scoreWorker_(scoreWorker),
+   processingWorker_(docProcessor),
+   centroidUpdateWorker_(centroidUpdater) {}
 
 void RelevanceServer::ping() {}
 

@@ -12,14 +12,16 @@
 #include "models/Centroid.h"
 #include "models/ProcessedDocument.h"
 
-
 #include "persistence/SyncPersistence.h"
 
 namespace relevanced {
 namespace persistence {
 
+class CentroidMetadataDbIf;
+
 class PersistenceIf {
 public:
+
   virtual folly::Future<bool> doesDocumentExist(const std::string &id) = 0;
   virtual folly::Future<folly::Try<bool>> saveDocument(std::shared_ptr<models::ProcessedDocument> doc) = 0;
   virtual folly::Future<folly::Try<bool>> deleteDocument(const std::string &id) = 0;
@@ -72,6 +74,7 @@ public:
     util::UniquePointer<SyncPersistenceIf> syncHandle,
     std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>> threadPool
   );
+
   folly::Future<bool> doesDocumentExist(const std::string &id) override;
   folly::Future<folly::Try<bool>> saveDocument(std::shared_ptr<models::ProcessedDocument> doc) override;
   folly::Future<folly::Try<bool>> deleteDocument(const std::string &id) override;

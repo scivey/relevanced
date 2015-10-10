@@ -20,6 +20,7 @@
 
 #include "persistence/exceptions.h"
 #include "persistence/Persistence.h"
+#include "persistence/CentroidMetadataDb.h"
 #include "similarity_score_worker/SimilarityScoreWorker.h"
 #include "util/util.h"
 
@@ -37,8 +38,11 @@ using namespace std;
 
 SimilarityScoreWorker::SimilarityScoreWorker(
   shared_ptr<persistence::PersistenceIf> persistence,
+  shared_ptr<persistence::CentroidMetadataDbIf> centroidMetadataDb,
   shared_ptr<FutureExecutor<CPUThreadPoolExecutor>> threadPool
-): persistence_(persistence), threadPool_(threadPool) {}
+): persistence_(persistence),
+   centroidMetadataDb_(centroidMetadataDb),
+   threadPool_(threadPool) {}
 
 // run synchronously on startup
 void SimilarityScoreWorker::initialize() {
