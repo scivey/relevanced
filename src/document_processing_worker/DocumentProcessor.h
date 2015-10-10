@@ -8,6 +8,8 @@
 #include "models/ProcessedDocument.h"
 
 #include "util/util.h"
+#include "util/Clock.h"
+
 
 namespace relevanced {
 namespace document_processing_worker {
@@ -27,12 +29,14 @@ protected:
   std::shared_ptr<stemmer::StemmerIf> stemmer_;
   std::shared_ptr<tokenizer::TokenizerIf> tokenizer_;
   std::shared_ptr<stopwords::StopwordFilterIf> stopwordFilter_;
+  std::shared_ptr<util::ClockIf> clock_;
 public:
   DocumentProcessor(
     std::shared_ptr<tokenizer::TokenizerIf> tokenizer,
     std::shared_ptr<stemmer::StemmerIf> stemmer,
-    std::shared_ptr<stopwords::StopwordFilterIf> stopwordFilter
-  ) : stemmer_(stemmer), tokenizer_(tokenizer), stopwordFilter_(stopwordFilter) {}
+    std::shared_ptr<stopwords::StopwordFilterIf> stopwordFilter,
+    std::shared_ptr<util::ClockIf> clock
+  ) : stemmer_(stemmer), tokenizer_(tokenizer), stopwordFilter_(stopwordFilter), clock_(clock) {}
   std::shared_ptr<models::ProcessedDocument> processNew(const models::Document &doc) override;
   std::shared_ptr<models::ProcessedDocument> processNew(std::shared_ptr<models::Document> doc) override;
   models::ProcessedDocument process(const models::Document &doc) override;

@@ -18,6 +18,8 @@
 #include "server/RelevanceServer.h"
 #include "server/ThriftRelevanceServer.h"
 #include "util/util.h"
+#include "util/Clock.h"
+#include "util/Sha1Hasher.h"
 #include "similarity_score_worker/SimilarityScoreWorker.h"
 #include "server/RelevanceServerOptions.h"
 
@@ -62,6 +64,8 @@ class ServerBuilder {
   shared_ptr<SimilarityScoreWorkerIf> similarityWorker_;
   shared_ptr<CentroidUpdateWorkerIf> centroidUpdater_;
   shared_ptr<RelevanceServerOptions> options_;
+  shared_ptr<util::ClockIf> clock_;
+  shared_ptr<util::Sha1HasherIf> hasher_;
 public:
   ServerBuilder(shared_ptr<RelevanceServerOptions> options): options_(options) {}
 
@@ -86,19 +90,34 @@ public:
     ));
   }
 
-  template<typename ProcessWorkerT, typename ProcessorT, typename TokenizerT, typename StemmerT, typename StopwordFilterT>
+  template<typename ClockT>
+  void buildClock() {
+    shared_ptr<util::ClockIf> clockPtr(new ClockT);
+    clock_ = clockPtr;
+  }
+
+  template<
+    typename ProcessWorkerT,
+    typename ProcessorT,
+    typename TokenizerT,
+    typename StemmerT,
+    typename StopwordFilterT,
+    typename HasherT
+  >
   void buildDocumentProcessor() {
+    assert(clock_.get() != nullptr);
     shared_ptr<TokenizerIf> tokenizer(new TokenizerT);
     shared_ptr<StemmerIf> stemmer(new StemmerT);
     shared_ptr<StopwordFilterIf> stopwordFilter(new StopwordFilterT);
     shared_ptr<DocumentProcessorIf> processor(new ProcessorT(
-        tokenizer, stemmer, stopwordFilter
+        tokenizer, stemmer, stopwordFilter, clock_
     ));
     auto threadPool = make_shared<FutureExecutor<CPUThreadPoolExecutor>>(
       options_->getDocumentProcessingThreadCount()
     );
+    shared_ptr<util::Sha1HasherIf> hasher(new HasherT);
     processor_.reset(new ProcessWorkerT(
-      processor, threadPool
+      processor, hasher, threadPool
     ));
   }
 

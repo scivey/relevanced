@@ -15,6 +15,9 @@ struct CentroidDTO {
 struct ProcessedDocumentDTO {
     1: required string id;
     2: required WordVectorDTO wordVector;
+    3: required string sha1Hash;
+    4: required i64 created;
+    5: required i64 updated;
 }
 
 enum StatusCode {

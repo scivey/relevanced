@@ -43,6 +43,9 @@ void DocumentProcessor::process_(const Document &doc, ProcessedDocument *result)
   result->wordVector.magnitude = magnitude;
   result->wordVector.documentWeight = 1.0;
   result->wordVector.scores = std::move(wordCounts);
+  auto timestamp = clock_->getEpochTime();
+  result->created = timestamp;
+  result->updated = timestamp;
 }
 
 void DocumentProcessor::process_(const Document &doc, shared_ptr<ProcessedDocument> result) {

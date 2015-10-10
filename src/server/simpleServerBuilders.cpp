@@ -18,6 +18,8 @@
 #include "stopwords/StopwordFilter.h"
 #include "tokenizer/Tokenizer.h"
 #include "util/util.h"
+#include "util/Clock.h"
+#include "util/Sha1Hasher.h"
 
 using namespace std;
 using namespace relevanced;
@@ -35,12 +37,13 @@ namespace server {
 
 shared_ptr<ThriftServerWrapper> buildNormalThriftServer(shared_ptr<RelevanceServerOptions> options) {
   ServerBuilder builder(options);
+  builder.buildClock<util::Clock>();
   builder.buildPersistence<
     RockHandle, SyncPersistence, Persistence
   >();
   builder.buildDocumentProcessor<
     DocumentProcessingWorker, DocumentProcessor,
-    Tokenizer, PorterStemmer, StopwordFilter
+    Tokenizer, PorterStemmer, StopwordFilter, util::Sha1Hasher
   >();
   builder.buildCentroidUpdateWorker<
     CentroidUpdateWorker, CentroidUpdaterFactory

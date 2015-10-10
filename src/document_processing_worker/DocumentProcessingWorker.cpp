@@ -1,12 +1,15 @@
-#include "document_processing_worker/DocumentProcessingWorker.h"
-#include "models/WordVector.h"
-#include "models/ProcessedDocument.h"
-#include "models/Document.h"
-
 #include <memory>
 #include <folly/futures/Future.h>
 #include <wangle/concurrent/CPUThreadPoolExecutor.h>
 #include <wangle/concurrent/FutureExecutor.h>
+
+#include "document_processing_worker/DocumentProcessingWorker.h"
+#include "models/WordVector.h"
+#include "models/ProcessedDocument.h"
+#include "models/Document.h"
+#include "util/Clock.h"
+#include "util/Sha1Hasher.h"
+
 
 namespace relevanced {
 namespace document_processing_worker {
@@ -22,8 +25,9 @@ using models::ProcessedDocument;
 
 DocumentProcessingWorker::DocumentProcessingWorker(
   shared_ptr<DocumentProcessorIf> processor,
+  shared_ptr<util::Sha1HasherIf> hasher,
   shared_ptr<FutureExecutor<CPUThreadPoolExecutor>> threadPool
-) : processor_(processor), threadPool_(threadPool) {}
+) : processor_(processor), hasher_(hasher), threadPool_(threadPool) {}
 
 
 Future<shared_ptr<ProcessedDocument>> DocumentProcessingWorker::processNew(shared_ptr<Document> doc) {
@@ -31,6 +35,12 @@ Future<shared_ptr<ProcessedDocument>> DocumentProcessingWorker::processNew(share
     return processor_->processNew(doc);
   });
 }
+
+// Future<shared_ptr<ProcessedDocument>> DocumentProcessingWorker::processNewWithoutHash(shared_ptr<Document> doc) {
+//   return threadPool_->addFuture([this, doc](){
+//     auto result = processor_->processNew(doc);
+//   });
+// }
 
 } // document_processing_worker
 } // relevanced

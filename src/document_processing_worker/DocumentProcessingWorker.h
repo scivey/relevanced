@@ -8,6 +8,8 @@
 #include "models/WordVector.h"
 #include "models/ProcessedDocument.h"
 #include "models/Document.h"
+#include "util/Clock.h"
+#include "util/Sha1Hasher.h"
 
 namespace relevanced {
 namespace document_processing_worker {
@@ -19,10 +21,12 @@ public:
 
 class DocumentProcessingWorker: public DocumentProcessingWorkerIf {
   std::shared_ptr<DocumentProcessorIf> processor_;
+  std::shared_ptr<util::Sha1HasherIf> hasher_;
   std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>> threadPool_;
 public:
   DocumentProcessingWorker(
     std::shared_ptr<DocumentProcessorIf>,
+    std::shared_ptr<util::Sha1HasherIf>,
     std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>> threadPool
   );
   folly::Future<std::shared_ptr<models::ProcessedDocument>> processNew(std::shared_ptr<models::Document>) override;

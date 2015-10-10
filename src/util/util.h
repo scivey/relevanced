@@ -94,5 +94,8 @@ std::string getUuid();
 
 bool isOnlyAscii(const std::string &text);
 
+int64_t getChronoEpochTime();
+std::string sha1(const std::string &input);
+
 } // util
 } // relevanced
