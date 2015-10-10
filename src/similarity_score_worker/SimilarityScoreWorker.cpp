@@ -1,26 +1,24 @@
+#include <cassert>
 #include <memory>
-#include <wangle/concurrent/CPUThreadPoolExecutor.h>
-#include <wangle/concurrent/FutureExecutor.h>
+#include <vector>
+
+#include <folly/ExceptionWrapper.h>
 #include <folly/futures/Future.h>
 #include <folly/futures/helpers.h>
 #include <folly/futures/Try.h>
-#include <folly/ExceptionWrapper.h>
-
 #include <folly/Optional.h>
 #include <folly/Synchronized.h>
-#include <vector>
-#include <cassert>
+#include <wangle/concurrent/CPUThreadPoolExecutor.h>
+#include <wangle/concurrent/FutureExecutor.h>
 
 #include "centroid_update_worker/CentroidUpdateWorker.h"
 #include "document_processing_worker/DocumentProcessor.h"
-#include "models/WordVector.h"
 #include "models/Centroid.h"
 #include "models/ProcessedDocument.h"
-
-
+#include "models/WordVector.h"
+#include "persistence/CentroidMetadataDb.h"
 #include "persistence/exceptions.h"
 #include "persistence/Persistence.h"
-#include "persistence/CentroidMetadataDb.h"
 #include "similarity_score_worker/SimilarityScoreWorker.h"
 #include "util/util.h"
 

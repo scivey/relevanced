@@ -9,11 +9,8 @@
 #include <folly/futures/Try.h>
 #include <folly/Optional.h>
 
-#include "persistence/exceptions.h"
-#include "persistence/RockHandle.h"
-#include "models/WordVector.h"
-#include "models/ProcessedDocument.h"
-#include "models/Centroid.h"
+#include "declarations.h"
+
 #include "util/util.h"
 
 namespace relevanced {

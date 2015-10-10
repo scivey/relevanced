@@ -5,6 +5,8 @@
 #include "centroid_update_worker/CentroidUpdaterFactory.h"
 #include "util/Clock.h"
 
+using namespace std;
+
 namespace relevanced {
 namespace centroid_update_worker {
 

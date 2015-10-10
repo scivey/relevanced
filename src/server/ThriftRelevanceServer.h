@@ -5,7 +5,7 @@
 #include <folly/futures/Future.h>
 #include <folly/futures/helpers.h>
 #include "gen-cpp2/Relevanced.h"
-#include "server/RelevanceServer.h"
+#include "declarations.h"
 
 namespace relevanced {
 namespace server {
@@ -31,25 +31,25 @@ public:
   );
   void ping() override;
 
-  folly::Future<unique_ptr<std::map<std::string, std::string>>>
+  folly::Future<std::unique_ptr<std::map<std::string, std::string>>>
     future_getServerMetadata() override;
 
-  folly::Future<unique_ptr<thrift_protocol::SimilarityResponse>>
+  folly::Future<std::unique_ptr<thrift_protocol::SimilarityResponse>>
     future_getDocumentSimilarity(std::unique_ptr<std::string> centroidId, std::unique_ptr<std::string> docId) override;
 
-  folly::Future<unique_ptr<thrift_protocol::MultiSimilarityResponse>>
+  folly::Future<std::unique_ptr<thrift_protocol::MultiSimilarityResponse>>
     future_multiGetTextSimilarity(std::unique_ptr<std::vector<std::string>> centroidId, std::unique_ptr<std::string> text) override;
 
-  folly::Future<unique_ptr<thrift_protocol::SimilarityResponse>>
+  folly::Future<std::unique_ptr<thrift_protocol::SimilarityResponse>>
     future_getTextSimilarity(std::unique_ptr<std::string> centroidId, std::unique_ptr<std::string> text) override;
 
-  folly::Future<unique_ptr<thrift_protocol::SimilarityResponse>>
+  folly::Future<std::unique_ptr<thrift_protocol::SimilarityResponse>>
     future_getCentroidSimilarity(std::unique_ptr<std::string> centroid1Id, std::unique_ptr<std::string> centroid2Id) override;
 
-  folly::Future<unique_ptr<thrift_protocol::CrudResponse>>
+  folly::Future<std::unique_ptr<thrift_protocol::CrudResponse>>
     future_createDocument(std::unique_ptr<std::string> text) override;
 
-  folly::Future<unique_ptr<thrift_protocol::CrudResponse>>
+  folly::Future<std::unique_ptr<thrift_protocol::CrudResponse>>
     future_createDocumentWithID(std::unique_ptr<std::string> id, std::unique_ptr<std::string> text) override;
 
   folly::Future<std::unique_ptr<thrift_protocol::CrudResponse>>
@@ -58,19 +58,19 @@ public:
   folly::Future<std::unique_ptr<thrift_protocol::GetDocumentResponse>>
     future_getDocument(std::unique_ptr<std::string> id) override;
 
-  folly::Future<unique_ptr<thrift_protocol::CrudResponse>>
+  folly::Future<std::unique_ptr<thrift_protocol::CrudResponse>>
     future_createCentroid(std::unique_ptr<std::string> centroidId) override;
 
-  folly::Future<unique_ptr<thrift_protocol::CrudResponse>>
+  folly::Future<std::unique_ptr<thrift_protocol::CrudResponse>>
     future_deleteCentroid(std::unique_ptr<std::string> centroidId) override;
 
-  folly::Future<unique_ptr<thrift_protocol::ListCentroidDocumentsResponse>>
+  folly::Future<std::unique_ptr<thrift_protocol::ListCentroidDocumentsResponse>>
     future_listAllDocumentsForCentroid(std::unique_ptr<std::string> centroidId) override;
 
-  folly::Future<unique_ptr<thrift_protocol::CrudResponse>>
+  folly::Future<std::unique_ptr<thrift_protocol::CrudResponse>>
     future_addDocumentToCentroid(std::unique_ptr<std::string> centroidId, std::unique_ptr<std::string> docId) override;
 
-  folly::Future<unique_ptr<thrift_protocol::CrudResponse>>
+  folly::Future<std::unique_ptr<thrift_protocol::CrudResponse>>
     future_removeDocumentFromCentroid(std::unique_ptr<std::string> centroidId, std::unique_ptr<std::string> docId) override;
 
   folly::Future<bool> future_joinCentroid(std::unique_ptr<std::string> centroidId) override;

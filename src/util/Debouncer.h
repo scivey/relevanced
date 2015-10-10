@@ -1,15 +1,17 @@
 #pragma once
+#include <atomic>
 #include <chrono>
+#include <functional>
+#include <memory>
 #include <set>
 #include <string>
-#include <atomic>
-#include <memory>
-#include <folly/Synchronized.h>
-#include <folly/ProducerConsumerQueue.h>
+
 #include <folly/futures/Future.h>
-#include <folly/futures/Promise.h>
 #include <folly/futures/helpers.h>
+#include <folly/futures/Promise.h>
 #include <folly/io/async/EventBase.h>
+#include <folly/ProducerConsumerQueue.h>
+#include <folly/Synchronized.h>
 #include <glog/logging.h>
 
 namespace relevanced {
@@ -21,10 +23,10 @@ class Debouncer {
   std::chrono::milliseconds initialDelay_;
   std::chrono::milliseconds interval_;
   std::chrono::milliseconds requeueDelay_;
-  function<void (T)> onValueCb_;
+  std::function<void (T)> onValueCb_;
   std::atomic<bool> stopping_ {false};
 public:
-  Debouncer(std::chrono::milliseconds initialDelay, std::chrono::milliseconds interval, function<void (T)> onValue)
+  Debouncer(std::chrono::milliseconds initialDelay, std::chrono::milliseconds interval, std::function<void (T)> onValue)
     : initialDelay_(initialDelay), interval_(interval), onValueCb_(onValue) {
     std::chrono::milliseconds diff(10);
     requeueDelay_ = interval_ + diff;

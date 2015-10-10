@@ -4,12 +4,12 @@
 #include <wangle/concurrent/FutureExecutor.h>
 
 #include "document_processing_worker/DocumentProcessingWorker.h"
+#include "document_processing_worker/DocumentProcessor.h"
 #include "models/WordVector.h"
 #include "models/ProcessedDocument.h"
 #include "models/Document.h"
 #include "util/Clock.h"
 #include "util/Sha1Hasher.h"
-
 
 namespace relevanced {
 namespace document_processing_worker {

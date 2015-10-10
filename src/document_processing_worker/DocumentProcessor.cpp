@@ -3,9 +3,15 @@
 #include <map>
 #include <cmath>
 #include "DocumentProcessor.h"
-#include "models/ProcessedDocument.h"
 #include "models/Document.h"
+#include "models/ProcessedDocument.h"
+#include "models/WordVector.h"
+#include "stemmer/StemmerIf.h"
+#include "stopwords/StopwordFilter.h"
+#include "tokenizer/Tokenizer.h"
+#include "util/Clock.h"
 #include "util/util.h"
+
 
 namespace relevanced {
 namespace document_processing_worker {

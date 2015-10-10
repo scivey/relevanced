@@ -1,15 +1,7 @@
 #pragma once
 #include <memory>
-#include "stemmer/StemmerIf.h"
-#include "stopwords/StopwordFilter.h"
-#include "tokenizer/Tokenizer.h"
-#include "models/Document.h"
-#include "models/WordVector.h"
-#include "models/ProcessedDocument.h"
 
-#include "util/util.h"
-#include "util/Clock.h"
-
+#include "declarations.h"
 
 namespace relevanced {
 namespace document_processing_worker {

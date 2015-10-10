@@ -1,24 +1,27 @@
 #include "persistence/Persistence.h"
+
+#include <cassert>
 #include <memory>
 #include <string>
-#include <cassert>
 #include <vector>
+
 #include <glog/logging.h>
 #include <wangle/concurrent/CPUThreadPoolExecutor.h>
 #include <wangle/concurrent/FutureExecutor.h>
+#include <folly/ExceptionWrapper.h>
+#include <folly/Format.h>
 #include <folly/futures/Future.h>
 #include <folly/futures/Try.h>
 #include <folly/Optional.h>
-#include <folly/ExceptionWrapper.h>
-#include <folly/Format.h>
 #include <rocksdb/db.h>
-#include "serialization/serializers.h"
-#include "persistence/RockHandle.h"
+
 #include "models/Centroid.h"
 #include "models/ProcessedDocument.h"
-
-#include "util/util.h"
+#include "models/WordVector.h"
 #include "persistence/exceptions.h"
+#include "persistence/RockHandle.h"
+#include "serialization/serializers.h"
+#include "util/util.h"
 
 namespace relevanced {
 namespace persistence {
@@ -27,7 +30,6 @@ using namespace std;
 using namespace folly;
 using models::ProcessedDocument;
 using models::Centroid;
-
 
 using namespace persistence::exceptions;
 

@@ -6,17 +6,11 @@
 #include <folly/futures/Try.h>
 
 #include <glog/logging.h>
-#include "similarity_score_worker/SimilarityScoreWorker.h"
 #include <folly/Optional.h>
-#include "persistence/Persistence.h"
-#include "document_processing_worker/DocumentProcessingWorker.h"
-#include "centroid_update_worker/CentroidUpdateWorker.h"
-
 #include "util/util.h"
-#include "util/Clock.h"
-
-
+#include "declarations.h"
 namespace relevanced {
+
 namespace server {
 
 class RelevanceServerIf {
@@ -65,21 +59,21 @@ public:
  *
  */
 class RelevanceServer: public RelevanceServerIf {
-  shared_ptr<persistence::PersistenceIf> persistence_;
-  shared_ptr<persistence::CentroidMetadataDbIf> centroidMetadataDb_;
-  shared_ptr<util::ClockIf> clock_;
-  shared_ptr<similarity_score_worker::SimilarityScoreWorkerIf> scoreWorker_;
-  shared_ptr<document_processing_worker::DocumentProcessingWorkerIf> processingWorker_;
-  shared_ptr<centroid_update_worker::CentroidUpdateWorkerIf> centroidUpdateWorker_;
+  std::shared_ptr<persistence::PersistenceIf> persistence_;
+  std::shared_ptr<persistence::CentroidMetadataDbIf> centroidMetadataDb_;
+  std::shared_ptr<util::ClockIf> clock_;
+  std::shared_ptr<similarity_score_worker::SimilarityScoreWorkerIf> scoreWorker_;
+  std::shared_ptr<document_processing_worker::DocumentProcessingWorkerIf> processingWorker_;
+  std::shared_ptr<centroid_update_worker::CentroidUpdateWorkerIf> centroidUpdateWorker_;
   folly::Future<folly::Try<std::unique_ptr<std::string>>> internalCreateDocumentWithID(std::string id, std::string text);
 public:
   RelevanceServer(
-    shared_ptr<persistence::PersistenceIf> persistenceSv,
-    shared_ptr<persistence::CentroidMetadataDbIf> metadata,
-    shared_ptr<util::ClockIf> clock,
-    shared_ptr<similarity_score_worker::SimilarityScoreWorkerIf> scoreWorker,
-    shared_ptr<document_processing_worker::DocumentProcessingWorkerIf> docProcessingWorker,
-    shared_ptr<centroid_update_worker::CentroidUpdateWorkerIf> centroidUpdateWorker
+    std::shared_ptr<persistence::PersistenceIf> persistenceSv,
+    std::shared_ptr<persistence::CentroidMetadataDbIf> metadata,
+    std::shared_ptr<util::ClockIf> clock,
+    std::shared_ptr<similarity_score_worker::SimilarityScoreWorkerIf> scoreWorker,
+    std::shared_ptr<document_processing_worker::DocumentProcessingWorkerIf> docProcessingWorker,
+    std::shared_ptr<centroid_update_worker::CentroidUpdateWorkerIf> centroidUpdateWorker
   );
   void initialize() override;
   void ping() override;

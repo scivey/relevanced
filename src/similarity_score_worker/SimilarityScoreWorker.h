@@ -10,12 +10,7 @@
 
 #include <folly/Synchronized.h>
 
-#include "persistence/Persistence.h"
-#include "persistence/CentroidMetadataDb.h"
-#include "models/WordVector.h"
-#include "models/ProcessedDocument.h"
-
-#include "document_processing_worker/DocumentProcessor.h"
+#include "declarations.h"
 #include "util/util.h"
 
 namespace relevanced {

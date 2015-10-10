@@ -8,11 +8,11 @@
 #include <folly/Format.h>
 #include <folly/ExceptionWrapper.h>
 
-
 #include <glog/logging.h>
 
 #include "centroid_update_worker/CentroidUpdateWorker.h"
 #include "document_processing_worker/DocumentProcessor.h"
+#include "document_processing_worker/DocumentProcessingWorker.h"
 #include "models/Document.h"
 #include "models/ProcessedDocument.h"
 #include "persistence/exceptions.h"
