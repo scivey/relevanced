@@ -2,6 +2,7 @@
 
 #include <string>
 #include <map>
+#include <atomic>
 #include "gen-cpp2/RelevancedProtocol_types.h"
 #include "models/WordVector.h"
 

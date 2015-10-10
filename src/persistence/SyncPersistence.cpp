@@ -359,5 +359,23 @@ Try<vector<string>> SyncPersistence::listCentroidDocumentRangeFromDocumentId(con
   return Try<vector<string>>(docs);
 }
 
+
+Optional<string> SyncPersistence::getCentroidMetadata(const string& centroidId, const string &metadataName) {
+  auto key = sformat("{}__centroid_metadata:{}", centroidId, metadataName);
+  Optional<string> result;
+  string keyVal;
+  if (rockHandle_->get(key, keyVal)) {
+    result.assign(keyVal);
+  }
+  return result;
+}
+
+Try<bool> SyncPersistence::setCentroidMetadata(const string& centroidId, const string &metadataName, string value) {
+  auto key = sformat("{}__centroid_metadata:{}", centroidId, metadataName);
+  rockHandle_->put(key, value);
+  return Try<bool>(true);
+}
+
+
 } // persistence
 } // relevanced

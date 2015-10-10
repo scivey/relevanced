@@ -53,6 +53,9 @@ public:
   virtual folly::Try<std::vector<std::string>> listCentroidDocumentRangeFromDocumentId(const std::string&, const std::string&, size_t limit) = 0;
   virtual folly::Optional<std::vector<std::string>> listCentroidDocumentRangeFromDocumentIdOption(const std::string&, const std::string&, size_t limit) = 0;
 
+  virtual folly::Optional<std::string> getCentroidMetadata(const std::string&, const std::string&) = 0;
+  virtual folly::Try<bool> setCentroidMetadata(const std::string&, const std::string&, std::string) = 0;
+
   virtual ~SyncPersistenceIf() = default;
 };
 
@@ -109,6 +112,9 @@ public:
     listCentroidDocumentRangeFromDocumentId(const std::string&, const std::string&, size_t limit) override;
   folly::Optional<std::vector<std::string>>
     listCentroidDocumentRangeFromDocumentIdOption(const std::string&, const std::string&, size_t limit) override;
+
+  folly::Optional<std::string> getCentroidMetadata(const std::string&, const std::string&) override;
+  folly::Try<bool> setCentroidMetadata(const std::string&, const std::string&, std::string) override;
 
 };
 

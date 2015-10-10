@@ -190,6 +190,17 @@ Future<Optional<vector<string>>> Persistence::listCentroidDocumentRangeFromDocum
   });
 }
 
+Future<Optional<string>> Persistence::getCentroidMetadata(const string &centroidId, const string &metadataName) {
+  return threadPool_->addFuture([this, centroidId, metadataName](){
+    return syncHandle_->getCentroidMetadata(centroidId, metadataName);
+  });
+}
+
+Future<Try<bool>> Persistence::setCentroidMetadata(const string &centroidId, const string &metadataName, string value) {
+  return threadPool_->addFuture([this, centroidId, metadataName, value](){
+    return syncHandle_->setCentroidMetadata(centroidId, metadataName, value);
+  });
+}
 
 } // persistence
 } // relevanced

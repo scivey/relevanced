@@ -32,15 +32,18 @@ DocumentProcessingWorker::DocumentProcessingWorker(
 
 Future<shared_ptr<ProcessedDocument>> DocumentProcessingWorker::processNew(shared_ptr<Document> doc) {
   return threadPool_->addFuture([this, doc](){
+    auto result = processor_->processNew(doc);
+    result->sha1Hash.assign(hasher_->hash(doc->text));
+    return result;
+  });
+}
+
+Future<shared_ptr<ProcessedDocument>> DocumentProcessingWorker::processNewWithoutHash(shared_ptr<Document> doc) {
+  return threadPool_->addFuture([this, doc](){
     return processor_->processNew(doc);
   });
 }
 
-// Future<shared_ptr<ProcessedDocument>> DocumentProcessingWorker::processNewWithoutHash(shared_ptr<Document> doc) {
-//   return threadPool_->addFuture([this, doc](){
-//     auto result = processor_->processNew(doc);
-//   });
-// }
 
 } // document_processing_worker
 } // relevanced

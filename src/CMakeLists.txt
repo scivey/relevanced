@@ -93,6 +93,7 @@ set(RELEVANCED_BASE_SOURCES
     "persistence/Persistence.cpp"
     "persistence/RockHandle.cpp"
     "persistence/SyncPersistence.cpp"
+    "persistence/CentroidMetadataDb.cpp"
     "server/RelevanceServer.cpp"
     "server/ThriftRelevanceServer.cpp"
     "server/ThriftServerWrapper.cpp"
