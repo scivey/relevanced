@@ -23,6 +23,7 @@
 #include "server/RelevanceServer.h"
 #include "similarity_score_worker/SimilarityScoreWorker.h"
 #include "util/util.h"
+#include "util/Clock.h"
 
 namespace relevanced {
 namespace server {
@@ -44,11 +45,13 @@ using util::UniquePointer;
 RelevanceServer::RelevanceServer(
   shared_ptr<persistence::PersistenceIf> persistenceSv,
   shared_ptr<persistence::CentroidMetadataDbIf> metadataDb,
+  shared_ptr<util::ClockIf> clock,
   shared_ptr<SimilarityScoreWorkerIf> scoreWorker,
   shared_ptr<DocumentProcessingWorkerIf> docProcessor,
   shared_ptr<CentroidUpdateWorkerIf> centroidUpdater
 ): persistence_(persistenceSv),
    centroidMetadataDb_(metadataDb),
+   clock_(clock),
    scoreWorker_(scoreWorker),
    processingWorker_(docProcessor),
    centroidUpdateWorker_(centroidUpdater) {}
@@ -180,6 +183,7 @@ Future<Try<bool>> RelevanceServer::addDocumentToCentroid(unique_ptr<string> cent
   LOG(INFO) << format("adding document '{}' to centroid '{}'", dId, cId);
   return persistence_->addDocumentToCentroid(cId, dId).then([this, cId](Try<bool> result) {
     if (!result.hasException()) {
+      centroidMetadataDb_->setLastDocumentChangeTimestamp(cId, clock_->getEpochTime());
       centroidUpdateWorker_->triggerUpdate(cId);
     }
     return result;
@@ -190,6 +194,7 @@ Future<Try<bool>> RelevanceServer::removeDocumentFromCentroid(unique_ptr<string>
   auto cId = *centroidId;
   return persistence_->removeDocumentFromCentroid(cId, *docId).then([this, cId](Try<bool> result){
     if (!result.hasException()) {
+      centroidMetadataDb_->setLastDocumentChangeTimestamp(cId, clock_->getEpochTime());
       centroidUpdateWorker_->triggerUpdate(cId);
     }
     return result;
@@ -199,12 +204,21 @@ Future<Try<bool>> RelevanceServer::removeDocumentFromCentroid(unique_ptr<string>
 Future<Try<bool>> RelevanceServer::joinCentroid(unique_ptr<string> centroidId) {
   auto cId = *centroidId;
   LOG(INFO) << "recomputing centroid: " << cId;
-  return centroidUpdateWorker_->joinUpdate(cId).then([](Try<string> result) {
-    if (result.hasException()) {
-      return Try<bool>(make_exception_wrapper<CentroidDoesNotExist>());
-    } else {
-      return Try<bool>(true);
+  return centroidMetadataDb_->isCentroidUpToDate(cId).then([this, cId](Try<bool> isUpToDate) {
+    if (isUpToDate.hasException()) {
+      Try<bool> result(make_exception_wrapper<CentroidDoesNotExist>());
+      return makeFuture(result);
     }
+    if (isUpToDate.value()) {
+      Try<bool> result(true);
+      return makeFuture(result);
+    }
+    return centroidUpdateWorker_->joinUpdate(cId).then([](Try<string> result) {
+      if (result.hasException()) {
+        return Try<bool>(make_exception_wrapper<CentroidDoesNotExist>());
+      }
+      return Try<bool>(true);
+    });
   });
 }
 

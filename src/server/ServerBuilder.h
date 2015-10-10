@@ -128,8 +128,10 @@ public:
   template<typename CentroidUpdateWorkerT, typename CentroidUpdaterFactoryT>
   void buildCentroidUpdateWorker() {
     assert(persistence_.get() != nullptr);
+    assert(clock_.get() != nullptr);
+
     shared_ptr<CentroidUpdaterFactoryIf> updaterFactory(
-      new CentroidUpdaterFactoryT(persistence_, centroidMetadataDb_)
+      new CentroidUpdaterFactoryT(persistence_, centroidMetadataDb_, clock_)
     );
     auto threadPool = make_shared<FutureExecutor<CPUThreadPoolExecutor>>(
       options_->getCentroidUpdateThreadCount()
@@ -152,12 +154,13 @@ public:
 
   template<typename RelevanceServerT>
   shared_ptr<RelevanceServerIf> buildServer(){
+    assert(clock_.get() != nullptr);
     assert(persistence_.get() != nullptr);
     assert(processor_.get() != nullptr);
     assert(similarityWorker_.get() != nullptr);
     assert(centroidUpdater_.get() != nullptr);
     auto server = make_shared<RelevanceServerT>(
-      persistence_, centroidMetadataDb_, similarityWorker_, processor_, centroidUpdater_
+      persistence_, centroidMetadataDb_, clock_, similarityWorker_, processor_, centroidUpdater_
     );
     server->initialize();
     return server;

@@ -21,6 +21,7 @@
 #include "persistence/Persistence.h"
 #include "persistence/CentroidMetadataDb.h"
 #include "util/util.h"
+#include "util/Clock.h"
 
 using namespace std;
 using namespace folly;
@@ -32,13 +33,14 @@ using models::Centroid;
 using persistence::exceptions::CentroidDoesNotExist;
 using util::UniquePointer;
 
-
 CentroidUpdater::CentroidUpdater(
   shared_ptr<persistence::PersistenceIf> persistence,
   shared_ptr<persistence::CentroidMetadataDbIf> metadataDb,
+  shared_ptr<util::ClockIf> clock,
   string centroidId
 ): persistence_(persistence),
    centroidMetadataDb_(metadataDb),
+   clock_(clock),
    centroidId_(centroidId) {}
 
 Try<bool> CentroidUpdater::run() {
@@ -48,6 +50,7 @@ Try<bool> CentroidUpdater::run() {
     return Try<bool>(make_exception_wrapper<CentroidDoesNotExist>());
   }
 
+  const uint64_t startTimestamp = clock_->getEpochTime();
   const size_t idListBatchSize = 500;
   const size_t documentBatchSize = 20;
 
@@ -125,6 +128,7 @@ Try<bool> CentroidUpdater::run() {
   centroid->wordVector.documentWeight = docCount;
   LOG(INFO) << "persisting...";
   persistence_->saveCentroid(centroidId_, centroid).get();
+  centroidMetadataDb_->setLastCalculatedTimestamp(centroidId_, startTimestamp);
   LOG(INFO) << "persisted..";
   return Try<bool>(true);
 }

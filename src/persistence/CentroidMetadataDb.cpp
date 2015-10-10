@@ -2,8 +2,10 @@
 #include "persistence/Persistence.h"
 #include <string>
 #include <memory>
+#include <vector>
 #include <folly/Optional.h>
 #include <folly/futures/Future.h>
+#include <folly/futures/helpers.h>
 #include <folly/futures/Try.h>
 #include <folly/Conv.h>
 
@@ -17,52 +19,66 @@ namespace persistence {
 CentroidMetadataDb::CentroidMetadataDb(shared_ptr<PersistenceIf> persistence)
   : persistence_(persistence) {}
 
-Future<Optional<uint64_t>> CentroidMetadataDb::getCreatedTimestamp(const std::string& centroidId) {
-  Optional<uint64_t> result;
-  return persistence_->getCentroidMetadata(centroidId, "created").then([](Optional<string> keyVal) {
-    Optional<uint64_t> result;
+template<typename T>
+Future<Optional<T>> getMetadata(shared_ptr<PersistenceIf> persistence, const string &centroidId, const string &metadataName) {
+  return persistence->getCentroidMetadata(centroidId, metadataName).then([](Optional<string> keyVal) {
+    Optional<T> result;
     if (keyVal.hasValue()) {
-      result.assign(folly::to<uint64_t>(keyVal.value()));
+      result.assign(folly::to<T>(keyVal.value()));
     }
     return result;
   });
 }
 
-Future<Optional<uint64_t>> CentroidMetadataDb::getLastCalculatedTimestamp(const std::string& centroidId) {
-  Optional<uint64_t> result;
-  return persistence_->getCentroidMetadata(centroidId, "lastCalculated").then([](Optional<string> keyVal) {
-    Optional<uint64_t> result;
-    if (keyVal.hasValue()) {
-      result.assign(folly::to<uint64_t>(keyVal.value()));
+template<typename T>
+Future<Try<bool>> setMetadata(shared_ptr<PersistenceIf> persistence, const string &centroidId, const string &metadataName, T value) {
+  auto strVal = folly::to<string>(value);
+  return persistence->setCentroidMetadata(centroidId, metadataName, strVal);
+}
+
+Future<Optional<uint64_t>> CentroidMetadataDb::getCreatedTimestamp(const string &centroidId) {
+  return getMetadata<uint64_t>(persistence_, centroidId, "created");
+}
+
+Future<Optional<uint64_t>> CentroidMetadataDb::getLastCalculatedTimestamp(const string& centroidId) {
+  return getMetadata<uint64_t>(persistence_, centroidId, "lastCalculated");
+}
+
+Future<Optional<uint64_t>> CentroidMetadataDb::getLastDocumentChangeTimestamp(const string& centroidId) {
+  return getMetadata<uint64_t>(persistence_, centroidId, "lastDocumentChange");
+}
+
+Future<Try<bool>> CentroidMetadataDb::isCentroidUpToDate(const string& centroidId) {
+  vector<Future<Optional<uint64_t>>> timestamps;
+  timestamps.push_back(getLastCalculatedTimestamp(centroidId));
+  timestamps.push_back(getLastDocumentChangeTimestamp(centroidId));
+  return collect(timestamps).then([] (vector<Optional<uint64_t>> stamps) {
+    auto lastCalculated = stamps.at(0);
+    auto lastChanged = stamps.at(1);
+    if (!lastChanged.hasValue()) {
+      return Try<bool>(true);
     }
-    return result;
-  });
-}
-
-Future<Optional<uint64_t>> CentroidMetadataDb::getLastDocumentChangeTimestamp(const std::string& centroidId) {
-  Optional<uint64_t> result;
-  return persistence_->getCentroidMetadata(centroidId, "lastDocumentChange").then([](Optional<string> keyVal) {
-    Optional<uint64_t> result;
-    if (keyVal.hasValue()) {
-      result.assign(folly::to<uint64_t>(keyVal.value()));
+    if (!lastCalculated.hasValue()) {
+      return Try<bool>(false);
     }
-    return result;
+    if (lastChanged.value() > lastCalculated.value()) {
+      return Try<bool>(false);
+    }
+    return Try<bool>(true);
   });
+
 }
 
-Future<Try<bool>> CentroidMetadataDb::setCreatedTimestamp(const std::string& centroidId, uint64_t timestamp) {
-  auto value = folly::to<string>(timestamp);
-  return persistence_->setCentroidMetadata(centroidId, "created", value);
+Future<Try<bool>> CentroidMetadataDb::setCreatedTimestamp(const string& centroidId, uint64_t timestamp) {
+  return setMetadata(persistence_, centroidId, "created", timestamp);
 }
 
-Future<Try<bool>> CentroidMetadataDb::setLastCalculatedTimestamp(const std::string& centroidId, uint64_t timestamp) {
-  auto value = folly::to<string>(timestamp);
-  return persistence_->setCentroidMetadata(centroidId, "lastCalculated", value);
+Future<Try<bool>> CentroidMetadataDb::setLastCalculatedTimestamp(const string& centroidId, uint64_t timestamp) {
+  return setMetadata(persistence_, centroidId, "lastCalculated", timestamp);
 }
 
-Future<Try<bool>> CentroidMetadataDb::setLastDocumentChangeTimestamp(const std::string& centroidId, uint64_t timestamp) {
-  auto value = folly::to<string>(timestamp);
-  return persistence_->setCentroidMetadata(centroidId, "lastDocumentChange", value);
+Future<Try<bool>> CentroidMetadataDb::setLastDocumentChangeTimestamp(const string& centroidId, uint64_t timestamp) {
+  return setMetadata(persistence_, centroidId, "lastDocumentChange", timestamp);
 }
 
 }

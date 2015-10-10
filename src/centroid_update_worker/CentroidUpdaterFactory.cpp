@@ -3,16 +3,17 @@
 #include "persistence/Persistence.h"
 #include "centroid_update_worker/CentroidUpdater.h"
 #include "centroid_update_worker/CentroidUpdaterFactory.h"
+#include "util/Clock.h"
 
 namespace relevanced {
 namespace centroid_update_worker {
 
-CentroidUpdaterFactory::CentroidUpdaterFactory(shared_ptr<persistence::PersistenceIf> persistence, shared_ptr<persistence::CentroidMetadataDbIf> metadata)
-  : persistence_(persistence), centroidMetadataDb_(metadata) {}
+CentroidUpdaterFactory::CentroidUpdaterFactory(shared_ptr<persistence::PersistenceIf> persistence, shared_ptr<persistence::CentroidMetadataDbIf> metadata, shared_ptr<util::ClockIf> clock)
+  : persistence_(persistence), centroidMetadataDb_(metadata), clock_(clock) {}
 
 shared_ptr<CentroidUpdaterIf> CentroidUpdaterFactory::makeForCentroidId(const string &centroidId) {
   return shared_ptr<CentroidUpdaterIf>(
-    new CentroidUpdater(persistence_, centroidMetadataDb_, centroidId)
+    new CentroidUpdater(persistence_, centroidMetadataDb_, clock_, centroidId)
   );
 }
 
