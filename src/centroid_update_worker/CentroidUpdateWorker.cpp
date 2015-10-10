@@ -11,6 +11,7 @@
 #include <folly/futures/Try.h>
 #include <folly/futures/helpers.h>
 
+#include "centroid_update_worker/CentroidUpdater.h"
 #include "centroid_update_worker/CentroidUpdateWorker.h"
 #include "centroid_update_worker/CentroidUpdaterFactory.h"
 #include "persistence/Persistence.h"

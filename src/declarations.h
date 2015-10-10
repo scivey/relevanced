@@ -11,6 +11,11 @@ namespace util {
 
 namespace centroid_update_worker {
   class CentroidUpdateWorkerIf;
+  class CentroidUpdateWorker;
+  class CentroidUpdaterIf;
+  class CentroidUpdater;
+  class CentroidUpdaterFactoryIf;
+  class CentroidUpdaterFactory;
 } // centroid_update_worker
 
 namespace document_processing_worker {

@@ -2,12 +2,8 @@
 #include <vector>
 #include <memory>
 #include <string>
-#include "persistence/Persistence.h"
-#include "persistence/CentroidMetadataDb.h"
 
-#include "centroid_update_worker/CentroidUpdater.h"
-#include "util/util.h"
-#include "util/Clock.h"
+#include "declarations.h"
 
 namespace relevanced {
 namespace centroid_update_worker {

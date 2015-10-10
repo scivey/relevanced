@@ -14,12 +14,9 @@
 #include <folly/futures/Future.h>
 #include <folly/io/async/EventBase.h>
 
-#include "centroid_update_worker/CentroidUpdateWorker.h"
-#include "centroid_update_worker/CentroidUpdater.h"
-#include "centroid_update_worker/CentroidUpdaterFactory.h"
+#include "declarations.h"
 
 #include "util/Debouncer.h"
-#include "persistence/Persistence.h"
 
 namespace relevanced {
 namespace centroid_update_worker {
