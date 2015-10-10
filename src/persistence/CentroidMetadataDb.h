@@ -6,7 +6,7 @@
 #include <folly/futures/Future.h>
 #include <folly/futures/Try.h>
 
-#include "persistence/Persistence.h"
+#include "declarations.h"
 
 namespace relevanced {
 namespace persistence {
@@ -46,7 +46,5 @@ public:
 };
 
 
-
-
-}
-}
+} // persistence
+} // relevanced

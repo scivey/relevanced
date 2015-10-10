@@ -45,9 +45,13 @@ namespace similarity_score_worker {
 
 namespace persistence {
   class PersistenceIf;
+  class Persistence;
   class SyncPersistenceIf;
+  class SyncPersistence;
   class CentroidMetadataDbIf;
+  class CentroidMetadataDb;
   class RockHandleIf;
+  class RockHandle;
 } // persistence
 
 namespace server {

@@ -8,11 +8,9 @@
 #include <folly/futures/Future.h>
 #include <folly/futures/Try.h>
 #include <folly/Optional.h>
-#include "models/WordVector.h"
-#include "models/Centroid.h"
-#include "models/ProcessedDocument.h"
 
-#include "persistence/SyncPersistence.h"
+#include "declarations.h"
+#include "util/util.h"
 
 namespace relevanced {
 namespace persistence {

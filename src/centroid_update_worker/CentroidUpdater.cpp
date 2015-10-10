@@ -16,8 +16,9 @@
 #include <folly/Optional.h>
 
 #include "centroid_update_worker/CentroidUpdater.h"
-#include "models/WordVector.h"
 #include "models/Centroid.h"
+#include "models/ProcessedDocument.h"
+#include "models/WordVector.h"
 #include "persistence/exceptions.h"
 #include "persistence/Persistence.h"
 #include "persistence/CentroidMetadataDb.h"

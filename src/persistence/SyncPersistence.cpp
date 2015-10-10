@@ -1,4 +1,6 @@
 #include "persistence/Persistence.h"
+#include "persistence/SyncPersistence.h"
+
 
 #include <cassert>
 #include <memory>
