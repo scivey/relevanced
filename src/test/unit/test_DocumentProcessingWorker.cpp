@@ -70,9 +70,14 @@ TEST(DocumentProcessingWorker, Simple) {
     "This is some text about bears"
   );
 
+  EXPECT_CALL(hasher, hash("This is some text about bears"))
+    .WillOnce(Return("SHA1_HASH"));
+
   EXPECT_CALL(mockProcessor, processNew(doc))
     .WillOnce(Return(processed));
 
   auto result = worker.processNew(doc).get();
   EXPECT_EQ(processed, result);
+  EXPECT_TRUE(processed->sha1Hash.hasValue());
+  EXPECT_EQ("SHA1_HASH", processed->sha1Hash.value());
 }
