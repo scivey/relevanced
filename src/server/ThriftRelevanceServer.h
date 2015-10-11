@@ -30,21 +30,20 @@ class ThriftRelevanceServer : public thrift_protocol::RelevancedSvIf {
   folly::Future<std::unique_ptr<std::map<std::string, std::string>>>
   future_getServerMetadata() override;
 
-  folly::Future<double>
-  future_getDocumentSimilarity(std::unique_ptr<std::string> centroidId,
-                               std::unique_ptr<std::string> docId) override;
+  folly::Future<double> future_getDocumentSimilarity(
+      std::unique_ptr<std::string> centroidId,
+      std::unique_ptr<std::string> docId) override;
 
   folly::Future<std::unique_ptr<thrift_protocol::MultiSimilarityResponse>>
   future_multiGetTextSimilarity(
       std::unique_ptr<std::vector<std::string>> centroidId,
       std::unique_ptr<std::string> text) override;
 
-  folly::Future<double>
-  future_getTextSimilarity(std::unique_ptr<std::string> centroidId,
-                           std::unique_ptr<std::string> text) override;
+  folly::Future<double> future_getTextSimilarity(
+      std::unique_ptr<std::string> centroidId,
+      std::unique_ptr<std::string> text) override;
 
-  folly::Future<double>
-  future_getCentroidSimilarity(
+  folly::Future<double> future_getCentroidSimilarity(
       std::unique_ptr<std::string> centroid1Id,
       std::unique_ptr<std::string> centroid2Id) override;
 
@@ -75,7 +74,8 @@ class ThriftRelevanceServer : public thrift_protocol::RelevancedSvIf {
   future_addDocumentToCentroid(std::unique_ptr<std::string> centroidId,
                                std::unique_ptr<std::string> docId) override;
 
-  folly::Future<std::unique_ptr<thrift_protocol::RemoveDocumentFromCentroidResponse>>
+  folly::Future<
+      std::unique_ptr<thrift_protocol::RemoveDocumentFromCentroidResponse>>
   future_removeDocumentFromCentroid(
       std::unique_ptr<std::string> centroidId,
       std::unique_ptr<std::string> docId) override;

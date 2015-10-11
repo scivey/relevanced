@@ -29,8 +29,7 @@ ThriftRelevanceServer::ThriftRelevanceServer(
 
 void ThriftRelevanceServer::ping() { server_->ping(); }
 
-Future<double>
-ThriftRelevanceServer::future_getDocumentSimilarity(
+Future<double> ThriftRelevanceServer::future_getDocumentSimilarity(
     unique_ptr<string> centroidId, unique_ptr<string> docId) {
   return server_->getDocumentSimilarity(std::move(centroidId), std::move(docId))
       .then([this](Try<double> result) {
@@ -39,9 +38,8 @@ ThriftRelevanceServer::future_getDocumentSimilarity(
       });
 }
 
-Future<double>
-ThriftRelevanceServer::future_getTextSimilarity(unique_ptr<string> centroidId,
-                                                unique_ptr<string> text) {
+Future<double> ThriftRelevanceServer::future_getTextSimilarity(
+    unique_ptr<string> centroidId, unique_ptr<string> text) {
   return server_->getTextSimilarity(std::move(centroidId), std::move(text))
       .then([this](Try<double> result) {
         result.throwIfFailed();
@@ -49,8 +47,7 @@ ThriftRelevanceServer::future_getTextSimilarity(unique_ptr<string> centroidId,
       });
 }
 
-Future<double>
-ThriftRelevanceServer::future_getCentroidSimilarity(
+Future<double> ThriftRelevanceServer::future_getCentroidSimilarity(
     unique_ptr<string> centroid1Id, unique_ptr<string> centroid2Id) {
   return server_->getCentroidSimilarity(std::move(centroid1Id),
                                         std::move(centroid2Id))
@@ -75,8 +72,8 @@ ThriftRelevanceServer::future_multiGetTextSimilarity(
       });
 }
 
-Future<unique_ptr<CreateDocumentResponse>> ThriftRelevanceServer::future_createDocument(
-    unique_ptr<string> text) {
+Future<unique_ptr<CreateDocumentResponse>>
+ThriftRelevanceServer::future_createDocument(unique_ptr<string> text) {
   return server_->createDocument(std::move(text))
       .then([this](Try<unique_ptr<string>> result) {
         result.throwIfFailed();
@@ -99,8 +96,8 @@ ThriftRelevanceServer::future_createDocumentWithID(unique_ptr<string> id,
       });
 }
 
-Future<unique_ptr<DeleteDocumentResponse>> ThriftRelevanceServer::future_deleteDocument(
-    unique_ptr<string> id) {
+Future<unique_ptr<DeleteDocumentResponse>>
+ThriftRelevanceServer::future_deleteDocument(unique_ptr<string> id) {
   string docId = *id;
   return server_->deleteDocument(std::move(id))
       .then([this, docId](Try<bool> result) {
@@ -130,8 +127,8 @@ Future<unique_ptr<DeleteDocumentResponse>> ThriftRelevanceServer::future_deleteD
 //       });
 // }
 
-Future<unique_ptr<CreateCentroidResponse>> ThriftRelevanceServer::future_createCentroid(
-    unique_ptr<string> centroidId) {
+Future<unique_ptr<CreateCentroidResponse>>
+ThriftRelevanceServer::future_createCentroid(unique_ptr<string> centroidId) {
   string cId = *centroidId;
   return server_->createCentroid(std::move(centroidId))
       .then([cId](Try<bool> result) {
@@ -142,8 +139,8 @@ Future<unique_ptr<CreateCentroidResponse>> ThriftRelevanceServer::future_createC
       });
 }
 
-Future<unique_ptr<DeleteCentroidResponse>> ThriftRelevanceServer::future_deleteCentroid(
-    unique_ptr<string> centroidId) {
+Future<unique_ptr<DeleteCentroidResponse>>
+ThriftRelevanceServer::future_deleteCentroid(unique_ptr<string> centroidId) {
   string cId = *centroidId;
   return server_->deleteCentroid(std::move(centroidId))
       .then([cId](Try<bool> result) {
@@ -192,15 +189,16 @@ ThriftRelevanceServer::future_removeDocumentFromCentroid(
                                              std::move(docId))
       .then([cId, dId](Try<bool> result) {
         result.throwIfFailed();
-        auto response = folly::make_unique<RemoveDocumentFromCentroidResponse>();
+        auto response =
+            folly::make_unique<RemoveDocumentFromCentroidResponse>();
         response->documentId = dId;
         response->centroidId = cId;
         return std::move(response);
       });
 }
 
-Future<unique_ptr<JoinCentroidResponse>> ThriftRelevanceServer::future_joinCentroid(
-    unique_ptr<string> centroidId) {
+Future<unique_ptr<JoinCentroidResponse>>
+ThriftRelevanceServer::future_joinCentroid(unique_ptr<string> centroidId) {
   auto cId = *centroidId;
   return server_->joinCentroid(std::move(centroidId))
       .then([cId](Try<bool> result) {
@@ -214,20 +212,22 @@ Future<unique_ptr<JoinCentroidResponse>> ThriftRelevanceServer::future_joinCentr
 
 Future<unique_ptr<ListCentroidsResponse>>
 ThriftRelevanceServer::future_listAllCentroids() {
-  return server_->listAllCentroids().then([](unique_ptr<vector<string>> result) {
-    auto response = folly::make_unique<ListCentroidsResponse>();
-    response->centroids = *result;
-    return std::move(response);
-  });
+  return server_->listAllCentroids().then(
+      [](unique_ptr<vector<string>> result) {
+        auto response = folly::make_unique<ListCentroidsResponse>();
+        response->centroids = *result;
+        return std::move(response);
+      });
 }
 
 Future<unique_ptr<ListDocumentsResponse>>
 ThriftRelevanceServer::future_listAllDocuments() {
-  return server_->listAllDocuments().then([](unique_ptr<vector<string>> result) {
-    auto response = folly::make_unique<ListDocumentsResponse>();
-    response->documents = *result;
-    return std::move(response);
-  });
+  return server_->listAllDocuments().then(
+      [](unique_ptr<vector<string>> result) {
+        auto response = folly::make_unique<ListDocumentsResponse>();
+        response->documents = *result;
+        return std::move(response);
+      });
 }
 
 Future<unique_ptr<map<string, string>>>
