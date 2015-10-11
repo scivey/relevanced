@@ -5,33 +5,6 @@ include_directories(${PROJECT_SOURCE_DIR}/external/gtest-1.7.0-min/include)
 include_directories(${PROJECT_SOURCE_DIR}/external/gmock-1.7.0/include)
 include_directories(${PROJECT_SOURCE_DIR}/src/test/unit)
 
-# set(RELEVANCED_BASE_SOURCES
-#     "${PROJECT_SOURCE_DIR}/src/document_processing_worker/DocumentProcessingWorker.cpp"
-#     "${PROJECT_SOURCE_DIR}/src/document_processing_worker/DocumentProcessor.cpp"
-#     "${PROJECT_SOURCE_DIR}/src/server/ThriftRelevanceServer.cpp"
-#     "${PROJECT_SOURCE_DIR}/src/server/RelevanceServer.cpp"
-#     "${PROJECT_SOURCE_DIR}/src/centroid_update_worker/CentroidUpdateWorker.cpp"
-#     "${PROJECT_SOURCE_DIR}/src/centroid_update_worker/CentroidUpdaterFactory.cpp"
-#     "${PROJECT_SOURCE_DIR}/src/centroid_update_worker/CentroidUpdater.cpp"
-#     "${PROJECT_SOURCE_DIR}/src/models/WordVector.cpp"
-#     "${PROJECT_SOURCE_DIR}/src/similarity_score_worker/SimilarityScoreWorker.cpp"
-#     "${PROJECT_SOURCE_DIR}/src/tokenizer/Tokenizer.cpp"
-#     "${PROJECT_SOURCE_DIR}/src/stemmer/PorterStemmer.cpp"
-#     "${PROJECT_SOURCE_DIR}/src/stopwords/StopwordFilter.cpp"
-#     "${PROJECT_SOURCE_DIR}/src/stopwords/english_stopwords.cpp"
-#     "${PROJECT_SOURCE_DIR}/src/persistence/Persistence.cpp"
-#     "${PROJECT_SOURCE_DIR}/src/persistence/SyncPersistence.cpp"
-#     "${PROJECT_SOURCE_DIR}/src/persistence/InMemoryRockHandle.cpp"
-#     "${PROJECT_SOURCE_DIR}/src/persistence/RockHandle.cpp"
-#     "${PROJECT_SOURCE_DIR}/src/util/util.cpp"
-#     "${PROJECT_SOURCE_DIR}/src/gen-cpp2/Relevanced.cpp"
-#     "${PROJECT_SOURCE_DIR}/src/gen-cpp2/Relevanced_client.cpp"
-#     "${PROJECT_SOURCE_DIR}/src/gen-cpp2/Relevanced_processmap_binary.cpp"
-#     "${PROJECT_SOURCE_DIR}/src/gen-cpp2/Relevanced_processmap_compact.cpp"
-#     "${PROJECT_SOURCE_DIR}/src/gen-cpp2/RelevancedProtocol_constants.cpp"
-#     "${PROJECT_SOURCE_DIR}/src/gen-cpp2/RelevancedProtocol_types.cpp"
-# )
-
 set(RELEVANCED_LINK_LIBRARIES
     "thriftcpp2"
     "thrift"
@@ -55,6 +28,7 @@ set(RELEVANCED_LINK_LIBRARIES
 
 set(UNIT_TEST_SOURCES
   "unit/test_CentroidUpdateWorker.cpp"
+  "unit/test_CentroidMetadataDb.cpp"
   "unit/test_DocumentProcessingWorker.cpp"
   "unit/test_DocumentProcessor.cpp"
   "unit/test_DocumentSerialization.cpp"
@@ -74,7 +48,7 @@ set(GTEST_LIBS
 )
 
 add_executable(
-  unit_test_runner ${UNIT_TEST_SOURCES} ${RELEVANCED_BASE_SOURCES}
+  unit_test_runner ${UNIT_TEST_SOURCES}
 )
 
 add_dependencies(unit_test_runner relevanced_core)
@@ -92,7 +66,7 @@ set(ROCK_HANDLE_TEST_SOURCES
 )
 
 add_executable(
-  rock_handle_test ${ROCK_HANDLE_TEST_SOURCES} ${RELEVANCED_BASE_SOURCES}
+  rock_handle_test ${ROCK_HANDLE_TEST_SOURCES}
 )
 
 add_dependencies(rock_handle_test relevanced_core)
