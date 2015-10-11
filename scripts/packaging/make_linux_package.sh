@@ -86,6 +86,7 @@ function main() {
   rm -rf $WORKING_DIR
   rm -f $OUTPUT_PKG_PATH
   mkdir -p $INSTALL_PREFIX
+  rm -rf $INSTALL_PREFIX/*
   mkdir -p $BUILD_DIR
   log "copying binaries"
   BINARY_INSTALL_DIR="$INSTALL_PREFIX/usr/bin/"

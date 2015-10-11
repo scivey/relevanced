@@ -40,7 +40,7 @@ class Client(object):
         If a centroid already exists with ID `id`,
         raises `ECentroidAlreadyExists`.
         """
-        return self.thrift_client.createCentroid(name)
+        return self.thrift_client.createCentroid(id)
 
     def list_all_documents(self):
         """
