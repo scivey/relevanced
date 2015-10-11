@@ -15,12 +15,15 @@
 #include "stemmer/StemmerIf.h"
 #include "tokenizer/Tokenizer.h"
 #include "TestHelpers.h"
+#include "MockHasher.h"
+#include "util/Sha1Hasher.h"
 
 using namespace std;
 using namespace wangle;
 using namespace relevanced;
 using namespace relevanced::models;
 using namespace relevanced::document_processing_worker;
+using namespace relevanced::util;
 using relevanced::stopwords::StopwordFilterIf;
 using relevanced::stemmer::StemmerIf;
 using relevanced::tokenizer::TokenizerIf;
@@ -42,8 +45,14 @@ TEST(DocumentProcessingWorker, Simple) {
     &mockProcessor, NonDeleter<DocumentProcessorIf>()
   );
 
+  MockHasher hasher;
+  shared_ptr<Sha1HasherIf> hasherPtr(
+    &hasher, NonDeleter<Sha1HasherIf>()
+  );
+
   DocumentProcessingWorker worker(
     processorPtr,
+    hasherPtr,
     threadPool
   );
 

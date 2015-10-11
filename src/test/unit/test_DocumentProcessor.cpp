@@ -10,11 +10,14 @@
 #include "stopwords/StopwordFilter.h"
 #include "stemmer/StemmerIf.h"
 #include "tokenizer/Tokenizer.h"
+#include "util/Clock.h"
+#include "MockClock.h"
 
 using namespace std;
 using namespace relevanced;
 using namespace relevanced::models;
 using namespace relevanced::document_processing_worker;
+using namespace relevanced::util;
 using relevanced::stopwords::StopwordFilterIf;
 using relevanced::stemmer::StemmerIf;
 using relevanced::tokenizer::TokenizerIf;
@@ -35,7 +38,6 @@ class MockStemmer: public StemmerIf {
 public:
   MOCK_METHOD1(stem, string(const string &text));
   MOCK_METHOD1(stemInPlace, void(string &text));
-
 };
 
 TEST(DocumentProcessor, Simple) {
@@ -73,7 +75,16 @@ TEST(DocumentProcessor, Simple) {
     .WillOnce(Return(false));
   EXPECT_CALL(stopwordFilter_, isStopword(tokens.at(3)))
     .WillOnce(Return(false));
-  DocumentProcessor processor(tokenizer, stemmer, stopwordFilter);
+
+  MockClock mClock;
+  shared_ptr<ClockIf> clockPtr(
+    &mClock, NonDeleter<ClockIf>()
+  );
+
+  EXPECT_CALL(mClock, getEpochTime())
+    .WillOnce(Return(1234));
+
+  DocumentProcessor processor(tokenizer, stemmer, stopwordFilter, clockPtr);
   Document toProcess("doc-id", "this is some text");
   auto result = processor.process(toProcess);
   EXPECT_EQ("doc-id", result.id);
@@ -82,4 +93,6 @@ TEST(DocumentProcessor, Simple) {
   EXPECT_TRUE(counts->find("this") != counts->end());
   EXPECT_TRUE(counts->find("some") != counts->end());
   EXPECT_TRUE(counts->find("text") != counts->end());
+  EXPECT_EQ(1234, result.created);
+  EXPECT_EQ(1234, result.updated);
 }

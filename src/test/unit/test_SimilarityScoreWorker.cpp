@@ -16,6 +16,7 @@
 #include "document_processing_worker/DocumentProcessor.h"
 #include "persistence/Persistence.h"
 #include "persistence/exceptions.h"
+#include "persistence/CentroidMetadataDb.h"
 
 #include "persistence/SyncPersistence.h"
 #include "similarity_score_worker/SimilarityScoreWorker.h"
@@ -24,16 +25,17 @@
 #include "stemmer/StemmerIf.h"
 #include "tokenizer/Tokenizer.h"
 #include "MockSyncPersistence.h"
+#include "MockCentroidMetadataDb.h"
 #include "util/util.h"
 
 using namespace std;
 using namespace wangle;
 using namespace relevanced;
+using namespace relevanced::util;
 using namespace relevanced::models;
 using namespace relevanced::similarity_score_worker;
 using namespace relevanced::persistence;
 using namespace relevanced::persistence::exceptions;
-
 using relevanced::persistence::exceptions::CentroidDoesNotExist;
 using relevanced::stopwords::StopwordFilterIf;
 using relevanced::stemmer::StemmerIf;
@@ -43,7 +45,7 @@ using ::testing::Return;
 using ::testing::Invoke;
 using ::testing::_;
 
-shared_ptr<SimilarityScoreWorker> makeWorker(MockSyncPersistence &syncPersistence) {
+shared_ptr<SimilarityScoreWorker> makeWorker(MockSyncPersistence &syncPersistence, MockCentroidMetadataDb &metadata) {
   UniquePointer<SyncPersistenceIf> syncPersistencePtr(
     &syncPersistence, NonDeleter<SyncPersistenceIf>()
   );
@@ -53,14 +55,18 @@ shared_ptr<SimilarityScoreWorker> makeWorker(MockSyncPersistence &syncPersistenc
   shared_ptr<PersistenceIf> persistencePtr(
     new Persistence(std::move(syncPersistencePtr), threadPool1)
   );
+  shared_ptr<CentroidMetadataDbIf> metadataPtr(
+    &metadata, NonDeleter<CentroidMetadataDbIf>()
+  );
   return make_shared<SimilarityScoreWorker>(
-    persistencePtr, threadPool2
+    persistencePtr, metadataPtr, threadPool2
   );
 }
 
 TEST(SimilarityScoreWorker, TestInitialization) {
   MockSyncPersistence mockPersistence;
-  auto worker = makeWorker(mockPersistence);
+  MockCentroidMetadataDb metadataDb;
+  auto worker = makeWorker(mockPersistence, metadataDb);
   vector<string> centroidIds {"centroid-1", "centroid-2"};
   EXPECT_CALL(mockPersistence, listAllCentroids())
     .WillOnce(Return(centroidIds));
@@ -109,7 +115,8 @@ TEST(SimilarityScoreWorker, TestInitialization) {
 
 TEST(SimilarityScoreWorker, TestGetSetLoaded) {
   MockSyncPersistence mockPersistence;
-  auto worker = makeWorker(mockPersistence);
+  MockCentroidMetadataDb metadataDb;
+  auto worker = makeWorker(mockPersistence, metadataDb);
   Centroid c1(
     "centroid-1",
     map<string, double> {
@@ -129,7 +136,8 @@ TEST(SimilarityScoreWorker, TestGetSetLoaded) {
 
 TEST(SimilarityScoreWorker, TestGetLoadedCentroidMissing) {
   MockSyncPersistence mockPersistence;
-  auto worker = makeWorker(mockPersistence);
+  MockCentroidMetadataDb metadataDb;
+  auto worker = makeWorker(mockPersistence, metadataDb);
   Centroid c1(
     "irrelevant-centroid",
     map<string, double> {
@@ -148,7 +156,8 @@ TEST(SimilarityScoreWorker, TestGetLoadedCentroidMissing) {
 
 TEST(SimilarityScoreWorker, TestReloadCentroid) {
   MockSyncPersistence mockPersistence;
-  auto worker = makeWorker(mockPersistence);
+  MockCentroidMetadataDb metadataDb;
+  auto worker = makeWorker(mockPersistence, metadataDb);
 
   Centroid c1Old(
     "centroid-1",
@@ -191,7 +200,8 @@ double mag3(double x, double y, double z) {
 
 TEST(SimilarityScoreWorker, TestGetDocumentSimilarityHappy) {
   MockSyncPersistence mockPersistence;
-  auto worker = makeWorker(mockPersistence);
+  MockCentroidMetadataDb metadataDb;
+  auto worker = makeWorker(mockPersistence, metadataDb);
   ProcessedDocument document(
     "doc-1",
     map<string, double>{
@@ -222,7 +232,8 @@ TEST(SimilarityScoreWorker, TestGetDocumentSimilarityHappy) {
 
 TEST(SimilarityScoreWorker, TestGetDocumentSimilarityMissingCentroid) {
   MockSyncPersistence mockPersistence;
-  auto worker = makeWorker(mockPersistence);
+  MockCentroidMetadataDb metadataDb;
+  auto worker = makeWorker(mockPersistence, metadataDb);
   ProcessedDocument document(
     "doc-1",
     map<string, double>{
@@ -250,7 +261,8 @@ TEST(SimilarityScoreWorker, TestGetDocumentSimilarityMissingCentroid) {
 
 TEST(SimilarityScoreWorker, TestGetDocumentSimilarityNoCentroidNoNoneAtAll) {
   MockSyncPersistence mockPersistence;
-  auto worker = makeWorker(mockPersistence);
+  MockCentroidMetadataDb metadataDb;
+  auto worker = makeWorker(mockPersistence, metadataDb);
   ProcessedDocument document(
     "doc-1",
     map<string, double>{

@@ -21,10 +21,12 @@
 
 using namespace std;
 using namespace wangle;
+using namespace folly;
 using namespace relevanced;
 using namespace relevanced::centroid_update_worker;
 using namespace relevanced::document_processing_worker;
 using namespace relevanced::models;
+
 
 using persistence::exceptions::CentroidDoesNotExist;
 using ::testing::Return;

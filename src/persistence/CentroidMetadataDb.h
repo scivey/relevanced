@@ -22,6 +22,7 @@ public:
   virtual folly::Future<folly::Try<bool>> setCreatedTimestamp(const std::string&, uint64_t) = 0;
   virtual folly::Future<folly::Try<bool>> setLastCalculatedTimestamp(const std::string&, uint64_t) = 0;
   virtual folly::Future<folly::Try<bool>> setLastDocumentChangeTimestamp(const std::string&, uint64_t) = 0;
+  virtual ~CentroidMetadataDbIf() = default;
 };
 
 /**

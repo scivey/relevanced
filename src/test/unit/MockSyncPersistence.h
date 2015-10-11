@@ -51,6 +51,7 @@ public:
 
   MOCK_METHOD3(listCentroidDocumentRangeFromDocumentId, Try<vector<string>>(const string&, const string&, size_t));
   MOCK_METHOD3(listCentroidDocumentRangeFromDocumentIdOption, Optional<vector<string>>(const string&, const string&, size_t));
-
+  MOCK_METHOD2(getCentroidMetadata, Optional<string>(const string&, const string&));
+  MOCK_METHOD3(setCentroidMetadata, Try<bool>(const string&, const string&, string));
 
 };
