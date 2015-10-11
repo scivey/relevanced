@@ -102,3 +102,6 @@ publish-node:
 
 publish-python:
 	cd ./clients/python/client && python setup.py register -r pypi && python setup.py sdist upload -r pypi
+
+format-all:
+	find src  \( -name "*.h" -o -name "*.cpp" -o -name "*.mm" \) -exec clang-format -i {} +

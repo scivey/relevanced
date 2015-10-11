@@ -100,14 +100,3 @@ include_directories("${PROJECT_BINARY_DIR}/src")
 
 add_subdirectory(src)
 add_subdirectory(src/test)
-
-
-# make format-all
-add_custom_target(
-  format-all
-  find src  \( -name "*.h" -o -name "*.cpp" -o -name "*.mm" \)
-    -exec clang-format -i {} +
-  WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-  COMMENT "Format all code with clang-format" VERBATIM
-)
-
