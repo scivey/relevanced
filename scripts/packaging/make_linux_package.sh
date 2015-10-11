@@ -92,6 +92,7 @@ function main() {
   BINARY_INSTALL_DIR="$INSTALL_PREFIX/usr/bin/"
   mkdir -p $BINARY_INSTALL_DIR
   cp $BUILT_SERVER_BINARY $BINARY_INSTALL_DIR/relevanced
+  chmod g-w $BINARY_INSTALL_DIR/relevanced
   strip $BINARY_INSTALL_DIR/*
 
   # Create the prefix log dir and copy source configs
@@ -103,6 +104,9 @@ function main() {
 
   mkdir -p `dirname $INSTALL_PREFIX$INITD_DST`
   cp $INITD_SRC $INSTALL_PREFIX$INITD_DST
+
+  chmod g-w $INSTALL_PREFIX$INITD_DST
+  chmod a+x $INSTALL_PREFIX$INITD_DST
 
   log "creating package"
   IFS=',' read -a deps <<< "$PACKAGE_DEPENDENCIES"
