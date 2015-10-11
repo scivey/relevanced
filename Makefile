@@ -30,6 +30,7 @@ build-docker-standalone:
 
 GTEST_LIB = ./external/gtest-1.7.0-min/gtest-all.o
 GMOCK_LIB = ./external/gmock-1.7.0/src/gmock-all.o
+WORKDIR=$(shell pwd)
 
 $(GMOCK_LIB): ./external/gmock-1.7.0/src/gmock.cc
 	cd ./external/gmock-1.7.0 && autoreconf -ifv && ./configure && make lib/libgmock_main.la
@@ -57,7 +58,7 @@ test-data:
 docs-py:
 	mkdir -p build/client_docs
 	rm -rf build/client_docs/python
-	PYTHONPATH=`pwd`/clients/python cd build/client_docs && pdoc --html relevanced_client
+	cd build/client_docs && PYTHONPATH=$(WORKDIR)/clients/python/client pdoc --html relevanced_client
 	mv build/client_docs/relevanced_client/ build/client_docs/python/
 
 docs:

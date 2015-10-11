@@ -129,8 +129,9 @@ Because documents are independent entities which can be added to many centroids,
 ---
 ## `addDocumentToCentroid`
 #### `(centroidId: string, documentId: string) -> AddDocumentToCentroidResponse`
+#### `{centroidId: string, documentId: string}`
+
 Associates a document with a centroid.
-#### `{centroidId: string, documentId: string}
 
 The `centroidId` and `documentId` properties of the returned `AddDocumentToCentroidResponse` contain the specified centroid and document IDs, respectively.
 
@@ -145,7 +146,7 @@ If this command is successful, it initiates a background recomputation of the af
 ---
 ## `removeDocumentFromCentroid`
 #### `(centroidId: string, documentId: string) -> RemoveDocumentFromCentroidResponse`
-#### `{centroidId: string, documentId: string}
+#### `{centroidId: string, documentId: string}`
 Unassociates a document from a centroid.
 
 The `centroidId` and `documentId` properties of the returned `RemoveDocumentFromCentroidResponse` contain the specified centroid and document IDs, respectively.
