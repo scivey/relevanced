@@ -49,16 +49,16 @@ def main():
     for centroid_name, _ in centroid_url_pairs:
         # not normally necessary, but with a new
         # centroid we want to be sure it's up to date
-        client.recompute_centroid(centroid_name)
+        client.join_centroid(centroid_name)
 
     for url in [MATH_TEST_URL, POLITICAL_TEST_URL, MEDICAL_TEST_URL]:
         text = Goose().extract(url=url).cleaned_text
-        scores = client.multi_get_text_similarity(
+        response = client.multi_get_text_similarity(
             ['math', 'politics', 'medicine'], text
         )
-        label = get_max_key(scores)
+        label = get_max_key(response.scores)
         print('Scores for %s :  -->  %s' % (url, label))
-        pprint(scores)
+        pprint(response.scores)
 
 
 MATH_URLS = [

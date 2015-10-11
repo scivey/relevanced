@@ -47,11 +47,12 @@ def main():
 
     # the centroid will be automatically computed, but
     # for this example we want to be sure that it's up to date
-    client.recompute_centroid('math')
+    client.join_centroid('math')
 
     math_text = Goose().extract(url=MATH_TEST_URL).cleaned_text
     math_similarity = client.get_text_similarity('math', math_text)
     print("Similarity for math article: \t%r" % math_similarity)
+
     irrelevant_text = Goose().extract(url=IRRELEVANT_TEST_URL).cleaned_text
     irrelevant_similarity = client.get_text_similarity('math', irrelevant_text)
     print("Similarity for richard gere: \t%r" % irrelevant_similarity)

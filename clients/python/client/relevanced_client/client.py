@@ -21,24 +21,34 @@ class Client(object):
 
     def list_all_centroids(self):
         """
-        Return a list of all centroid IDs defined on the server.
+        List the IDs of all centroids defined on the server.
+
+        Returns a `ListCentroidsResponse`.  The `centroids`
+        property of this response object contains an array
+        of IDs.
         """
         return self.thrift_client.listAllCentroids()
 
-    def create_centroid(self, name):
+    def create_centroid(self, id):
         """
         Create a new centroid on the server.
 
-        On success, returns the string `name`.
+        On success, returns a `CreateCentroidResponse`.
+        The response's ID equals the original
+        ID specified.
 
-        If a centroid already exists with identifier `name`,
-        raises `TCentroidAlreadyExists`.
+        If a centroid already exists with ID `id`,
+        raises `ECentroidAlreadyExists`.
         """
         return self.thrift_client.createCentroid(name)
 
     def list_all_documents(self):
         """
-        Return a list of all document IDs defined on the server.
+        List the IDs of all documents defined on the server.
+
+        Returns a `ListDocumentsResponse`.  The `documents`
+        property of this response object contains an array
+        of IDs.
         """
         return self.thrift_client.listAllDocuments()
 
@@ -47,13 +57,17 @@ class Client(object):
         Add the document with id `document_id` to the centroid with
         id `centroid_id`.
 
-        On success, returns `True`.
+        Returns an `AddDocumentToCentroidResponse` with
+        corresponding `centroidId` and `documentId` properties.
 
         If no centroid exists with id `centroid_id`, raises
-        `TCentroidDoesNotExist`.
+        `ECentroidDoesNotExist`.
 
         If no document exists with id `document_id`, raises
-        `TDocumentDoesNotExist`.
+        `EDocumentDoesNotExist`.
+
+        If the document has already been added to the centroid,
+        raises `EDocumentAlreadyInCentroid`.
         """
         return self.thrift_client.addDocumentToCentroid(
             centroid_id, document_id
@@ -64,15 +78,18 @@ class Client(object):
         Remove the document with id `document_id` from the centroid with
         id `centroid_id`.
 
-        On success, returns `True`.
+        Returns a `RemoveDocumentFromCentroidResponse` with
+        corresponding `centroidId` and `documentId` properties.
 
         If no centroid exists with id `centroid_id`, raises
-        `TCentroidDoesNotExist`.
+        `ECentroidDoesNotExist`.
 
         If no document exists with id `document_id`, raises
-        `TDocumentDoesNotExist`.
-        """
+        `EDocumentDoesNotExist`.
 
+        If the document is not in the given centroid,
+        raises `EDocumentNotInCentroid`.
+        """
         return self.thrift_client.removeDocumentFromCentroid(
             centroid_id, document_id
         )
@@ -82,10 +99,11 @@ class Client(object):
         Create a new document on the server with ID `document_id`
         and text `document_text`.
 
-        On success, returns `document_id`.
+        Returns a `CreateDocumentResponse` with `id` property
+        equal to `document_id`.
 
         If a document already exists with the given ID, raises
-        `TDocumentAlreadyExists`.
+        `EDocumentAlreadyExists`.
         """
 
         return self.thrift_client.createDocumentWithID(
@@ -98,7 +116,8 @@ class Client(object):
         Create a new document with text `document_text`. The server
         will generate a UUID for the new document's ID.
 
-        Returns the UUID of the new document.
+        Returns a `CreateDocumentResponse`.  Its `id` property
+        gives the server-generated UUID of the new document.
         """
         return self.thrift_client.createDocument(document_text.encode('utf-8'))
 
@@ -107,13 +126,14 @@ class Client(object):
         Delete the document with id = `document_id`.
         This is not reversible.
 
-        On success, returns id of the document.
+        Returns a `DeleteDocumentResponse` with `id` property
+        equal to `document_id`.
 
         The document is automatically removed from any
         centroids it has been added to.
 
         If no document exists with the given ID, raises
-        `TDocumentDoesNotExist`.
+        `EDocumentDoesNotExist`.
         """
         return self.thrift_client.deleteDocument(document_id)
 
@@ -122,46 +142,60 @@ class Client(object):
         Delete the centroid with id = `centroid_id`.
         This is not reversible.
 
-        On success, returns id of the centroid.
+        Returns a `DeleteCentroidResponse` with `id` property
+        equal to `centroid_id`.
 
         Does not delete any documents contained in
         the centroid, but does remove any record of
         which documents it was associated with.
 
         If no centroid exists with the given ID, raises
-        `TCentroidDoesNotExist`.
+        `ECentroidDoesNotExist`.
         """
         return self.thrift_client.deleteCentroid(centroid_id)
 
     def join_centroid(self, centroid_id):
         """
-        If the centroid is up-to-date, returns.
-        If the centroid is not up to date and an update is in progress,
-        returns once that update is complete.
-        If centroid is not up to date and update is not running
-        (generally due to cool-down period between document addition / removal),
-        immediately performs an update and then returns.
+        Synchronize with the server-side centroid
+        recalculation cycle.
+
+        - If centroid is up to date, returns.
+        - If centroid is not up to date and an update is
+        in progress, returns once that update is complete.
+        - If centroid is not up to date and an update is not
+        yet running due to the cool-down period, immediately
+        performs the update and then returns.
+
+        Returns a `JoinCentroidResponse`.  The `recalculated`
+        property of this response object indicates whether
+        a recalculation was actually performed.
 
         If no centroid exists with the given ID, raises
-        `TCentroidDoesNotExist`.
+        `ECentroidDoesNotExist`.
 
-        This command is not necessary under ordinary circumstances,
+        This command is not necessary under most circumstances,
         as the server automatically recalculates centroids
-        as documents are added and removed.  It is mainly used for testing
-        and examples.
+        as documents are added and removed.  It mainly exists
+        to aid development and testing.
         """
         return self.thrift_client.joinCentroid(centroid_id)
 
     def list_all_documents_for_centroid(self, centroid_id):
         """
-        Return a list of IDs of all documents associated with the centroid
-        `centroid_id`.
+        List the IDs of all documents associated with the
+        centroid `centroid_id`.
+
+        Returns a `ListCentroidDocumentsResponse`.  The
+        `documents` property of this response object
+        contains the IDs.
 
         If no centroid exists with the given ID, raises
-        `TCentroidDoesNotExist`.
+        `ECentroidDoesNotExist`.
 
-        If the centroid exists but no documents have been added to it,
-        returns an empty list. (I.e. this is not considered an error condition).
+        If the centroid exists but is not associated with
+        any documents, the response's `documents` property
+        will be an empty list. (This is not considered
+        an error condition.)
         """
         return self.thrift_client.listAllDocumentsForCentroid(centroid_id)
 
@@ -171,7 +205,7 @@ class Client(object):
         `centroid_2_id`, as double-precision floating point.
 
         If either centroid does not exist, raises
-        `TCentroidDoesNotExist`.
+        `ECentroidDoesNotExist`.
         """
 
         return self.thrift_client.getCentroidSimilarity(centroid_1_id, centroid_2_id)
@@ -187,7 +221,7 @@ class Client(object):
         `get_document_similarity` to avoid this extra work.
 
         If the centroid does not exist, raises
-        `TCentroidDoesNotExist`.
+        `ECentroidDoesNotExist`.
         """
         return self.thrift_client.getTextSimilarity(
             centroid_id, text.encode('utf-8')
@@ -195,18 +229,23 @@ class Client(object):
 
     def multi_get_text_similarity(self, centroid_ids, text):
         """
-        Return a dict mapping each of the centroids in the list
-        `centroid_ids` to its cosine similarity against `text`.
+        Calculate the cosine similarity of raw text `text`
+        against multiple centroids in parallel.
+
+        Returns a `MultiSimilarityResponse`.  The `scores`
+        property of this response object is a dict mapping
+        each centroid ID to its corresponding cosine similarity
+        against `text`.
 
         If any of the centroids do not exist, raises
-        `TCentroidDoesNotExist`.
+        `ECentroidDoesNotExist`.
 
         Example:
-            scores = client.multi_get_text_similarity(
+            response = client.multi_get_text_similarity(
                 ['centroid1', 'centroid2'],
                 'this is some text'
             )
-            pprint(scores)
+            pprint(response.scores)
             # {"centroid1": 0.08731412, "centroid2": 0.3921579}
         """
 
@@ -229,10 +268,10 @@ class Client(object):
         where the document has already been saved on the server.
 
         If the centroid does not exist, raises
-        `TCentroidDoesNotExist`.
+        `ECentroidDoesNotExist`.
 
         If the document does not exist, raises
-        `TDocumentDoesNotExist`.
+        `EDocumentDoesNotExist`.
         """
 
         return self.thrift_client.getDocumentSimilarity(

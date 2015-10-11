@@ -10,33 +10,37 @@ Aside from those details, the fundamental commands for interfacing with **releva
 #### `(centroidId: string, text: string) -> double`
 Transforms `text` into a normalized term-frequency vector on the server, and then computes its similarity against the given centroid.
 
-If successful, higher-level clients return the cosine similarity score as double-precision floating point.  The underlying Thrift protocol returns this score in addition to the status code `OK`.
+Returns the cosine similarity score as double-precision floating point.
 
-If there is no centroid matching `centroidId`, the protocol returns status code `CENTROID_DOES_NOT_EXIST`.  Higher-level clients throw an error or return a failed promise (depending on language).
+If there is no centroid matching `centroidId`, the command fails with the exception `ECentroidDoesNotExist`.
 
 ---
 ## `multiGetTextSimilarity`
-#### `(centroidIds: list<string>, text: string) -> map<string, double>`
+#### `(centroidIds: list<string>, text: string) -> MultiSimilarityResponse`
+#### `{scores: map<string, double>}`
+
 Transforms `text` into a normalized term-frequency vector on the server, and then computes its similarity against each of the centroids specified by `centroidIds`.
 
-If successful, higher-level clients return a language-appropriate `Map<string, double>` type which maps centroid ids to their double precision floating point cosine similarity score against the document.  The underlying Thrift protocol returns this map of scores in addition to the status code `OK`.
+The `scores` property of the returned `MultiSimilarityResponse` is a `Map<string, double>` of centroid IDs to their corresponding similarity scores.
 
-If any of the centroids specified by `centroidIds` do not exist, the entire command fails.  The protocol indicates this with status code `CENTROID_DOES_NOT_EXIST`; higher-level clients throw an error or return a failed promise.
+If any of the centroids specified by `centroidIds` do not exist, the entire command fails with the exception `ECentroidDoesNotExist`.
 
-Note that the protocol does not distinguish between cases where a single centroid is missing and those where multiple centroids are missing.  These cases are all indicated by the status code `CENTROID_DOES_NOT_EXIST`.
+Note that the protocol does not distinguish between cases where a single centroid is missing and those where multiple centroids are missing.  These cases are all indicated by the exception `ECentroidDoesNotExist`.
 
 ---
 ## `getDocumentSimilarity`
 #### `(centroidId: string, documentId: string) -> double`
 Computes cosine similarity of a document that *already exists on the server* against the specified centroid.
 
+Returns the cosine similarity score as double-precision floating point.
+
 This command has the same purpose as `getSimilarityForText`, but is much more efficient in cases where the text has already been sent to the server for another reason.  In these cases the server can skip the text-processing phase.
 
-If successful, higher-level clients return the cosine similarity score as double-precision floating point.  The underlying Thrift protocol returns this score in addition to the status code `OK`.
+If there is no centroid matching `centroidId`, the command fails with the exception `ECentroidDoesNotExist`.
 
-If there is no centroid matching `centroidId`, the protocol returns status code `CENTROID_DOES_NOT_EXIST`.  If there is no document matching `documentId`, it returns status code `DOCUMENT_DOES_NOT_EXIST`.  In either case, higher-level clients throw an error or return a failed promise (depending on language).
+If there is no document matching `documentId`, the command fails with the exception `EDocumentDoesNotExist`.
 
-Note that if both the centroid and document do not exist, only the `CENTROID_DOES_NOT_EXIST` error condition will be reported.
+Note that if both the centroid and document do not exist, only the `ECentroidDoesNotExist` exception will be reported.
 
 ---
 ## `getCentroidSimilarity`
@@ -44,125 +48,141 @@ Note that if both the centroid and document do not exist, only the `CENTROID_DOE
 
 Computes cosine similarity of two centroids.
 
-If successful, higher-level clients return the cosine similarity score as double-precision floating point.  The underlying Thrift protocol returns this score in addition to the status code `OK`.
+Returns the cosine similarity score as double-precision floating point.
 
-If either centroid is missing, the protocol returns status code `CENTROID_DOES_NOT_EXIST` and higher-level clients throw an error or return a failed promise (depending on language).
+If either centroid is missing, the command fails with the exception `ECentroidDoesNotExist`.
 
-Note that the protocol does not distinguish between cases where both centroids are missing and those where only one is missing.  In either case, the status is `CENTROID_DOES_NOT_EXIST`.
+Note that the protocol does not distinguish between cases where both centroids are missing and those where only one is missing.  In either case the `ECentroidDoesNotExist` exception will be returned, and it will only indicate the absence of a single centroid.
 
 ---
 ## `joinCentroid`
-#### `(centroidId: string) -> void`
-
+#### `(centroidId: string) -> JoinCentroidResponse`
+#### `{id: string, recalculated: bool}`
 Ensures a centroid is up to date before proceeding.
-The server automatically recomputes centroids as documents are added and removed, so this is really a way of synchronizing with that process.  The specific behavior is:
+The server automatically recalculates centroids as documents are added and removed, so this is really a way of synchronizing with that process.  The specific behavior is:
 
 - If the centroid is up to date, returns immediately.
 - If an update job is currently in progress, returns once that job has completed.
 - If the centroid is not up to date and no job is executing (because of the cool-off period), immediately starts the update and returns once it is complete.
 
-If the centroid given by `centroidId` does not exist, the protocol returns status code `CENTROID_DOES_NOT_EXIST` and higher-level clients throw an error or return a failed promise (depending on language).
+The `recalculated` property of the returned `JoinCentroidResponse` indicates whether a recalculation was actually performed.
+
+If the centroid given by `centroidId` does not exist, the command fails with the exception `ECentroidDoesNotExist`.
 
 ---
 ## `createDocument`
-#### `(text: string) -> string`
+#### `(text: string) -> CreateDocumentResponse`
+#### `{id: string}`
 
-Send a blob of unprocessed text to the server, which will process and persist it.  This command returns the UUID assigned to the processed document, which is needed for further commands involving that document.
+Sends a blob of unprocessed text to the server, which processes it and persists it.
+
+The `id` property of the returned `CreateDocumentResponse` contains the UUID assigned to the processed document, which is needed for further commands involving that document.
 
 ---
 ## `createDocumentWithID`
-#### `(id: string, text: string) -> string`
+#### `(id: string, text: string) -> CreateDocumentResponse`
+#### `{id: string}`
+
+Sends an ID and blob of unprocessed text to the server, which processes it and persists it under the given ID.
 
 Like `createDocument` but also specifies an ID to use for the document, which the server will use instead of generating a UUID.
 
-On success, returns a string equal to `id`.
+The `id` property of the returned `CreateDocumentResponse` contains the specified ID.
 
-Because document IDs must be unique, calling `createDocumentWithID` with an existing ID is an error.  The server reports this condition via the `DOCUMENT_ALREADY_EXISTS` status code in its underlying Thrift protocol; the higher-level clients indicate this condition in ways that integrate better with their host languages.  (The Python client throws `DocumentAlreadyExists`; the Javascript client returns a failed promise containing a similar error.)
+Document IDs must be unique.  Calling `createDocumentWithID` with an existing ID will result in an `EDocumentAlreadyExists` exception.
 
 ---
 ## `deleteDocument`
-#### `(id: string) -> bool`
-If a document with `id` exists, deletes it and returns status code `OK` (Thrift protocol) or a variant of `True` or a successful promise (higher-level clients).
+#### `(id: string) -> DeleteDocumentResponse`
+#### `{id: string}`
 
-If the document does not exist, returns status code `DOCUMENT_DOES_NOT_EXIST` (Thrift protocol) or throws an exception / returns a failed promise (higher-level clients).
+Deletes the document associated with the given ID.  The `id` property of the returned `DeleteDocumentResponse` contains the same ID.
+
+Throws an `EDocumentDoesNotExist` exception if the document does not exist.
 
 If the document is associated with any centroids, those associations are automatically invalidated.  Most of this invalidation work (e.g. removing `RocksDB` entries) happens lazily during centroid recomputations.
 
 ---
 ## `createCentroid`
-#### `(id: string) -> string`
+#### `(id: string) -> CreateCentroidResponse`
+#### `{id: string}`
 
-Creates a new centroid.  `id` must be unique among all centroids on the server.
+Creates a new centroid with the given ID.
 
-If the centroid is successfully created, returns status code `OK` (Thrift protocol) or a string equal to `id` (higher-level clients).
+The `id` property of the returned `CreateCentroidResponse` contains the same ID.
 
-If `id` refers to an existing centroid, returns status code `CENTROID_ALREADY_EXISTS` (Thrift protocol) or throws an exception / returns a failed promise (higher-level clients).
+Centroid IDs must be unique.  Calling `createCentroid` with an existing centroid ID will result in an `ECentroidAlreadyExists` exception.
 
 ---
 ## `deleteCentroid`
-#### `(id: string) -> bool`
+#### `(id: string) -> DeleteCentroidResponse`
+#### `{id: string}`
 
-Deletes a centroid.  `id` must refer to the id of a centroid that exists on the server.
+Deletes the centroid associated with the given ID.  The `id` property of the returned `DeleteCentroidResponse` contains the same ID.
 
-If the centroid is successfully deleted, returns status code `OK` (Thrift protocol) or a variant of `True` or a successful promise (higher-level clients).
-
-If `id` does not refer to any centroid on the server, returns status code `CENTROID_DOES_NOT_EXIST` (Thrift protocol) or throws an exception / returns a failed promise (higher-level clients).
+Throws an `ECentroidDoesNotExist` exception if the centroid does not exist.
 
 If the centroid is associated with any documents, the related centroid->document links will be invalidated and removed from the database lazily.
 
-Because documents in **relevanced** are independent entities which can be added to many centroids, deleting a given centroid does *not* delete any of the documents it is associated with.  It only results in deletion of database entries describing the links.
+Because documents are independent entities which can be added to many centroids, deleting a given centroid does *not* delete any of the documents it is associated with.  It only results in removal of any database entries linking them to the deleted centroid.
 
 ---
 ## `addDocumentToCentroid`
-#### `(centroidId: string, documentId: string) -> void`
+#### `(centroidId: string, documentId: string) -> AddDocumentToCentroidResponse`
 Associates a document with a centroid.
+#### `{centroidId: string, documentId: string}
 
-If the centroid and document both exist, returns status code `OK` (Thrift protocol) or a variant of `True` or a successful promise (higher-level clients).
+The `centroidId` and `documentId` properties of the returned `AddDocumentToCentroidResponse` contain the specified centroid and document IDs, respectively.
+
+If the centroid does not exist, throws an `ECentroidDoesNotExist` exception.
+If the document does not exist, throws an `EDocumentDoesNotExist` exception.
+If the document has already been added to the centroid, throws an `EDocumentAlreadyInCentroid` exception.
+
+Note that if both the centroid and document do not exist, only the `ECentroidDoesNotExist` exception is reported.
 
 If this command is successful, it initiates a background recomputation of the affected centroid.  This background job is intelligently scheduled with debounce and cool-off intervals, so making `N` calls to `addDocumentToCentroid` with the same `centroidId` will not result in `N` update jobs running on the server: it will result in one or a small number, depending on the exact calling pattern.  Once the centroid has been updated, its position will include the influence of the newly linked document.
 
-If the centroid does not exist, the Thrift protocol returns status code `CENTROID_DOES_NOT_EXIST`.  If the document does not exist, returns status code `DOCUMENT_DOES_NOT_EXIST`.  Higher-level clients report either status by throwing an exception or returning a failed promise, depending on host language.
-
-Note that if both the centroid and document do not exist, only the `CENTROID_DOES_NOT_EXIST` error condition is reported.
-
 ---
 ## `removeDocumentFromCentroid`
-#### `(centroidId: string, documentId: string) -> void`
+#### `(centroidId: string, documentId: string) -> RemoveDocumentFromCentroidResponse`
+#### `{centroidId: string, documentId: string}
 Unassociates a document from a centroid.
 
-If the centroid and document both exist and they are currently linked, returns status code `OK` (Thrift protocol) or a variant of `True` or a successful promise (higher-level clients).
+The `centroidId` and `documentId` properties of the returned `RemoveDocumentFromCentroidResponse` contain the specified centroid and document IDs, respectively.
+
+If the centroid does not exist, throws an `ECentroidDoesNotExist` exception.
+If the document does not exist, throws an `EDocumentDoesNotExist` exception.
+If the document is not in the given centroid, throws an `EDocumentNotInCentroid` exception.
+
+Note that if both the centroid and document do not exist, only the `ECentroidDoesNotExist` exception is reported.
 
 If this command is successful, it initiates a background recomputation of the affected centroid.  This background job is intelligently scheduled with debounce and cool-off intervals, so making `N` calls to `addDocumentToCentroid` with the same `centroidId` will not result in `N` update jobs running on the server: it will result in one or a small number, depending on the exact calling pattern.  Once the centroid has been updated, its position will no longer be influenced by that unlinked document.
 
-If the centroid does not exist, the Thrift protocol returns status code `CENTROID_DOES_NOT_EXIST`.  If the document does not exist, returns status code `DOCUMENT_DOES_NOT_EXIST`.  Higher-level clients report either status by throwing an exception or returning a failed promise, depending on host language.
-
-Note that if both the centroid and document do not exist, only the `CENTROID_DOES_NOT_EXIST` error condition is reported.
-
 ---
 ## `listAllCentroids`
-#### `() -> list<string>`
+#### `() -> ListCentroidsResponse`
+#### `{centroids: list<string>}`
+Lists the IDs of all centroids existing on the server.  The `centroids` property of the returned `ListCentroidsResponse` contains a `list<string>` of the IDs.
 
-Returns a list of all centroid IDs currently defined on the server.
 This command has no error conditions.
 
 ---
 ## `listAllDocuments`
-#### `() -> list<string>`
+#### `() -> ListDocumentsResponse`
+#### `{documents: list<string>}`
+Lists the IDs of all documents existing on the server.  The `documents` property of the returned `ListDocumentsResponse` contains a `list<string>` of the IDs.
 
-Returns a list of the IDs of all documents existing on the server.
 This command has no error conditions.
 
 ---
 ## `listAllDocumentsForCentroid`
-#### `(centroidId: string) -> list<string>`
+#### `(centroidId: string) -> ListCentroidDocumentsResponse`
+#### `{documents: list<string>}`
+Lists all document IDs associated with the given `centroidId`.
 
-Returns a list of all document IDs associated with the given `centroidId`.
+The `documents` property of the returned `ListCentroidDocumentsResponse` contains a `list<string>` of the document IDs.
 
-Higher-level clients receive this list directly (possibly asynchronously); the underlying Thrift protocol returns this list together with a status.
+If the centroid does not exist, throws an `ECentroidDoesNotExist` exception.
 
-When successful, higher-level clients receive the list of document IDs directly (possible asynchronously).  The underlying Thrift protocol returns a status code alongside this list, which is set to `OK` on success.
-
-If there is no centroid matching `centroidId`, the protocol returns status code `CENTROID_DOES_NOT_EXIST`.  Higher-level clients throw an error or return a failed promise (depending on language).
-
-If the centroid exists but there are no documents assigned to it, the result is just an empty list (i.e. this scenario is not considered an error).
+If the centroid exists but has no documents assigned to it, the `documents` property is an empty `list<string>` (i.e. this scenario is not considered an error).
 
