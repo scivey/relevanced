@@ -1,0 +1,8 @@
+{
+    "data_dir": "/var/lib/relevanced/data",
+    "rocks_db_threads": 8,
+    "centroid_update_threads": 4,
+    "similarity_score_threads": 4,
+    "document_processing_threads": 4,
+    "port": 8097
+}

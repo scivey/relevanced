@@ -1,14 +1,11 @@
 #!/bin/sh
 #
-# osqueryd  Start/Stop the osquery daemon.
+# relevanced  Start/Stop the relevanced daemon.
 #
 # chkconfig: 345 90 60
 # Description:
-#  With osquery, you can use SQL to query low-level
-#  operating system information. Under the hood, instead
-#  of querying static tables, these queries dynamically execute
-#  high-performance native code. The results of the
-#  SQL query are transparently returned to you quickly and easily
+#  relevanced is a fast text similarity-scoring server
+#  with persistent document centroids.
 #
 ### BEGIN INIT INFO
 # Provides: relevanced
@@ -18,18 +15,17 @@
 # Default-Stop: 90
 # Short-Description: run relevanced daemon
 # Description:
-#   A server for persistent text similarity models
-#
+#  relevanced is a fast text similarity-scoring server
+#  with persistent document centroids.
 #
 ### END INIT INFO
 
 if [ -z $RETVAL ]; then RETVAL=0; fi
-if [ -z $PROG ]; then PROG="osqueryd"; fi
-if [ -z $EXEC ]; then EXEC=/usr/bin/osqueryd; fi
-if [ -z $FLAGS_PATH ]; then FLAGS_PATH=/etc/osquery/osquery.flags; fi
-if [ -z $REAL_CONFIG_PATH ]; then REAL_CONFIG_PATH=/etc/osquery/osquery.conf; fi
-if [ -z $LOCKFILE ]; then LOCKFILE=/var/lock/osqueryd; fi
-if [ -z $PIDFILE ]; then PIDFILE=/var/run/osqueryd.pid; fi
+if [ -z $PROG ]; then PROG="relevanced"; fi
+if [ -z $EXEC ]; then EXEC=/usr/bin/relevanced; fi
+if [ -z $REAL_CONFIG_PATH ]; then REAL_CONFIG_PATH=/etc/relevanced/relevanced.json; fi
+if [ -z $LOCKFILE ]; then LOCKFILE=/var/lock/relevanced; fi
+if [ -z $PIDFILE ]; then PIDFILE=/var/run/relevanced.pid; fi
 if [ -z $UID ]; then UID=$(id -u); fi
 
 if [ $UID -eq 0 ] && [ -e /etc/sysconfig/$PROG ]; then
@@ -42,8 +38,6 @@ fi
 
 if [ ! -e $FLAGS_PATH ] && [ ! -e $REAL_CONFIG_PATH ]; then
   echo "No config file found at $REAL_CONFIG_PATH"
-  echo "Additionally, no flags file or config override found at $FLAGS_PATH"
-  echo "See '/usr/share/osquery/osquery.example.conf' for an example config."
   RETVAL=1
 fi
 
@@ -64,13 +58,13 @@ start() {
     if [ "$PROCNAME" = "$PROG" ]; then
       return 0
     else
-      # osqueryd pidfile exists but it's not running
+      # pidfile exists but it's not running
       rm $PIDFILE
     fi
   fi
 
-  if [ -e $FLAGS_PATH ]; then ARGS="$ARGS --flagfile=$FLAGS_PATH"; fi
-  if [ -e $REAL_CONFIG_PATH ]; then ARGS="$ARGS --config_path=$REAL_CONFIG_PATH"; fi
+  # if [ -e $FLAGS_PATH ]; then ARGS="$ARGS --flagfile=$FLAGS_PATH"; fi
+  if [ -e $REAL_CONFIG_PATH ]; then ARGS="$ARGS --config_file=$REAL_CONFIG_PATH"; fi
 
   $PROG $ARGS \
         --pidfile=$PIDFILE \
@@ -115,7 +109,7 @@ status() {
       echo "$PROG is already running: $PID"
       RETVAL=0
     else
-      # osqueryd pidfile exists but it's not running
+      # pidfile exists but it's not running
       echo "$PROG is not running but a stale pidfile was found."
       RETVAL=7
     fi

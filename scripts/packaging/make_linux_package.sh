@@ -18,6 +18,7 @@ PROJECT_BIN_BUILD_DIR="$PROJECT_ROOT/build/bin"
 BUILT_SERVER_BINARY="$PROJECT_BIN_BUILD_DIR/src/relevanced_static"
 
 PACKAGE_VERSION="0.9.0rc1"
+
 PACKAGE_ARCH=`uname -m`
 PACKAGE_ITERATION=""
 PACKAGE_TYPE=""
@@ -97,7 +98,7 @@ function main() {
   mkdir -p $INSTALL_PREFIX/$RELEVANCED_VAR_DIR/data
   mkdir -p $INSTALL_PREFIX/$RELEVANCED_LOG_DIR
   mkdir -p $INSTALL_PREFIX/$RELEVANCED_ETC_DIR
-  cp $SCRIPT_DIR/relevanced_config.conf $INSTALL_PREFIX/$RELEVANCED_ETC_DIR/relevanced_config.conf
+  cp $SCRIPT_DIR/relevanced.json $INSTALL_PREFIX/$RELEVANCED_ETC_DIR/relevanced.json
 
   mkdir -p `dirname $INSTALL_PREFIX$INITD_DST`
   cp $INITD_SRC $INSTALL_PREFIX$INITD_DST
