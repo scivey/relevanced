@@ -73,7 +73,7 @@ endif()
 
 # make analyze (environment variable from Makefile)
 if(DEFINED ENV{ANALYZE})
-  set(CMAKE_CXX_COMPILER "${CMAKE_SOURCE_DIR}/tools/analysis/clang-analyze.sh")
+  set(CMAKE_CXX_COMPILER "${CMAKE_SOURCE_DIR}/scripts/clang-analyze.sh")
 endif()
 
 include(CMakeLibs)
