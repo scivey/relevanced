@@ -5,19 +5,20 @@ thrift:
 	python -m thrift_compiler.main --gen cpp2 -o src src/RelevancedProtocol.thrift
 
 thrift-py:
-	thrift-0.9 --gen py -o ./clients/python/client/relevanced_client src/RelevancedProtocol.thrift
-	rm -rf ./clients/python/client/relevanced_client/gen_py
-	mv ./clients/python/client/relevanced_client/gen-py ./clients/python/client/relevanced_client/gen_py
+	rm -rf client/python/client/relevanced_client/gen_py
+	mkdir -p build/thrift && rm -rf build/thrift/gen-py
+	thrift-0.9 --gen py -o build/thrift src/RelevancedProtocol.thrift
+	mv ./build/thrift/gen-py ./clients/python/client/relevanced_client/gen_py
 
 thrift-node:
 	rm -rf ./clients/nodejs/client/gen-nodejs
-	mkdir -p build/thrift
+	mkdir -p build/thrift && rm -rf build/thrift/gen-nodejs
 	thrift-0.9 --gen js:node -o build/thrift src/RelevancedProtocol.thrift
 	mv ./build/thrift/gen-nodejs ./clients/nodejs/client/
 
 thrift-java:
 	rm -rf clients/java/client/src/main/java/org/relevanced/client/gen_thrift_protocol
-	mkdir -p build/thrift
+	mkdir -p build/thrift && rm -rf build/thrift/gen-java
 	thrift-0.9 --gen java -o build/thrift src/RelevancedProtocol.thrift
 	mv ./build/thrift/gen-java/org/relevanced/client/gen_thrift_protocol ./clients/java/client/src/main/java/org/relevanced/client/
 
