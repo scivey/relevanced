@@ -105,7 +105,7 @@ bool RockHandle::iterRange(const string &start, const string &end, function<void
   ScopeGuard guard = makeGuard([it](){
     delete it;
   });
-
+  (void) guard;
   bool foundAny = false;
   bool stop = false;
   function<void ()> escapeFunc([&stop](){

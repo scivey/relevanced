@@ -148,7 +148,9 @@ Future<Try<unique_ptr<string>>> RelevanceServer::getDocument(unique_ptr<string> 
     if (proced.hasException()) {
       return Try<unique_ptr<string>>(proced.exception());
     }
-    auto uniq = folly::make_unique<string>(serialization::jsonSerialize(proced.value().get()));
+    string serialized;
+    serialization::jsonSerialize(serialized, proced.value().get());
+    auto uniq = folly::make_unique<string>(serialized);
     return Try<unique_ptr<string>>(std::move(uniq));
   });
 }

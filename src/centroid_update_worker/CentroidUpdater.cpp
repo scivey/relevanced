@@ -32,6 +32,7 @@ namespace relevanced {
 namespace centroid_update_worker {
 using models::WordVector;
 using models::Centroid;
+using models::ProcessedDocument;
 using persistence::exceptions::CentroidDoesNotExist;
 using util::UniquePointer;
 

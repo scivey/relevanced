@@ -46,7 +46,7 @@ bool SyncPersistence::doesDocumentExist(const string &id) {
 
 Try<bool> SyncPersistence::saveDocument(ProcessedDocument *doc) {
   string data;
-  serialization::binarySerialize<ProcessedDocument>(data, *doc);
+  serialization::binarySerialize(data, *doc);
   auto key = sformat("documents:{}", doc->id);
   rockHandle_->put(key, data);
   return Try<bool>(true);
@@ -103,7 +103,7 @@ Optional<ProcessedDocument*> SyncPersistence::loadDocumentRaw(const string &docI
     return result;
   }
   auto processed = new ProcessedDocument("");
-  serialization::binaryDeserialize<ProcessedDocument>(serialized, processed);
+  serialization::binaryDeserialize(serialized, processed);
   result.assign(processed);
   return result;
 }
@@ -167,7 +167,7 @@ Try<bool> SyncPersistence::saveCentroid(const string &id, Centroid *centroid) {
   auto key = sformat("centroids:{}", id);
   LOG(INFO) << format("persisting serialized centroid '{}'", id);
   string data;
-  serialization::binarySerialize<Centroid>(data, *centroid);
+  serialization::binarySerialize(data, *centroid);
   rockHandle_->put(key, data);
   return Try<bool>(true);
 }
@@ -182,7 +182,7 @@ Optional<Centroid*> SyncPersistence::loadCentroidRaw(const string &id) {
   auto key = sformat("centroids:{}", id);
   if (rockHandle_->get(key, serialized)) {
     auto centroidRes = new Centroid;
-    serialization::binaryDeserialize<Centroid>(serialized, centroidRes);
+    serialization::binaryDeserialize(serialized, centroidRes);
     result.assign(centroidRes);
   }
   return result;
