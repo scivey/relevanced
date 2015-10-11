@@ -18,17 +18,16 @@ namespace relevanced {
 namespace server {
 
 std::map<std::string, std::string> getEnvSettings() {
-  std::map<std::string, std::string> envVarMap {
-    {"RELEVANCED_DATA_DIR", "data_dir"},
-    {"RELEVANCED_PORT", "port"},
-    {"RELEVANCED_CONFIG_FILE", "config_file"},
-    {"RELEVANCED_ROCKSDB_THREADS", "rocks_db_threads"},
-    {"RELEVANCED_DOCUMENT_PROCESSING_THREADS", "document_processing_threads"},
-    {"RELEVANCED_SIMILARITY_SCORE_THREADS", "similarity_score_threads"},
-    {"RELEVANCED_CENTROID_UPDATE_THREADS", "centroid_update_threads"}
-  };
+  std::map<std::string, std::string> envVarMap{
+      {"RELEVANCED_DATA_DIR", "data_dir"},
+      {"RELEVANCED_PORT", "port"},
+      {"RELEVANCED_CONFIG_FILE", "config_file"},
+      {"RELEVANCED_ROCKSDB_THREADS", "rocks_db_threads"},
+      {"RELEVANCED_DOCUMENT_PROCESSING_THREADS", "document_processing_threads"},
+      {"RELEVANCED_SIMILARITY_SCORE_THREADS", "similarity_score_threads"},
+      {"RELEVANCED_CENTROID_UPDATE_THREADS", "centroid_update_threads"}};
   std::map<std::string, std::string> output;
-  for (auto &elem: envVarMap) {
+  for (auto &elem : envVarMap) {
     char *charVal = getenv(elem.first.c_str());
     if (charVal != nullptr) {
       std::string value = charVal;
@@ -74,19 +73,23 @@ std::shared_ptr<RelevanceServerOptions> buildOptions() {
     }
     auto confRocksThreads = parsedConf.find("rocks_db_threads");
     if (confRocksThreads != confItems.end()) {
-      options->setRocksDbThreadCount(folly::convertTo<int>(confRocksThreads->second));
+      options->setRocksDbThreadCount(
+          folly::convertTo<int>(confRocksThreads->second));
     }
     auto confCentroidUpdateThreads = parsedConf.find("centroid_update_threads");
     if (confCentroidUpdateThreads != confItems.end()) {
-      options->setCentroidUpdateThreadCount(folly::convertTo<int>(confCentroidUpdateThreads->second));
+      options->setCentroidUpdateThreadCount(
+          folly::convertTo<int>(confCentroidUpdateThreads->second));
     }
     auto confProcessingThreads = parsedConf.find("document_processing_threads");
     if (confProcessingThreads != confItems.end()) {
-      options->setDocumentProcessingThreadCount(folly::convertTo<int>(confProcessingThreads->second));
+      options->setDocumentProcessingThreadCount(
+          folly::convertTo<int>(confProcessingThreads->second));
     }
     auto confScoringThreads = parsedConf.find("similarity_score_threads");
     if (confScoringThreads != confItems.end()) {
-      options->setSimilarityScoreThreadCount(folly::convertTo<int>(confScoringThreads->second));
+      options->setSimilarityScoreThreadCount(
+          folly::convertTo<int>(confScoringThreads->second));
     }
   }
 
@@ -104,17 +107,23 @@ std::shared_ptr<RelevanceServerOptions> buildOptions() {
     if (envRocksThreads.hasValue()) {
       options->setRocksDbThreadCount(folly::to<int>(envRocksThreads.value()));
     }
-    auto envUpdatingThreads = folly::get_optional(envSettings, "centroid_update_threads");
+    auto envUpdatingThreads =
+        folly::get_optional(envSettings, "centroid_update_threads");
     if (envUpdatingThreads.hasValue()) {
-      options->setCentroidUpdateThreadCount(folly::to<int>(envUpdatingThreads.value()));
+      options->setCentroidUpdateThreadCount(
+          folly::to<int>(envUpdatingThreads.value()));
     }
-    auto envProcessingThreads = folly::get_optional(envSettings, "document_processing_threads");
+    auto envProcessingThreads =
+        folly::get_optional(envSettings, "document_processing_threads");
     if (envProcessingThreads.hasValue()) {
-      options->setDocumentProcessingThreadCount(folly::to<int>(envProcessingThreads.value()));
+      options->setDocumentProcessingThreadCount(
+          folly::to<int>(envProcessingThreads.value()));
     }
-    auto envScoringThreads = folly::get_optional(envSettings, "similarity_score_threads");
+    auto envScoringThreads =
+        folly::get_optional(envSettings, "similarity_score_threads");
     if (envScoringThreads.hasValue()) {
-      options->setSimilarityScoreThreadCount(folly::to<int>(envScoringThreads.value()));
+      options->setSimilarityScoreThreadCount(
+          folly::to<int>(envScoringThreads.value()));
     }
   }
 
@@ -131,7 +140,8 @@ std::shared_ptr<RelevanceServerOptions> buildOptions() {
     options->setCentroidUpdateThreadCount(FLAGS_centroid_update_threads);
   }
   if (FLAGS_document_processing_threads > 0) {
-    options->setDocumentProcessingThreadCount(FLAGS_document_processing_threads);
+    options->setDocumentProcessingThreadCount(
+        FLAGS_document_processing_threads);
   }
   if (FLAGS_similarity_score_threads > 0) {
     options->setSimilarityScoreThreadCount(FLAGS_similarity_score_threads);

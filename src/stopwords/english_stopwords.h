@@ -7,4 +7,3 @@ bool isEnglishStopword(const std::string &word);
 
 } // stopwords
 } // relevanced
-

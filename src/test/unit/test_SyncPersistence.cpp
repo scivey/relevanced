@@ -33,41 +33,30 @@ using ::testing::_;
 
 TEST(SyncPersistence, DoesDocumentExistTrue) {
   MockRock mockRock;
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
-  string key {"documents:doc-id"};
-  EXPECT_CALL(mockRock, exists(key))
-    .WillOnce(Return(true));
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
+  string key{"documents:doc-id"};
+  EXPECT_CALL(mockRock, exists(key)).WillOnce(Return(true));
   SyncPersistence dbHandle(std::move(rockHandle));
   EXPECT_TRUE(dbHandle.doesDocumentExist("doc-id"));
 }
 
 TEST(SyncPersistence, DoesDocumentExistFalse) {
   MockRock mockRock;
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
-  string key {"documents:doc-id"};
-  EXPECT_CALL(mockRock, exists(key))
-    .WillOnce(Return(false));
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
+  string key{"documents:doc-id"};
+  EXPECT_CALL(mockRock, exists(key)).WillOnce(Return(false));
   SyncPersistence dbHandle(std::move(rockHandle));
   EXPECT_FALSE(dbHandle.doesDocumentExist("doc-id"));
 }
 
 TEST(SyncPersistence, SaveDocument) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
 
   double magnitude = 10.8;
   ProcessedDocument doc(
-    "doc-id",
-    map<string, double> { {"dog", 1.3}, {"cat", 2.6} },
-    magnitude
-  );
+      "doc-id", map<string, double>{{"dog", 1.3}, {"cat", 2.6}}, magnitude);
   EXPECT_FALSE(mockRock.exists("documents:doc-id"));
   dbHandle.saveDocument(&doc);
   EXPECT_TRUE(mockRock.exists("documents:doc-id"));
@@ -75,9 +64,7 @@ TEST(SyncPersistence, SaveDocument) {
 
 TEST(SyncPersistence, DeleteDocumentExists) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   mockRock.put("documents:doc-id", "something");
   EXPECT_TRUE(mockRock.exists("documents:doc-id"));
@@ -89,9 +76,7 @@ TEST(SyncPersistence, DeleteDocumentExists) {
 
 TEST(SyncPersistence, DeleteDocumentDoesNotExist) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   EXPECT_FALSE(mockRock.exists("documents:doc-id"));
   auto res = dbHandle.deleteDocument("doc-id");
@@ -101,18 +86,10 @@ TEST(SyncPersistence, DeleteDocumentDoesNotExist) {
 
 TEST(SyncPersistence, LoadDocumentOptionExists) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   ProcessedDocument doc(
-    "doc-id",
-    map<string, double> {
-      {"fish", 1.82},
-      {"dog", 8.7}
-    },
-    5.6
-  );
+      "doc-id", map<string, double>{{"fish", 1.82}, {"dog", 8.7}}, 5.6);
   string serialized;
   serialization::binarySerialize(serialized, doc);
   EXPECT_FALSE(mockRock.exists("documents:doc-id"));
@@ -127,9 +104,7 @@ TEST(SyncPersistence, LoadDocumentOptionExists) {
 
 TEST(SyncPersistence, LoadDocumentOptionDoesNotExist) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
 
   EXPECT_FALSE(mockRock.exists("documents:doc-id"));
@@ -139,18 +114,10 @@ TEST(SyncPersistence, LoadDocumentOptionDoesNotExist) {
 
 TEST(SyncPersistence, LoadDocumentExists) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   ProcessedDocument doc(
-    "doc-id",
-    map<string, double> {
-      {"fish", 1.82},
-      {"dog", 8.7}
-    },
-    5.6
-  );
+      "doc-id", map<string, double>{{"fish", 1.82}, {"dog", 8.7}}, 5.6);
   string serialized;
   serialization::binarySerialize(serialized, doc);
   EXPECT_FALSE(mockRock.exists("documents:doc-id"));
@@ -165,9 +132,7 @@ TEST(SyncPersistence, LoadDocumentExists) {
 
 TEST(SyncPersistence, LoadDocumentDoesNotExist) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   EXPECT_FALSE(mockRock.exists("documents:doc-id"));
   auto res = dbHandle.loadDocument("doc-id");
@@ -176,9 +141,7 @@ TEST(SyncPersistence, LoadDocumentDoesNotExist) {
 
 TEST(SyncPersistence, DoesCentroidExistTrue) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   mockRock.put("centroids:some-id", "anything");
   EXPECT_TRUE(dbHandle.doesCentroidExist("some-id"));
@@ -186,18 +149,14 @@ TEST(SyncPersistence, DoesCentroidExistTrue) {
 
 TEST(SyncPersistence, DoesCentroidExistFalse) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   EXPECT_FALSE(dbHandle.doesCentroidExist("some-id"));
 }
 
 TEST(SyncPersistence, DeleteCentroidSadPanda) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   auto res = dbHandle.deleteCentroid("some-id");
   EXPECT_TRUE(res.hasException());
@@ -205,9 +164,7 @@ TEST(SyncPersistence, DeleteCentroidSadPanda) {
 
 TEST(SyncPersistence, DeleteCentroidHappy) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   mockRock.put("centroids:some-id", "anything");
   EXPECT_TRUE(mockRock.exists("centroids:some-id"));
@@ -218,30 +175,26 @@ TEST(SyncPersistence, DeleteCentroidHappy) {
 
 TEST(SyncPersistence, DeleteCentroidHappyWithDocuments) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
-  vector<pair<string, string>> willRetain {
-    {"centroids:good-centroid-1", "anything"},
-    {"centroids:good-centroid-2", "anything"},
-    {"good-centroid-1__documents:doc1", "anything"},
-    {"good-centroid-1__documents:doc7", "anything"},
-    {"good-centroid-1__documents:doc9", "anything"},
-    {"good-centroid-2__documents:doc1", "anything"},
-    {"good-centroid-2__documents:doc3", "anything"},
-    {"good-centroid-2__documents:doc5", "anything"}
-  };
-  vector<pair<string, string>> willDelete {
-    {"centroids:bad-centroid", "anything"},
-    {"bad-centroid__documents:doc1", "anything"},
-    {"bad-centroid__documents:doc3", "anything"},
-    {"bad-centroid__documents:doc8", "anything"}
-  };
-  for (auto &keyVal: willRetain) {
+  vector<pair<string, string>> willRetain{
+      {"centroids:good-centroid-1", "anything"},
+      {"centroids:good-centroid-2", "anything"},
+      {"good-centroid-1__documents:doc1", "anything"},
+      {"good-centroid-1__documents:doc7", "anything"},
+      {"good-centroid-1__documents:doc9", "anything"},
+      {"good-centroid-2__documents:doc1", "anything"},
+      {"good-centroid-2__documents:doc3", "anything"},
+      {"good-centroid-2__documents:doc5", "anything"}};
+  vector<pair<string, string>> willDelete{
+      {"centroids:bad-centroid", "anything"},
+      {"bad-centroid__documents:doc1", "anything"},
+      {"bad-centroid__documents:doc3", "anything"},
+      {"bad-centroid__documents:doc8", "anything"}};
+  for (auto &keyVal : willRetain) {
     mockRock.put(keyVal.first, keyVal.second);
   }
-  for (auto &keyVal: willDelete) {
+  for (auto &keyVal : willDelete) {
     mockRock.put(keyVal.first, keyVal.second);
   }
   EXPECT_TRUE(mockRock.exists("centroids:good-centroid-1"));
@@ -250,37 +203,33 @@ TEST(SyncPersistence, DeleteCentroidHappyWithDocuments) {
   EXPECT_TRUE(mockRock.exists("good-centroid-1__documents:doc9"));
 
   dbHandle.deleteCentroid("bad-centroid");
-  for (auto &keyVal: willDelete) {
+  for (auto &keyVal : willDelete) {
     EXPECT_FALSE(mockRock.exists(keyVal.first));
   }
-  for (auto &keyVal: willRetain) {
+  for (auto &keyVal : willRetain) {
     EXPECT_TRUE(mockRock.exists(keyVal.first));
   }
 }
 
 TEST(SyncPersistence, DeleteCentroidHappyNoAssociatedDocuments) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
-  vector<pair<string, string>> willRetain {
-    {"centroids:good-centroid-1", "anything"},
-    {"centroids:good-centroid-2", "anything"},
-    {"good-centroid-1__documents:doc1", "anything"},
-    {"good-centroid-1__documents:doc7", "anything"},
-    {"good-centroid-1__documents:doc9", "anything"},
-    {"good-centroid-2__documents:doc1", "anything"},
-    {"good-centroid-2__documents:doc3", "anything"},
-    {"good-centroid-2__documents:doc5", "anything"}
-  };
-  vector<pair<string, string>> willDelete {
-    {"centroids:bad-centroid", "anything"}
-  };
-  for (auto &keyVal: willRetain) {
+  vector<pair<string, string>> willRetain{
+      {"centroids:good-centroid-1", "anything"},
+      {"centroids:good-centroid-2", "anything"},
+      {"good-centroid-1__documents:doc1", "anything"},
+      {"good-centroid-1__documents:doc7", "anything"},
+      {"good-centroid-1__documents:doc9", "anything"},
+      {"good-centroid-2__documents:doc1", "anything"},
+      {"good-centroid-2__documents:doc3", "anything"},
+      {"good-centroid-2__documents:doc5", "anything"}};
+  vector<pair<string, string>> willDelete{
+      {"centroids:bad-centroid", "anything"}};
+  for (auto &keyVal : willRetain) {
     mockRock.put(keyVal.first, keyVal.second);
   }
-  for (auto &keyVal: willDelete) {
+  for (auto &keyVal : willDelete) {
     mockRock.put(keyVal.first, keyVal.second);
   }
   EXPECT_TRUE(mockRock.exists("centroids:good-centroid-1"));
@@ -288,28 +237,20 @@ TEST(SyncPersistence, DeleteCentroidHappyNoAssociatedDocuments) {
   EXPECT_TRUE(mockRock.exists("good-centroid-1__documents:doc9"));
 
   dbHandle.deleteCentroid("bad-centroid");
-  for (auto &keyVal: willDelete) {
+  for (auto &keyVal : willDelete) {
     EXPECT_FALSE(mockRock.exists(keyVal.first));
   }
-  for (auto &keyVal: willRetain) {
+  for (auto &keyVal : willRetain) {
     EXPECT_TRUE(mockRock.exists(keyVal.first));
   }
 }
 
 TEST(SyncPersistence, SaveCentroid) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   Centroid centroid(
-    "centroid-id",
-    map<string, double> {
-      {"moose", 1.7},
-      {"blarg", 2.21}
-    },
-    5.8
-  );
+      "centroid-id", map<string, double>{{"moose", 1.7}, {"blarg", 2.21}}, 5.8);
   EXPECT_FALSE(mockRock.exists("centroids:centroid-id"));
   auto res = dbHandle.saveCentroid("centroid-id", &centroid);
   EXPECT_FALSE(res.hasException());
@@ -324,9 +265,7 @@ TEST(SyncPersistence, SaveCentroid) {
 
 TEST(SyncPersistence, LoadCentroidDoesNotExist) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   auto res = dbHandle.loadCentroid("centroid-id");
   EXPECT_TRUE(res.hasException());
@@ -334,18 +273,10 @@ TEST(SyncPersistence, LoadCentroidDoesNotExist) {
 
 TEST(SyncPersistence, LoadCentroidExists) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   Centroid toSerialize(
-    "centroid-id",
-    map<string, double> {
-      {"moose", 1.7},
-      {"blarg", 2.21}
-    },
-    5.8
-  );
+      "centroid-id", map<string, double>{{"moose", 1.7}, {"blarg", 2.21}}, 5.8);
   string data;
   serialization::binarySerialize(data, toSerialize);
   mockRock.put("centroids:centroid-id", data);
@@ -360,18 +291,10 @@ TEST(SyncPersistence, LoadCentroidExists) {
 
 TEST(SyncPersistence, LoadCentroidOptionExists) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   Centroid toSerialize(
-    "centroid-id",
-    map<string, double> {
-      {"moose", 1.7},
-      {"blarg", 2.21}
-    },
-    5.8
-  );
+      "centroid-id", map<string, double>{{"moose", 1.7}, {"blarg", 2.21}}, 5.8);
   string data;
   serialization::binarySerialize(data, toSerialize);
   mockRock.put("centroids:centroid-id", data);
@@ -387,9 +310,7 @@ TEST(SyncPersistence, LoadCentroidOptionExists) {
 
 TEST(SyncPersistence, LoadCentroidOptionDoesNotExist) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   auto res = dbHandle.loadCentroidOption("centroid-id");
   EXPECT_FALSE(res.hasValue());
@@ -397,36 +318,28 @@ TEST(SyncPersistence, LoadCentroidOptionDoesNotExist) {
 
 TEST(SyncPersistence, ListAllCentroids) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
-  vector<string> centroidsIds {
-    "centroids:some-centroid-1",
-    "centroids:some-centroid-6",
-    "centroids:some-centroid-3",
-    "centroids:some-centroid-4",
-    "centroids:some-centroid-2"
-  };
-  for (auto &elem: centroidsIds) {
+  vector<string> centroidsIds{"centroids:some-centroid-1",
+                              "centroids:some-centroid-6",
+                              "centroids:some-centroid-3",
+                              "centroids:some-centroid-4",
+                              "centroids:some-centroid-2"};
+  for (auto &elem : centroidsIds) {
     mockRock.put(elem, "anything");
   }
   auto centroids = dbHandle.listAllCentroids();
-  vector<string> expected {
-    "some-centroid-1",
-    "some-centroid-2",
-    "some-centroid-3",
-    "some-centroid-4",
-    "some-centroid-6"
-  };
+  vector<string> expected{"some-centroid-1",
+                          "some-centroid-2",
+                          "some-centroid-3",
+                          "some-centroid-4",
+                          "some-centroid-6"};
   EXPECT_EQ(expected, centroids);
 }
 
 TEST(SyncPersistence, AddDocumentToCentroidHappy) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   mockRock.put("centroids:centroid-id", "x");
   mockRock.put("documents:document-id", "x");
@@ -438,9 +351,7 @@ TEST(SyncPersistence, AddDocumentToCentroidHappy) {
 
 TEST(SyncPersistence, AddDocumentToCentroidMissingCentroid) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   mockRock.put("centroids:unrelated-centroid-id", "x");
   mockRock.put("documents:document-id", "x");
@@ -451,9 +362,7 @@ TEST(SyncPersistence, AddDocumentToCentroidMissingCentroid) {
 
 TEST(SyncPersistence, AddDocumentToCentroidMissingDocument) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   mockRock.put("centroids:centroid-id", "x");
   mockRock.put("documents:unrelated-document-id", "x");
@@ -464,9 +373,7 @@ TEST(SyncPersistence, AddDocumentToCentroidMissingDocument) {
 
 TEST(SyncPersistence, RemoveDocumentFromCentroidHappy) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   mockRock.put("centroids:centroid-id", "x");
   mockRock.put("documents:document-id", "x");
@@ -480,9 +387,7 @@ TEST(SyncPersistence, RemoveDocumentFromCentroidHappy) {
 
 TEST(SyncPersistence, RemoveDocumentFromCentroidMissingCentroid) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   mockRock.put("centroids:other-centroid-id", "x");
   mockRock.put("documents:document-id", "x");
@@ -492,9 +397,7 @@ TEST(SyncPersistence, RemoveDocumentFromCentroidMissingCentroid) {
 
 TEST(SyncPersistence, RemoveDocumentFromCentroidMissingDocument) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   mockRock.put("centroids:centroid-id", "x");
   mockRock.put("documents:unrelated-document-id", "x");
@@ -504,9 +407,7 @@ TEST(SyncPersistence, RemoveDocumentFromCentroidMissingDocument) {
 
 TEST(SyncPersistence, ListAllDocumentsForCentroidHappy) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   mockRock.put("centroids:centroid-id", "x");
   mockRock.put("centroid-id__documents:doc1", "x");
@@ -515,17 +416,13 @@ TEST(SyncPersistence, ListAllDocumentsForCentroidHappy) {
   auto res = dbHandle.listAllDocumentsForCentroid("centroid-id");
   EXPECT_FALSE(res.hasException());
   auto docIds = res.value();
-  vector<string> expected {
-    "doc1", "doc2", "doc3"
-  };
+  vector<string> expected{"doc1", "doc2", "doc3"};
   EXPECT_EQ(expected, docIds);
 }
 
 TEST(SyncPersistence, ListAllDocumentsForCentroidHappyButNoDocs) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   mockRock.put("centroids:centroid-id", "x");
   auto res = dbHandle.listAllDocumentsForCentroid("centroid-id");
@@ -536,9 +433,7 @@ TEST(SyncPersistence, ListAllDocumentsForCentroidHappyButNoDocs) {
 
 TEST(SyncPersistence, ListAllDocumentsForCentroidSadPanda1) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   mockRock.put("centroids:unrelated-centroid-id", "x");
   auto res = dbHandle.listAllDocumentsForCentroid("centroid-id");
@@ -547,9 +442,7 @@ TEST(SyncPersistence, ListAllDocumentsForCentroidSadPanda1) {
 
 TEST(SyncPersistence, ListAllDocumentsForCentroidSadPanda2) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   mockRock.put("centroids:unrelated-centroid-id", "x");
   mockRock.put("unrelated-centroid-id__documents:some-doc", "x");
@@ -559,9 +452,7 @@ TEST(SyncPersistence, ListAllDocumentsForCentroidSadPanda2) {
 
 TEST(SyncPersistence, ListAllDocumentsForCentroidOptionHappy) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   mockRock.put("centroids:centroid-id", "x");
   mockRock.put("centroid-id__documents:doc1", "x");
@@ -570,17 +461,13 @@ TEST(SyncPersistence, ListAllDocumentsForCentroidOptionHappy) {
   auto res = dbHandle.listAllDocumentsForCentroid("centroid-id");
   EXPECT_TRUE(res.hasValue());
   auto docIds = res.value();
-  vector<string> expected {
-    "doc1", "doc2", "doc3"
-  };
+  vector<string> expected{"doc1", "doc2", "doc3"};
   EXPECT_EQ(expected, docIds);
 }
 
 TEST(SyncPersistence, ListAllDocumentsForCentroidOptionHappyButNoDocs) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   mockRock.put("centroids:centroid-id", "x");
   auto res = dbHandle.listAllDocumentsForCentroid("centroid-id");
@@ -591,9 +478,7 @@ TEST(SyncPersistence, ListAllDocumentsForCentroidOptionHappyButNoDocs) {
 
 TEST(SyncPersistence, ListAllDocumentsForCentroidOptionSadPanda1) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   mockRock.put("centroids:unrelated-centroid-id", "x");
   auto res = dbHandle.listAllDocumentsForCentroidOption("centroid-id");
@@ -602,9 +487,7 @@ TEST(SyncPersistence, ListAllDocumentsForCentroidOptionSadPanda1) {
 
 TEST(SyncPersistence, ListAllDocumentsForCentroidOptionSadPanda2) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   mockRock.put("centroids:unrelated-centroid-id", "x");
   mockRock.put("unrelated-centroid-id__documents:some-doc", "x");
@@ -614,33 +497,27 @@ TEST(SyncPersistence, ListAllDocumentsForCentroidOptionSadPanda2) {
 
 TEST(SyncPersistence, ListAllDocumentsHappy) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   mockRock.put("documents:doc-x", "anything");
   mockRock.put("documents:doc-y", "anything");
   auto result = dbHandle.listAllDocuments();
-  vector<string> expected {"doc-x", "doc-y"};
+  vector<string> expected{"doc-x", "doc-y"};
   EXPECT_EQ(expected, result);
 }
 
 TEST(SyncPersistence, ListAllDocumentsEmpty) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   auto result = dbHandle.listAllDocuments();
-  vector<string> expected {};
+  vector<string> expected{};
   EXPECT_EQ(expected, result);
 }
 
 TEST(SyncPersistence, ListDocumentRangeFromIdHappy) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   mockRock.put("documents:doc-x1", "anything");
   mockRock.put("documents:doc-x2", "anything");
@@ -648,18 +525,14 @@ TEST(SyncPersistence, ListDocumentRangeFromIdHappy) {
   mockRock.put("documents:doc-y2", "anything");
   mockRock.put("documents:doc-y3", "anything");
   auto result = dbHandle.listDocumentRangeFromId("doc-x2", 3);
-  vector<string> expected {
-    "doc-x2", "doc-y1", "doc-y2"
-  };
+  vector<string> expected{"doc-x2", "doc-y1", "doc-y2"};
   EXPECT_EQ(expected, result);
 }
 
 
 TEST(SyncPersistence, ListDocumentRangeFromOffsetHappy) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   mockRock.put("documents:doc-x1", "anything");
   mockRock.put("documents:doc-x2", "anything");
@@ -670,107 +543,87 @@ TEST(SyncPersistence, ListDocumentRangeFromOffsetHappy) {
   mockRock.put("documents:doc-y4", "anything");
 
   auto result = dbHandle.listDocumentRangeFromOffset(2, 4);
-  vector<string> expected {
-    "doc-x3", "doc-y1", "doc-y2", "doc-y3"
-  };
+  vector<string> expected{"doc-x3", "doc-y1", "doc-y2", "doc-y3"};
   EXPECT_EQ(expected, result);
 }
 
 TEST(SyncPersistence, ListCentroidRangeFromOffsetHappy) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
-  map<string, string> keys {
-    {"centroids:x1", "anything"},
-    {"centroids:x2", "anything"},
-    {"centroids:x3", "anything"},
-    {"centroids:x4", "anything"},
-    {"centroids:x5", "anything"},
-    {"centroids:x6", "anything"},
+  map<string, string> keys{
+      {"centroids:x1", "anything"},
+      {"centroids:x2", "anything"},
+      {"centroids:x3", "anything"},
+      {"centroids:x4", "anything"},
+      {"centroids:x5", "anything"},
+      {"centroids:x6", "anything"},
   };
-  for (auto &elem: keys) {
+  for (auto &elem : keys) {
     mockRock.put(elem.first, elem.second);
   }
   auto result = dbHandle.listCentroidRangeFromOffset(2, 3);
-  vector<string> expected {
-    "x3", "x4", "x5"
-  };
+  vector<string> expected{"x3", "x4", "x5"};
   EXPECT_EQ(expected, result);
 }
 
 TEST(SyncPersistence, ListCentroidRangeFromIdHappy) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
-  map<string, string> keys {
-    {"centroids:x1", "anything"},
-    {"centroids:x2", "anything"},
-    {"centroids:x3", "anything"},
-    {"centroids:x4", "anything"},
-    {"centroids:x5", "anything"},
-    {"centroids:x6", "anything"},
+  map<string, string> keys{
+      {"centroids:x1", "anything"},
+      {"centroids:x2", "anything"},
+      {"centroids:x3", "anything"},
+      {"centroids:x4", "anything"},
+      {"centroids:x5", "anything"},
+      {"centroids:x6", "anything"},
   };
-  for (auto &elem: keys) {
+  for (auto &elem : keys) {
     mockRock.put(elem.first, elem.second);
   }
   auto result = dbHandle.listCentroidRangeFromId("x3", 2);
-  vector<string> expected {
-    "x3", "x4"
-  };
+  vector<string> expected{"x3", "x4"};
   EXPECT_EQ(expected, result);
 }
 
 
 TEST(SyncPersistence, ListCentroidDocumentRangeFromOffsetHappy) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
-  map<string, string> keys {
-    {"c1__documents:x1", "anything"},
-    {"c1__documents:x2", "anything"},
-    {"c1__documents:x3", "anything"},
-    {"c1__documents:x4", "anything"},
-    {"c1__documents:x5", "anything"},
-    {"c1__documents:x6", "anything"},
-    {"c1__documents:x7", "anything"},
-    {"centroids:c1", "anything"}
-  };
-  for (auto &elem: keys) {
+  map<string, string> keys{{"c1__documents:x1", "anything"},
+                           {"c1__documents:x2", "anything"},
+                           {"c1__documents:x3", "anything"},
+                           {"c1__documents:x4", "anything"},
+                           {"c1__documents:x5", "anything"},
+                           {"c1__documents:x6", "anything"},
+                           {"c1__documents:x7", "anything"},
+                           {"centroids:c1", "anything"}};
+  for (auto &elem : keys) {
     mockRock.put(elem.first, elem.second);
   }
   auto result = dbHandle.listCentroidDocumentRangeFromOffset("c1", 2, 3);
   EXPECT_FALSE(result.hasException());
   auto resultVal = result.value();
-  vector<string> expected {
-    "x3", "x4", "x5"
-  };
+  vector<string> expected{"x3", "x4", "x5"};
   EXPECT_EQ(expected, resultVal);
 }
 
 
 TEST(SyncPersistence, ListCentroidDocumentRangeFromOffsetMissingCentroid) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
-  map<string, string> keys {
-    {"c1__documents:x1", "anything"},
-    {"c1__documents:x2", "anything"},
-    {"c1__documents:x3", "anything"},
-    {"c1__documents:x4", "anything"},
-    {"c1__documents:x5", "anything"},
-    {"c1__documents:x6", "anything"},
-    {"c1__documents:x7", "anything"},
-    {"centroids:c1", "anything"}
-  };
-  for (auto &elem: keys) {
+  map<string, string> keys{{"c1__documents:x1", "anything"},
+                           {"c1__documents:x2", "anything"},
+                           {"c1__documents:x3", "anything"},
+                           {"c1__documents:x4", "anything"},
+                           {"c1__documents:x5", "anything"},
+                           {"c1__documents:x6", "anything"},
+                           {"c1__documents:x7", "anything"},
+                           {"centroids:c1", "anything"}};
+  for (auto &elem : keys) {
     mockRock.put(elem.first, elem.second);
   }
   auto result = dbHandle.listCentroidDocumentRangeFromOffset("c2", 2, 3);
@@ -779,114 +632,91 @@ TEST(SyncPersistence, ListCentroidDocumentRangeFromOffsetMissingCentroid) {
 
 TEST(SyncPersistence, ListCentroidDocumentRangeFromOffsetTooMany) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
-  map<string, string> keys {
-    {"c1__documents:x1", "anything"},
-    {"c1__documents:x2", "anything"},
-    {"c1__documents:x3", "anything"},
-    {"c1__documents:x4", "anything"},
-    {"centroids:c1", "anything"}
-  };
-  for (auto &elem: keys) {
+  map<string, string> keys{{"c1__documents:x1", "anything"},
+                           {"c1__documents:x2", "anything"},
+                           {"c1__documents:x3", "anything"},
+                           {"c1__documents:x4", "anything"},
+                           {"centroids:c1", "anything"}};
+  for (auto &elem : keys) {
     mockRock.put(elem.first, elem.second);
   }
   auto result = dbHandle.listCentroidDocumentRangeFromOffset("c1", 2, 5);
   EXPECT_FALSE(result.hasException());
-  vector<string> expected {
-    "x3", "x4"
-  };
+  vector<string> expected{"x3", "x4"};
   EXPECT_EQ(expected, result.value());
 }
 
 TEST(SyncPersistence, ListCentroidDocumentRangeFromOffsetTooFar) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
-  map<string, string> keys {
-    {"c1__documents:x1", "anything"},
-    {"c1__documents:x2", "anything"},
-    {"c1__documents:x3", "anything"},
-    {"c1__documents:x4", "anything"},
-    {"centroids:c1", "anything"}
-  };
-  for (auto &elem: keys) {
+  map<string, string> keys{{"c1__documents:x1", "anything"},
+                           {"c1__documents:x2", "anything"},
+                           {"c1__documents:x3", "anything"},
+                           {"c1__documents:x4", "anything"},
+                           {"centroids:c1", "anything"}};
+  for (auto &elem : keys) {
     mockRock.put(elem.first, elem.second);
   }
   auto result = dbHandle.listCentroidDocumentRangeFromOffset("c1", 10, 5);
   EXPECT_FALSE(result.hasException());
-  vector<string> expected {};
+  vector<string> expected{};
   EXPECT_EQ(expected, result.value());
 }
 
 TEST(SyncPersistence, ListCentroidDocumentRangeFromOffsetExistsButNoDocuments) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
-  map<string, string> keys {
-    {"centroids:c1", "anything"}
-  };
-  for (auto &elem: keys) {
+  map<string, string> keys{{"centroids:c1", "anything"}};
+  for (auto &elem : keys) {
     mockRock.put(elem.first, elem.second);
   }
   auto result = dbHandle.listCentroidDocumentRangeFromOffset("c1", 10, 5);
   EXPECT_FALSE(result.hasException());
-  vector<string> expected {};
+  vector<string> expected{};
   EXPECT_EQ(expected, result.value());
 }
 
 TEST(SyncPersistence, ListCentroidDocumentRangeFromOffsetOptionHappy) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
-  map<string, string> keys {
-    {"c1__documents:x1", "anything"},
-    {"c1__documents:x2", "anything"},
-    {"c1__documents:x3", "anything"},
-    {"c1__documents:x4", "anything"},
-    {"c1__documents:x5", "anything"},
-    {"c1__documents:x6", "anything"},
-    {"c1__documents:x7", "anything"},
-    {"centroids:c1", "anything"}
-  };
-  for (auto &elem: keys) {
+  map<string, string> keys{{"c1__documents:x1", "anything"},
+                           {"c1__documents:x2", "anything"},
+                           {"c1__documents:x3", "anything"},
+                           {"c1__documents:x4", "anything"},
+                           {"c1__documents:x5", "anything"},
+                           {"c1__documents:x6", "anything"},
+                           {"c1__documents:x7", "anything"},
+                           {"centroids:c1", "anything"}};
+  for (auto &elem : keys) {
     mockRock.put(elem.first, elem.second);
   }
   auto result = dbHandle.listCentroidDocumentRangeFromOffsetOption("c1", 2, 3);
   EXPECT_TRUE(result.hasValue());
   auto resultVal = result.value();
-  vector<string> expected {
-    "x3", "x4", "x5"
-  };
+  vector<string> expected{"x3", "x4", "x5"};
   EXPECT_EQ(expected, resultVal);
 }
 
 
-TEST(SyncPersistence, ListCentroidDocumentRangeFromOffsetOptionMissingCentroid) {
+TEST(SyncPersistence,
+     ListCentroidDocumentRangeFromOffsetOptionMissingCentroid) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
-  map<string, string> keys {
-    {"c1__documents:x1", "anything"},
-    {"c1__documents:x2", "anything"},
-    {"c1__documents:x3", "anything"},
-    {"c1__documents:x4", "anything"},
-    {"c1__documents:x5", "anything"},
-    {"c1__documents:x6", "anything"},
-    {"c1__documents:x7", "anything"},
-    {"centroids:c1", "anything"}
-  };
-  for (auto &elem: keys) {
+  map<string, string> keys{{"c1__documents:x1", "anything"},
+                           {"c1__documents:x2", "anything"},
+                           {"c1__documents:x3", "anything"},
+                           {"c1__documents:x4", "anything"},
+                           {"c1__documents:x5", "anything"},
+                           {"c1__documents:x6", "anything"},
+                           {"c1__documents:x7", "anything"},
+                           {"centroids:c1", "anything"}};
+  for (auto &elem : keys) {
     mockRock.put(elem.first, elem.second);
   }
   auto result = dbHandle.listCentroidDocumentRangeFromOffsetOption("c2", 2, 3);
@@ -895,115 +725,92 @@ TEST(SyncPersistence, ListCentroidDocumentRangeFromOffsetOptionMissingCentroid) 
 
 TEST(SyncPersistence, ListCentroidDocumentRangeFromOffsetOptionTooMany) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
-  map<string, string> keys {
-    {"c1__documents:x1", "anything"},
-    {"c1__documents:x2", "anything"},
-    {"c1__documents:x3", "anything"},
-    {"c1__documents:x4", "anything"},
-    {"centroids:c1", "anything"}
-  };
-  for (auto &elem: keys) {
+  map<string, string> keys{{"c1__documents:x1", "anything"},
+                           {"c1__documents:x2", "anything"},
+                           {"c1__documents:x3", "anything"},
+                           {"c1__documents:x4", "anything"},
+                           {"centroids:c1", "anything"}};
+  for (auto &elem : keys) {
     mockRock.put(elem.first, elem.second);
   }
   auto result = dbHandle.listCentroidDocumentRangeFromOffsetOption("c1", 2, 5);
   EXPECT_TRUE(result.hasValue());
-  vector<string> expected {
-    "x3", "x4"
-  };
+  vector<string> expected{"x3", "x4"};
   EXPECT_EQ(expected, result.value());
 }
 
 TEST(SyncPersistence, ListCentroidDocumentRangeFromOffsetOptionTooFar) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
-  map<string, string> keys {
-    {"c1__documents:x1", "anything"},
-    {"c1__documents:x2", "anything"},
-    {"c1__documents:x3", "anything"},
-    {"c1__documents:x4", "anything"},
-    {"centroids:c1", "anything"}
-  };
-  for (auto &elem: keys) {
+  map<string, string> keys{{"c1__documents:x1", "anything"},
+                           {"c1__documents:x2", "anything"},
+                           {"c1__documents:x3", "anything"},
+                           {"c1__documents:x4", "anything"},
+                           {"centroids:c1", "anything"}};
+  for (auto &elem : keys) {
     mockRock.put(elem.first, elem.second);
   }
   auto result = dbHandle.listCentroidDocumentRangeFromOffsetOption("c1", 10, 5);
   EXPECT_TRUE(result.hasValue());
-  vector<string> expected {};
+  vector<string> expected{};
   EXPECT_EQ(expected, result.value());
 }
 
-TEST(SyncPersistence, ListCentroidDocumentRangeFromOffsetOptionExistsButNoDocuments) {
+TEST(SyncPersistence,
+     ListCentroidDocumentRangeFromOffsetOptionExistsButNoDocuments) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
-  map<string, string> keys {
-    {"centroids:c1", "anything"}
-  };
-  for (auto &elem: keys) {
+  map<string, string> keys{{"centroids:c1", "anything"}};
+  for (auto &elem : keys) {
     mockRock.put(elem.first, elem.second);
   }
   auto result = dbHandle.listCentroidDocumentRangeFromOffsetOption("c1", 10, 5);
   EXPECT_TRUE(result.hasValue());
-  vector<string> expected {};
+  vector<string> expected{};
   EXPECT_EQ(expected, result.value());
 }
 
 TEST(SyncPersistence, ListCentroidDocumentRangeFromDocumentIdHappy) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
-  map<string, string> keys {
-    {"c1__documents:x1", "anything"},
-    {"c1__documents:x2", "anything"},
-    {"c1__documents:x3", "anything"},
-    {"c1__documents:x4", "anything"},
-    {"c1__documents:x5", "anything"},
-    {"c1__documents:x6", "anything"},
-    {"c1__documents:x7", "anything"},
-    {"c1__documents:x8", "anything"},
-    {"c1__documents:x9", "anything"},
-    {"centroids:c1", "anything"}
-  };
-  for (auto &elem: keys) {
+  map<string, string> keys{{"c1__documents:x1", "anything"},
+                           {"c1__documents:x2", "anything"},
+                           {"c1__documents:x3", "anything"},
+                           {"c1__documents:x4", "anything"},
+                           {"c1__documents:x5", "anything"},
+                           {"c1__documents:x6", "anything"},
+                           {"c1__documents:x7", "anything"},
+                           {"c1__documents:x8", "anything"},
+                           {"c1__documents:x9", "anything"},
+                           {"centroids:c1", "anything"}};
+  for (auto &elem : keys) {
     mockRock.put(elem.first, elem.second);
   }
   auto result = dbHandle.listCentroidDocumentRangeFromDocumentId("c1", "x3", 4);
   EXPECT_FALSE(result.hasException());
   auto resultVal = result.value();
-  vector<string> expected {
-    "x3", "x4", "x5", "x6"
-  };
+  vector<string> expected{"x3", "x4", "x5", "x6"};
   EXPECT_EQ(expected, resultVal);
 }
 
 TEST(SyncPersistence, ListCentroidDocumentRangeFromDocumentIdMissingCentroid) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
-  map<string, string> keys {
-    {"c1__documents:x1", "anything"},
-    {"c1__documents:x2", "anything"},
-    {"c1__documents:x3", "anything"},
-    {"c1__documents:x4", "anything"},
-    {"c1__documents:x5", "anything"},
-    {"c1__documents:x6", "anything"},
-    {"c1__documents:x7", "anything"},
-    {"centroids:c1", "anything"}
-  };
-  for (auto &elem: keys) {
+  map<string, string> keys{{"c1__documents:x1", "anything"},
+                           {"c1__documents:x2", "anything"},
+                           {"c1__documents:x3", "anything"},
+                           {"c1__documents:x4", "anything"},
+                           {"c1__documents:x5", "anything"},
+                           {"c1__documents:x6", "anything"},
+                           {"c1__documents:x7", "anything"},
+                           {"centroids:c1", "anything"}};
+  for (auto &elem : keys) {
     mockRock.put(elem.first, elem.second);
   }
   auto result = dbHandle.listCentroidDocumentRangeFromDocumentId("c2", "x2", 3);
@@ -1012,181 +819,151 @@ TEST(SyncPersistence, ListCentroidDocumentRangeFromDocumentIdMissingCentroid) {
 
 TEST(SyncPersistence, ListCentroidDocumentRangeFromDocumentIdTooMany) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
-  map<string, string> keys {
-    {"c1__documents:x1", "anything"},
-    {"c1__documents:x2", "anything"},
-    {"c1__documents:x3", "anything"},
-    {"c1__documents:x4", "anything"},
-    {"centroids:c1", "anything"}
-  };
-  for (auto &elem: keys) {
+  map<string, string> keys{{"c1__documents:x1", "anything"},
+                           {"c1__documents:x2", "anything"},
+                           {"c1__documents:x3", "anything"},
+                           {"c1__documents:x4", "anything"},
+                           {"centroids:c1", "anything"}};
+  for (auto &elem : keys) {
     mockRock.put(elem.first, elem.second);
   }
   auto result = dbHandle.listCentroidDocumentRangeFromDocumentId("c1", "x2", 5);
   EXPECT_FALSE(result.hasException());
-  vector<string> expected {
-    "x2", "x3", "x4"
-  };
+  vector<string> expected{"x2", "x3", "x4"};
   EXPECT_EQ(expected, result.value());
 }
 
 TEST(SyncPersistence, ListCentroidDocumentRangeFromDocumentIdTooFar) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
-  map<string, string> keys {
-    {"c1__documents:x1", "anything"},
-    {"c1__documents:x2", "anything"},
-    {"c1__documents:x3", "anything"},
-    {"c1__documents:x4", "anything"},
-    {"centroids:c1", "anything"}
-  };
-  for (auto &elem: keys) {
+  map<string, string> keys{{"c1__documents:x1", "anything"},
+                           {"c1__documents:x2", "anything"},
+                           {"c1__documents:x3", "anything"},
+                           {"c1__documents:x4", "anything"},
+                           {"centroids:c1", "anything"}};
+  for (auto &elem : keys) {
     mockRock.put(elem.first, elem.second);
   }
   auto result = dbHandle.listCentroidDocumentRangeFromDocumentId("c1", "x5", 5);
   EXPECT_FALSE(result.hasException());
-  vector<string> expected {};
+  vector<string> expected{};
   EXPECT_EQ(expected, result.value());
 }
 
-TEST(SyncPersistence, ListCentroidDocumentRangeFromDocumentIdExistsButNoDocuments) {
+TEST(SyncPersistence,
+     ListCentroidDocumentRangeFromDocumentIdExistsButNoDocuments) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
-  map<string, string> keys {
-    {"centroids:c1", "anything"}
-  };
-  for (auto &elem: keys) {
+  map<string, string> keys{{"centroids:c1", "anything"}};
+  for (auto &elem : keys) {
     mockRock.put(elem.first, elem.second);
   }
   auto result = dbHandle.listCentroidDocumentRangeFromDocumentId("c1", "x1", 5);
   EXPECT_FALSE(result.hasException());
-  vector<string> expected {};
+  vector<string> expected{};
   EXPECT_EQ(expected, result.value());
 }
 
 TEST(SyncPersistence, ListCentroidDocumentRangeFromDocumentIdOptionHappy) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
-  map<string, string> keys {
-    {"c1__documents:x1", "anything"},
-    {"c1__documents:x2", "anything"},
-    {"c1__documents:x3", "anything"},
-    {"c1__documents:x4", "anything"},
-    {"c1__documents:x5", "anything"},
-    {"c1__documents:x6", "anything"},
-    {"c1__documents:x7", "anything"},
-    {"c1__documents:x8", "anything"},
-    {"c1__documents:x9", "anything"},
-    {"centroids:c1", "anything"}
-  };
-  for (auto &elem: keys) {
+  map<string, string> keys{{"c1__documents:x1", "anything"},
+                           {"c1__documents:x2", "anything"},
+                           {"c1__documents:x3", "anything"},
+                           {"c1__documents:x4", "anything"},
+                           {"c1__documents:x5", "anything"},
+                           {"c1__documents:x6", "anything"},
+                           {"c1__documents:x7", "anything"},
+                           {"c1__documents:x8", "anything"},
+                           {"c1__documents:x9", "anything"},
+                           {"centroids:c1", "anything"}};
+  for (auto &elem : keys) {
     mockRock.put(elem.first, elem.second);
   }
-  auto result = dbHandle.listCentroidDocumentRangeFromDocumentIdOption("c1", "x3", 4);
+  auto result =
+      dbHandle.listCentroidDocumentRangeFromDocumentIdOption("c1", "x3", 4);
   EXPECT_TRUE(result.hasValue());
   auto resultVal = result.value();
-  vector<string> expected {
-    "x3", "x4", "x5", "x6"
-  };
+  vector<string> expected{"x3", "x4", "x5", "x6"};
   EXPECT_EQ(expected, resultVal);
 }
 
-TEST(SyncPersistence, ListCentroidDocumentRangeFromDocumentIdOptionMissingCentroid) {
+TEST(SyncPersistence,
+     ListCentroidDocumentRangeFromDocumentIdOptionMissingCentroid) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
-  map<string, string> keys {
-    {"c1__documents:x1", "anything"},
-    {"c1__documents:x2", "anything"},
-    {"c1__documents:x3", "anything"},
-    {"c1__documents:x4", "anything"},
-    {"c1__documents:x5", "anything"},
-    {"c1__documents:x6", "anything"},
-    {"c1__documents:x7", "anything"},
-    {"centroids:c1", "anything"}
-  };
-  for (auto &elem: keys) {
+  map<string, string> keys{{"c1__documents:x1", "anything"},
+                           {"c1__documents:x2", "anything"},
+                           {"c1__documents:x3", "anything"},
+                           {"c1__documents:x4", "anything"},
+                           {"c1__documents:x5", "anything"},
+                           {"c1__documents:x6", "anything"},
+                           {"c1__documents:x7", "anything"},
+                           {"centroids:c1", "anything"}};
+  for (auto &elem : keys) {
     mockRock.put(elem.first, elem.second);
   }
-  auto result = dbHandle.listCentroidDocumentRangeFromDocumentIdOption("c2", "x2", 3);
+  auto result =
+      dbHandle.listCentroidDocumentRangeFromDocumentIdOption("c2", "x2", 3);
   EXPECT_FALSE(result.hasValue());
 }
 
 TEST(SyncPersistence, ListCentroidDocumentRangeFromDocumentIdOptionTooMany) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
-  map<string, string> keys {
-    {"c1__documents:x1", "anything"},
-    {"c1__documents:x2", "anything"},
-    {"c1__documents:x3", "anything"},
-    {"c1__documents:x4", "anything"},
-    {"centroids:c1", "anything"}
-  };
-  for (auto &elem: keys) {
+  map<string, string> keys{{"c1__documents:x1", "anything"},
+                           {"c1__documents:x2", "anything"},
+                           {"c1__documents:x3", "anything"},
+                           {"c1__documents:x4", "anything"},
+                           {"centroids:c1", "anything"}};
+  for (auto &elem : keys) {
     mockRock.put(elem.first, elem.second);
   }
-  auto result = dbHandle.listCentroidDocumentRangeFromDocumentIdOption("c1", "x2", 5);
+  auto result =
+      dbHandle.listCentroidDocumentRangeFromDocumentIdOption("c1", "x2", 5);
   EXPECT_TRUE(result.hasValue());
-  vector<string> expected {
-    "x2", "x3", "x4"
-  };
+  vector<string> expected{"x2", "x3", "x4"};
   EXPECT_EQ(expected, result.value());
 }
 
 TEST(SyncPersistence, ListCentroidDocumentRangeFromDocumentIdOptionTooFar) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
-  map<string, string> keys {
-    {"c1__documents:x1", "anything"},
-    {"c1__documents:x2", "anything"},
-    {"c1__documents:x3", "anything"},
-    {"c1__documents:x4", "anything"},
-    {"centroids:c1", "anything"}
-  };
-  for (auto &elem: keys) {
+  map<string, string> keys{{"c1__documents:x1", "anything"},
+                           {"c1__documents:x2", "anything"},
+                           {"c1__documents:x3", "anything"},
+                           {"c1__documents:x4", "anything"},
+                           {"centroids:c1", "anything"}};
+  for (auto &elem : keys) {
     mockRock.put(elem.first, elem.second);
   }
-  auto result = dbHandle.listCentroidDocumentRangeFromDocumentIdOption("c1", "x5", 5);
+  auto result =
+      dbHandle.listCentroidDocumentRangeFromDocumentIdOption("c1", "x5", 5);
   EXPECT_TRUE(result.hasValue());
-  vector<string> expected {};
+  vector<string> expected{};
   EXPECT_EQ(expected, result.value());
 }
 
-TEST(SyncPersistence, ListCentroidDocumentRangeFromDocumentIdOptionExistsButNoDocuments) {
+TEST(SyncPersistence,
+     ListCentroidDocumentRangeFromDocumentIdOptionExistsButNoDocuments) {
   InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(
-    &mockRock, NonDeleter<RockHandleIf>()
-  );
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
-  map<string, string> keys {
-    {"centroids:c1", "anything"}
-  };
-  for (auto &elem: keys) {
+  map<string, string> keys{{"centroids:c1", "anything"}};
+  for (auto &elem : keys) {
     mockRock.put(elem.first, elem.second);
   }
-  auto result = dbHandle.listCentroidDocumentRangeFromDocumentIdOption("c1", "x1", 5);
+  auto result =
+      dbHandle.listCentroidDocumentRangeFromDocumentIdOption("c1", "x1", 5);
   EXPECT_TRUE(result.hasValue());
-  vector<string> expected {};
+  vector<string> expected{};
   EXPECT_EQ(expected, result.value());
 }

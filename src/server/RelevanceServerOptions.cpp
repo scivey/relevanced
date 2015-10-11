@@ -10,15 +10,14 @@ namespace relevanced {
 namespace server {
 
 
-RelevanceServerOptions::RelevanceServerOptions():
-  thriftPort_(8097),
-  taskExpireTime_(60000),
-  integrationTestMode_(false),
-  rocksdbThreads_(8),
-  centroidUpdateThreads_(4),
-  similarityScoreThreads_(4),
-  documentProcessingThreads_(4)
-  {}
+RelevanceServerOptions::RelevanceServerOptions()
+    : thriftPort_(8097),
+      taskExpireTime_(60000),
+      integrationTestMode_(false),
+      rocksdbThreads_(8),
+      centroidUpdateThreads_(4),
+      similarityScoreThreads_(4),
+      documentProcessingThreads_(4) {}
 
 string RelevanceServerOptions::getDataDir() {
   LOG(INFO) << "getDataDir() -> " << dataDir_;
@@ -29,13 +28,9 @@ void RelevanceServerOptions::setDataDir(std::string dataDir) {
   dataDir_ = dataDir;
 }
 
-int RelevanceServerOptions::getThriftPort() {
-  return thriftPort_;
-}
+int RelevanceServerOptions::getThriftPort() { return thriftPort_; }
 
-void RelevanceServerOptions::setThriftPort(int port) {
-  thriftPort_ = port;
-}
+void RelevanceServerOptions::setThriftPort(int port) { thriftPort_ = port; }
 
 bool RelevanceServerOptions::getIntegrationTestMode() {
   return integrationTestMode_;
@@ -49,9 +44,7 @@ void RelevanceServerOptions::setIntegrationTestMode(bool mode) {
   integrationTestMode_ = mode;
 }
 
-int RelevanceServerOptions::getRocksDbThreadCount() {
-  return rocksdbThreads_;
-}
+int RelevanceServerOptions::getRocksDbThreadCount() { return rocksdbThreads_; }
 
 void RelevanceServerOptions::setRocksDbThreadCount(int n) {
   rocksdbThreads_ = n;

@@ -37,14 +37,14 @@ using persistence::exceptions::CentroidDoesNotExist;
 using util::UniquePointer;
 
 CentroidUpdater::CentroidUpdater(
-  shared_ptr<persistence::PersistenceIf> persistence,
-  shared_ptr<persistence::CentroidMetadataDbIf> metadataDb,
-  shared_ptr<util::ClockIf> clock,
-  string centroidId
-): persistence_(persistence),
-   centroidMetadataDb_(metadataDb),
-   clock_(clock),
-   centroidId_(centroidId) {}
+    shared_ptr<persistence::PersistenceIf> persistence,
+    shared_ptr<persistence::CentroidMetadataDbIf> metadataDb,
+    shared_ptr<util::ClockIf> clock,
+    string centroidId)
+    : persistence_(persistence),
+      centroidMetadataDb_(metadataDb),
+      clock_(clock),
+      centroidId_(centroidId) {}
 
 Try<bool> CentroidUpdater::run() {
   LOG(INFO) << "CentroidUpdater::run";
@@ -59,31 +59,37 @@ Try<bool> CentroidUpdater::run() {
 
 
   LOG(INFO) << "listing iniitial document ids...";
-  auto firstIdSet = persistence_->listCentroidDocumentRangeFromOffsetOption(centroidId_, 0, idListBatchSize).get();
+  auto firstIdSet = persistence_->listCentroidDocumentRangeFromOffsetOption(
+                                      centroidId_, 0, idListBatchSize).get();
   if (!firstIdSet.hasValue()) {
-    LOG(INFO) << format("received falsy document list for centroid '{}'; it must have been deleted. aborting.", centroidId_);
+    LOG(INFO) << format(
+        "received falsy document list for centroid '{}'; it must have been "
+        "deleted. aborting.",
+        centroidId_);
     return Try<bool>(make_exception_wrapper<CentroidDoesNotExist>());
   }
 
   vector<string> idSet = firstIdSet.value();
   map<string, double> centroidScores;
-  size_t docCount {0};
+  size_t docCount{0};
   do {
     LOG(INFO) << format("looping: current id set batch size: {}", idSet.size());
 
     // start the next set of IDs loading here so they'll be done
     // at the end of the current loop.
-    auto nextIdSetFuture = persistence_->listCentroidDocumentRangeFromDocumentIdOption(
-      centroidId_, idSet.back(), idListBatchSize
-    );
+    auto nextIdSetFuture =
+        persistence_->listCentroidDocumentRangeFromDocumentIdOption(
+            centroidId_, idSet.back(), idListBatchSize);
 
-    for (size_t docNum = 0; docNum < idSet.size(); docNum += documentBatchSize) {
+    for (size_t docNum = 0; docNum < idSet.size();
+         docNum += documentBatchSize) {
       size_t lastDocIndex = min(idSet.size() - 1, docNum + documentBatchSize);
       vector<Future<Optional<shared_ptr<ProcessedDocument>>>> documentFutures;
 
       // get batch of documents in parallel
       for (size_t i = docNum; i < lastDocIndex; i++) {
-        documentFutures.push_back(persistence_->loadDocumentOption(idSet.at(i)));
+        documentFutures.push_back(
+            persistence_->loadDocumentOption(idSet.at(i)));
       }
 
       LOG(INFO) << "loading document batch...";
@@ -94,13 +100,14 @@ Try<bool> CentroidUpdater::run() {
         auto doc = loadedDocuments.at(i);
         if (!doc.hasValue()) {
           auto docId = idSet.at(i);
-          LOG(INFO) << format("missing document '{}' from centroid '{}'", docId, centroidId_);
+          LOG(INFO) << format("missing document '{}' from centroid '{}'", docId,
+                              centroidId_);
           persistence_->removeDocumentFromCentroid(centroidId_, docId);
           continue;
         }
         LOG(INFO) << format("adding document: '{}'", idSet.at(i));
         docCount++;
-        for (auto &elem: doc.value()->wordVector.scores) {
+        for (auto &elem : doc.value()->wordVector.scores) {
           if (centroidScores.find(elem.first) == centroidScores.end()) {
             centroidScores[elem.first] = elem.second;
           } else {
@@ -112,7 +119,10 @@ Try<bool> CentroidUpdater::run() {
 
     auto nextIdSet = nextIdSetFuture.get();
     if (!nextIdSet.hasValue()) {
-      LOG(INFO) << format("received falsy document list for centroid '{}'; it must have been deleted. aborting.", centroidId_);
+      LOG(INFO) << format(
+          "received falsy document list for centroid '{}'; it must have been "
+          "deleted. aborting.",
+          centroidId_);
       return Try<bool>(make_exception_wrapper<CentroidDoesNotExist>());
     }
     idSet = std::move(nextIdSet.value());
@@ -120,7 +130,7 @@ Try<bool> CentroidUpdater::run() {
   } while (idSet.size() >= idListBatchSize);
 
   double centroidMagnitude = 0.0;
-  for (auto &elem: centroidScores) {
+  for (auto &elem : centroidScores) {
     centroidMagnitude += pow(elem.second, 2);
   }
   centroidMagnitude = sqrt(centroidMagnitude);

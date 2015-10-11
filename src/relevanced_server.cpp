@@ -17,7 +17,7 @@ using namespace relevanced::server;
 int main(int argc, char **argv) {
   google::SetUsageMessage("Usage");
   google::ParseCommandLineFlags(&argc, &argv, true);
-  thread t1([](){
+  thread t1([]() {
     auto options = buildOptions();
     auto server = buildNormalThriftServer(options);
     LOG(INFO) << "listening on port: " << options->getThriftPort();

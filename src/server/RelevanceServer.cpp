@@ -43,54 +43,58 @@ using models::ProcessedDocument;
 using util::UniquePointer;
 
 RelevanceServer::RelevanceServer(
-  shared_ptr<persistence::PersistenceIf> persistenceSv,
-  shared_ptr<persistence::CentroidMetadataDbIf> metadataDb,
-  shared_ptr<util::ClockIf> clock,
-  shared_ptr<SimilarityScoreWorkerIf> scoreWorker,
-  shared_ptr<DocumentProcessingWorkerIf> docProcessor,
-  shared_ptr<CentroidUpdateWorkerIf> centroidUpdater
-): persistence_(persistenceSv),
-   centroidMetadataDb_(metadataDb),
-   clock_(clock),
-   scoreWorker_(scoreWorker),
-   processingWorker_(docProcessor),
-   centroidUpdateWorker_(centroidUpdater) {}
+    shared_ptr<persistence::PersistenceIf> persistenceSv,
+    shared_ptr<persistence::CentroidMetadataDbIf> metadataDb,
+    shared_ptr<util::ClockIf> clock,
+    shared_ptr<SimilarityScoreWorkerIf> scoreWorker,
+    shared_ptr<DocumentProcessingWorkerIf> docProcessor,
+    shared_ptr<CentroidUpdateWorkerIf> centroidUpdater)
+    : persistence_(persistenceSv),
+      centroidMetadataDb_(metadataDb),
+      clock_(clock),
+      scoreWorker_(scoreWorker),
+      processingWorker_(docProcessor),
+      centroidUpdateWorker_(centroidUpdater) {}
 
 void RelevanceServer::ping() {}
 
 void RelevanceServer::initialize() {
   centroidUpdateWorker_->initialize();
   scoreWorker_->initialize();
-  centroidUpdateWorker_->onUpdate([this](const string &id) {
-    scoreWorker_->reloadCentroid(id);
-  });
+  centroidUpdateWorker_->onUpdate(
+      [this](const string &id) { scoreWorker_->reloadCentroid(id); });
 }
 
-Future<Try<double>> RelevanceServer::getDocumentSimilarity(unique_ptr<string> centroidId, unique_ptr<string> docId) {
+Future<Try<double>> RelevanceServer::getDocumentSimilarity(
+    unique_ptr<string> centroidId, unique_ptr<string> docId) {
   string cId = *centroidId;
-  return persistence_->loadDocument(*docId).then([this, cId](Try<shared_ptr<ProcessedDocument>> doc) {
-    if (doc.hasException()) {
-      return makeFuture<Try<double>>(Try<double>(doc.exception()));
-    }
-    return scoreWorker_->getDocumentSimilarity(cId, doc.value());
-  });
+  return persistence_->loadDocument(*docId)
+      .then([this, cId](Try<shared_ptr<ProcessedDocument>> doc) {
+        if (doc.hasException()) {
+          return makeFuture<Try<double>>(Try<double>(doc.exception()));
+        }
+        return scoreWorker_->getDocumentSimilarity(cId, doc.value());
+      });
 }
 
-Future<Try<double>> RelevanceServer::getCentroidSimilarity(unique_ptr<string> centroid1Id, unique_ptr<string> centroid2Id) {
+Future<Try<double>> RelevanceServer::getCentroidSimilarity(
+    unique_ptr<string> centroid1Id, unique_ptr<string> centroid2Id) {
   string c1 = *centroid1Id;
   string c2 = *centroid2Id;
   return scoreWorker_->getCentroidSimilarity(c1, c2);
 }
 
-Future<Try<unique_ptr<map<string, double>>>> RelevanceServer::multiGetTextSimilarity(unique_ptr<vector<string>> centroidIds, unique_ptr<string> text) {
+Future<Try<unique_ptr<map<string, double>>>>
+RelevanceServer::multiGetTextSimilarity(unique_ptr<vector<string>> centroidIds,
+                                        unique_ptr<string> text) {
   auto doc = std::make_shared<Document>("no-id", *text);
-  shared_ptr<vector<string>> cIds(
-    new vector<string>(*centroidIds)
-  );
-  return processingWorker_->processNew(doc).then([this, cIds](shared_ptr<ProcessedDocument> processed) {
+  shared_ptr<vector<string>> cIds(new vector<string>(*centroidIds));
+  return processingWorker_->processNew(doc).then([this, cIds](
+      shared_ptr<ProcessedDocument> processed) {
     vector<Future<Try<double>>> scores;
     for (size_t i = 0; i < cIds->size(); i++) {
-      scores.push_back(scoreWorker_->getDocumentSimilarity(cIds->at(i), processed));
+      scores.push_back(
+          scoreWorker_->getDocumentSimilarity(cIds->at(i), processed));
     }
     return collect(scores).then([this, cIds](Try<vector<Try<double>>> scores) {
       if (scores.hasException()) {
@@ -101,7 +105,8 @@ Future<Try<unique_ptr<map<string, double>>>> RelevanceServer::multiGetTextSimila
       for (size_t i = 0; i < cIds->size(); i++) {
         auto currentScoreVal = scoreVals.at(i);
         if (currentScoreVal.hasException()) {
-          return Try<unique_ptr<map<string, double>>>(currentScoreVal.exception());
+          return Try<unique_ptr<map<string, double>>>(
+              currentScoreVal.exception());
         }
         response->insert(make_pair(cIds->at(i), currentScoreVal.value()));
       }
@@ -110,32 +115,41 @@ Future<Try<unique_ptr<map<string, double>>>> RelevanceServer::multiGetTextSimila
   });
 }
 
-Future<Try<double>> RelevanceServer::getTextSimilarity(unique_ptr<string> centroidId, unique_ptr<string> text) {
+Future<Try<double>> RelevanceServer::getTextSimilarity(
+    unique_ptr<string> centroidId, unique_ptr<string> text) {
   auto doc = std::make_shared<Document>("no-id", *text);
   auto cId = *centroidId;
-  return processingWorker_->processNew(doc).then([this, cId](shared_ptr<ProcessedDocument> processed) {
-    return scoreWorker_->getDocumentSimilarity(cId, processed);
-  });
+  return processingWorker_->processNew(doc)
+      .then([this, cId](shared_ptr<ProcessedDocument> processed) {
+        return scoreWorker_->getDocumentSimilarity(cId, processed);
+      });
 }
 
-Future<Try<unique_ptr<string>>> RelevanceServer::createDocument(unique_ptr<string> text) {
+Future<Try<unique_ptr<string>>> RelevanceServer::createDocument(
+    unique_ptr<string> text) {
   return internalCreateDocumentWithID(util::getUuid(), *text);
 }
 
-Future<Try<unique_ptr<string>>> RelevanceServer::internalCreateDocumentWithID(string id, string text) {
+Future<Try<unique_ptr<string>>> RelevanceServer::internalCreateDocumentWithID(
+    string id, string text) {
   auto doc = std::make_shared<Document>(id, text);
-  LOG(INFO) << "creating document: " << id.substr(0, 15) << "  |   " << text.substr(0, 20);
-  return processingWorker_->processNew(doc).then([this, id](shared_ptr<ProcessedDocument> processed) {
-    return persistence_->saveDocument(processed).then([this, id](Try<bool> result) {
-      if (result.hasException()) {
-        return Try<unique_ptr<string>>(make_exception_wrapper<DocumentAlreadyExists>());
-      }
-      return Try<unique_ptr<string>>(folly::make_unique<string>(id));
-    });
-  });
+  LOG(INFO) << "creating document: " << id.substr(0, 15) << "  |   "
+            << text.substr(0, 20);
+  return processingWorker_->processNew(doc)
+      .then([this, id](shared_ptr<ProcessedDocument> processed) {
+        return persistence_->saveDocument(processed)
+            .then([this, id](Try<bool> result) {
+              if (result.hasException()) {
+                return Try<unique_ptr<string>>(
+                    make_exception_wrapper<DocumentAlreadyExists>());
+              }
+              return Try<unique_ptr<string>>(folly::make_unique<string>(id));
+            });
+      });
 }
 
-Future<Try<unique_ptr<string>>> RelevanceServer::createDocumentWithID(unique_ptr<string> id, unique_ptr<string> text) {
+Future<Try<unique_ptr<string>>> RelevanceServer::createDocumentWithID(
+    unique_ptr<string> id, unique_ptr<string> text) {
   return internalCreateDocumentWithID(*id, *text);
 }
 
@@ -143,70 +157,84 @@ Future<Try<bool>> RelevanceServer::deleteDocument(unique_ptr<string> id) {
   return persistence_->deleteDocument(*id);
 }
 
-Future<Try<unique_ptr<string>>> RelevanceServer::getDocument(unique_ptr<string> id) {
-  return persistence_->loadDocument(*id).then([](Try<shared_ptr<ProcessedDocument>> proced) {
-    if (proced.hasException()) {
-      return Try<unique_ptr<string>>(proced.exception());
-    }
-    string serialized;
-    serialization::jsonSerialize(serialized, proced.value().get());
-    auto uniq = folly::make_unique<string>(serialized);
-    return Try<unique_ptr<string>>(std::move(uniq));
-  });
+Future<Try<unique_ptr<string>>> RelevanceServer::getDocument(
+    unique_ptr<string> id) {
+  return persistence_->loadDocument(*id)
+      .then([](Try<shared_ptr<ProcessedDocument>> proced) {
+        if (proced.hasException()) {
+          return Try<unique_ptr<string>>(proced.exception());
+        }
+        string serialized;
+        serialization::jsonSerialize(serialized, proced.value().get());
+        auto uniq = folly::make_unique<string>(serialized);
+        return Try<unique_ptr<string>>(std::move(uniq));
+      });
 }
 
-Future<Try<bool>> RelevanceServer::createCentroid(unique_ptr<string> centroidId) {
+Future<Try<bool>> RelevanceServer::createCentroid(
+    unique_ptr<string> centroidId) {
   auto id = *centroidId;
   LOG(INFO) << format("creating centroid '{}'", id);
   return persistence_->createNewCentroid(id);
 }
 
-Future<Try<bool>> RelevanceServer::deleteCentroid(unique_ptr<string> centroidId) {
+Future<Try<bool>> RelevanceServer::deleteCentroid(
+    unique_ptr<string> centroidId) {
   auto cId = *centroidId;
   LOG(INFO) << format("deleting centroid '{}'", cId);
   return persistence_->deleteCentroid(cId);
 }
 
-Future<Try<unique_ptr<vector<string>>>> RelevanceServer::listAllDocumentsForCentroid(unique_ptr<string> centroidId) {
+Future<Try<unique_ptr<vector<string>>>>
+RelevanceServer::listAllDocumentsForCentroid(unique_ptr<string> centroidId) {
   auto id = *centroidId;
   LOG(INFO) << "listing documents for: " << id;
-  return persistence_->listAllDocumentsForCentroid(id).then([id](Try<vector<string>> docIds) {
-    if (docIds.hasException()) {
-      return Try<unique_ptr<vector<string>>>(docIds.exception());
-    }
-    vector<string> docs = docIds.value();
-    return Try<unique_ptr<vector<string>>>(folly::make_unique<vector<string>>(std::move(docs)));
-  });
+  return persistence_->listAllDocumentsForCentroid(id)
+      .then([id](Try<vector<string>> docIds) {
+        if (docIds.hasException()) {
+          return Try<unique_ptr<vector<string>>>(docIds.exception());
+        }
+        vector<string> docs = docIds.value();
+        return Try<unique_ptr<vector<string>>>(
+            folly::make_unique<vector<string>>(std::move(docs)));
+      });
 }
 
-Future<Try<bool>> RelevanceServer::addDocumentToCentroid(unique_ptr<string> centroidId, unique_ptr<string> docId) {
+Future<Try<bool>> RelevanceServer::addDocumentToCentroid(
+    unique_ptr<string> centroidId, unique_ptr<string> docId) {
   auto cId = *centroidId;
   auto dId = *docId;
   LOG(INFO) << format("adding document '{}' to centroid '{}'", dId, cId);
-  return persistence_->addDocumentToCentroid(cId, dId).then([this, cId](Try<bool> result) {
-    if (!result.hasException()) {
-      centroidMetadataDb_->setLastDocumentChangeTimestamp(cId, clock_->getEpochTime());
-      centroidUpdateWorker_->triggerUpdate(cId);
-    }
-    return result;
-  });
+  return persistence_->addDocumentToCentroid(cId, dId)
+      .then([this, cId](Try<bool> result) {
+        if (!result.hasException()) {
+          centroidMetadataDb_->setLastDocumentChangeTimestamp(
+              cId, clock_->getEpochTime());
+          centroidUpdateWorker_->triggerUpdate(cId);
+        }
+        return result;
+      });
 }
 
-Future<Try<bool>> RelevanceServer::removeDocumentFromCentroid(unique_ptr<string> centroidId, unique_ptr<string> docId) {
+Future<Try<bool>> RelevanceServer::removeDocumentFromCentroid(
+    unique_ptr<string> centroidId, unique_ptr<string> docId) {
   auto cId = *centroidId;
-  return persistence_->removeDocumentFromCentroid(cId, *docId).then([this, cId](Try<bool> result){
-    if (!result.hasException()) {
-      centroidMetadataDb_->setLastDocumentChangeTimestamp(cId, clock_->getEpochTime());
-      centroidUpdateWorker_->triggerUpdate(cId);
-    }
-    return result;
-  });
+  return persistence_->removeDocumentFromCentroid(cId, *docId)
+      .then([this, cId](Try<bool> result) {
+        if (!result.hasException()) {
+          centroidMetadataDb_->setLastDocumentChangeTimestamp(
+              cId, clock_->getEpochTime());
+          centroidUpdateWorker_->triggerUpdate(cId);
+        }
+        return result;
+      });
 }
 
 Future<Try<bool>> RelevanceServer::joinCentroid(unique_ptr<string> centroidId) {
   auto cId = *centroidId;
   LOG(INFO) << "recomputing centroid: " << cId;
-  return centroidMetadataDb_->isCentroidUpToDate(cId).then([this, cId](Try<bool> isUpToDate) {
+  return centroidMetadataDb_->isCentroidUpToDate(
+                                  cId).then([this, cId](Try<bool> isUpToDate) {
     if (isUpToDate.hasException()) {
       Try<bool> result(make_exception_wrapper<CentroidDoesNotExist>());
       return makeFuture(result);
@@ -225,7 +253,7 @@ Future<Try<bool>> RelevanceServer::joinCentroid(unique_ptr<string> centroidId) {
 }
 
 Future<unique_ptr<vector<string>>> RelevanceServer::listAllCentroids() {
-  return persistence_->listAllCentroids().then([](vector<string> centroidIds){
+  return persistence_->listAllCentroids().then([](vector<string> centroidIds) {
     return std::move(folly::make_unique<vector<string>>(centroidIds));
   });
 }
@@ -242,7 +270,8 @@ Future<unique_ptr<map<string, string>>> RelevanceServer::getServerMetadata() {
   auto metadata = folly::make_unique<map<string, string>>();
   metadata->insert(make_pair("relevanced_git_revision", revision));
   metadata->insert(make_pair("relevanced_version", version));
-  metadata->insert(make_pair("relevanced_utc_build_timestamp", release_metadata::getUtcBuildTimestamp()));
+  metadata->insert(make_pair("relevanced_utc_build_timestamp",
+                             release_metadata::getUtcBuildTimestamp()));
   return makeFuture(std::move(metadata));
 }
 

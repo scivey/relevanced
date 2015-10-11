@@ -9,16 +9,16 @@ namespace relevanced {
 namespace models {
 
 class Centroid {
-public:
+ public:
   std::string id;
   WordVector wordVector;
-  Centroid(){}
-  Centroid(std::string id): id(id){}
-  Centroid(std::string id, WordVector wordVec): id(id), wordVector(wordVec){}
-  Centroid(std::string id, std::map<std::string, double> scores, double mag):
-    id(id), wordVector(scores, mag) {}
+  Centroid() {}
+  Centroid(std::string id) : id(id) {}
+  Centroid(std::string id, WordVector wordVec) : id(id), wordVector(wordVec) {}
+  Centroid(std::string id, std::map<std::string, double> scores, double mag)
+      : id(id), wordVector(scores, mag) {}
 
-  template<typename T>
+  template <typename T>
   double score(T* t) {
     return wordVector.score(t);
   }
@@ -26,4 +26,3 @@ public:
 
 } // models
 } // relevanced
-

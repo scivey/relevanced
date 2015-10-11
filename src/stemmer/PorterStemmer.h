@@ -5,13 +5,11 @@
 namespace relevanced {
 namespace stemmer {
 
-class PorterStemmer: public StemmerIf {
-public:
+class PorterStemmer : public StemmerIf {
+ public:
   std::string stem(const std::string &word) override;
   void stemInPlace(std::string &word) override;
 };
 
 } // stemmer
 } // relevanced
-
-

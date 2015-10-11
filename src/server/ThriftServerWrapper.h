@@ -3,21 +3,21 @@
 #include <memory>
 
 namespace apache {
-  namespace thrift {
-    class ThriftServer;
-  }
+namespace thrift {
+class ThriftServer;
+}
 }
 
 namespace relevanced {
 namespace server {
 
 class ThriftServerWrapper {
-protected:
+ protected:
   std::shared_ptr<apache::thrift::ThriftServer> pImpl_;
-public:
+
+ public:
   ThriftServerWrapper(std::shared_ptr<apache::thrift::ThriftServer>);
   void serve();
 };
-
 }
 }

@@ -17,13 +17,16 @@ namespace relevanced {
 namespace similarity_score_worker {
 
 class SimilarityScoreWorkerIf {
-public:
+ public:
   virtual void initialize() = 0;
   virtual folly::Future<bool> reloadCentroid(std::string id) = 0;
-  virtual folly::Future<folly::Try<double>> getDocumentSimilarity(std::string centroidId, models::ProcessedDocument *doc) = 0;
-  virtual folly::Future<folly::Try<double>> getDocumentSimilarity(std::string centroidId, std::shared_ptr<models::ProcessedDocument> doc) = 0;
-  virtual folly::Future<folly::Try<double>> getCentroidSimilarity(std::string centroid1Id, std::string centroid2Id) = 0;
-
+  virtual folly::Future<folly::Try<double>> getDocumentSimilarity(
+      std::string centroidId, models::ProcessedDocument *doc) = 0;
+  virtual folly::Future<folly::Try<double>> getDocumentSimilarity(
+      std::string centroidId,
+      std::shared_ptr<models::ProcessedDocument> doc) = 0;
+  virtual folly::Future<folly::Try<double>> getCentroidSimilarity(
+      std::string centroid1Id, std::string centroid2Id) = 0;
 };
 
 /**
@@ -43,27 +46,34 @@ public:
  *
  */
 
-class SimilarityScoreWorker: public SimilarityScoreWorkerIf {
-protected:
+class SimilarityScoreWorker : public SimilarityScoreWorkerIf {
+ protected:
   std::shared_ptr<persistence::PersistenceIf> persistence_;
   std::shared_ptr<persistence::CentroidMetadataDbIf> centroidMetadataDb_;
+  std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>>
+      threadPool_;
+  folly::Synchronized<std::map<std::string, std::shared_ptr<models::Centroid>>>
+      centroids_;
 
-  std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>> threadPool_;
-  folly::Synchronized<std::map<std::string, std::shared_ptr<models::Centroid>>> centroids_;
-public:
+ public:
   SimilarityScoreWorker(
-    std::shared_ptr<persistence::PersistenceIf> persistence,
-    std::shared_ptr<persistence::CentroidMetadataDbIf> metadataDb,
-    std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>> threadPool
-  );
-  void setLoadedCentroid_(const std::string &id, std::shared_ptr<models::Centroid>);
-  folly::Optional<std::shared_ptr<models::Centroid>> getLoadedCentroid_(const std::string &id);
+      std::shared_ptr<persistence::PersistenceIf> persistence,
+      std::shared_ptr<persistence::CentroidMetadataDbIf> metadataDb,
+      std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>>
+          threadPool);
+  void setLoadedCentroid_(const std::string &id,
+                          std::shared_ptr<models::Centroid>);
+  folly::Optional<std::shared_ptr<models::Centroid>> getLoadedCentroid_(
+      const std::string &id);
   void initialize() override;
   folly::Future<bool> reloadCentroid(std::string id) override;
-  folly::Future<folly::Try<double>> getDocumentSimilarity(std::string centroidId, models::ProcessedDocument *doc) override;
-  folly::Future<folly::Try<double>> getDocumentSimilarity(std::string centroidId, std::shared_ptr<models::ProcessedDocument> doc) override;
-  folly::Future<folly::Try<double>> getCentroidSimilarity(std::string centroid1Id, std::string centroid2Id) override;
-
+  folly::Future<folly::Try<double>> getDocumentSimilarity(
+      std::string centroidId, models::ProcessedDocument *doc) override;
+  folly::Future<folly::Try<double>> getDocumentSimilarity(
+      std::string centroidId,
+      std::shared_ptr<models::ProcessedDocument> doc) override;
+  folly::Future<folly::Try<double>> getCentroidSimilarity(
+      std::string centroid1Id, std::string centroid2Id) override;
 };
 
 } // similarity_score_worker

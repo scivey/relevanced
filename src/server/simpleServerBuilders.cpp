@@ -36,26 +36,22 @@ using relevanced::tokenizer::Tokenizer;
 namespace relevanced {
 namespace server {
 
-shared_ptr<ThriftServerWrapper> buildNormalThriftServer(shared_ptr<RelevanceServerOptions> options) {
+shared_ptr<ThriftServerWrapper> buildNormalThriftServer(
+    shared_ptr<RelevanceServerOptions> options) {
   ServerBuilder builder(options);
   builder.buildClock<util::Clock>();
-  builder.buildPersistence<
-    RockHandle, SyncPersistence, Persistence, CentroidMetadataDb
-  >();
-  builder.buildDocumentProcessor<
-    DocumentProcessingWorker, DocumentProcessor,
-    Tokenizer, PorterStemmer, StopwordFilter, util::Sha1Hasher
-  >();
-  builder.buildCentroidUpdateWorker<
-    CentroidUpdateWorker, CentroidUpdaterFactory
-  >();
-  builder.buildSimilarityWorker<
-    SimilarityScoreWorker
-  >();
+  builder.buildPersistence<RockHandle, SyncPersistence, Persistence,
+                           CentroidMetadataDb>();
+  builder.buildDocumentProcessor<DocumentProcessingWorker, DocumentProcessor,
+                                 Tokenizer, PorterStemmer, StopwordFilter,
+                                 util::Sha1Hasher>();
+  builder.buildCentroidUpdateWorker<CentroidUpdateWorker,
+                                    CentroidUpdaterFactory>();
+  builder.buildSimilarityWorker<SimilarityScoreWorker>();
   auto server = builder.buildThriftServer<RelevanceServer>();
   auto wrapper = std::make_shared<ThriftServerWrapper>(server);
   return wrapper;
 }
 
-}
-}
+} // server
+} // relevanced

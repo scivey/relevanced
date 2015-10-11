@@ -11,16 +11,15 @@ namespace relevanced {
 namespace tokenizer {
 
 vector<string> Tokenizer::tokenize(const string &text) {
-    istringstream textStream(text);
-    mitie::conll_tokenizer tokenStream(textStream);
-    vector<string> tokens;
-    string token;
-    while (tokenStream(token)) {
-        tokens.push_back(token);
-    }
-    return tokens;
+  istringstream textStream(text);
+  mitie::conll_tokenizer tokenStream(textStream);
+  vector<string> tokens;
+  string token;
+  while (tokenStream(token)) {
+    tokens.push_back(token);
+  }
+  return tokens;
 }
 
 } // tokenizer
 } // relevanced
-

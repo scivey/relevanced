@@ -68,120 +68,101 @@ class ServerBuilder {
   shared_ptr<RelevanceServerOptions> options_;
   shared_ptr<util::ClockIf> clock_;
   shared_ptr<util::Sha1HasherIf> hasher_;
-public:
-  ServerBuilder(shared_ptr<RelevanceServerOptions> options): options_(options) {}
 
-  template<
-    typename RockHandleT,
-    typename SyncPersistenceT,
-    typename PersistenceT,
-    typename CentroidMetadataT
-  >
+ public:
+  ServerBuilder(shared_ptr<RelevanceServerOptions> options)
+      : options_(options) {}
+
+  template <typename RockHandleT,
+            typename SyncPersistenceT,
+            typename PersistenceT,
+            typename CentroidMetadataT>
   void buildPersistence() {
     string rockDir = options_->getDataDir() + "/rock";
-    UniquePointer<RockHandleIf> rockHandle(
-      new RockHandleT(rockDir)
-    );
+    UniquePointer<RockHandleIf> rockHandle(new RockHandleT(rockDir));
     UniquePointer<SyncPersistenceIf> syncPersistence(
-      new SyncPersistenceT(std::move(rockHandle))
-    );
-    persistence_.reset(new PersistenceT(
-        std::move(syncPersistence),
-        make_shared<FutureExecutor<CPUThreadPoolExecutor>>(
-          options_->getRocksDbThreadCount()
-        )
-    ));
+        new SyncPersistenceT(std::move(rockHandle)));
+    persistence_.reset(
+        new PersistenceT(std::move(syncPersistence),
+                         make_shared<FutureExecutor<CPUThreadPoolExecutor>>(
+                             options_->getRocksDbThreadCount())));
     centroidMetadataDb_.reset(new CentroidMetadataT(persistence_));
   }
 
-  template<typename ClockT>
+  template <typename ClockT>
   void buildClock() {
     shared_ptr<util::ClockIf> clockPtr(new ClockT);
     clock_ = clockPtr;
   }
 
-  template<
-    typename ProcessWorkerT,
-    typename ProcessorT,
-    typename TokenizerT,
-    typename StemmerT,
-    typename StopwordFilterT,
-    typename HasherT
-  >
+  template <typename ProcessWorkerT,
+            typename ProcessorT,
+            typename TokenizerT,
+            typename StemmerT,
+            typename StopwordFilterT,
+            typename HasherT>
   void buildDocumentProcessor() {
     assert(clock_.get() != nullptr);
     shared_ptr<TokenizerIf> tokenizer(new TokenizerT);
     shared_ptr<StemmerIf> stemmer(new StemmerT);
     shared_ptr<StopwordFilterIf> stopwordFilter(new StopwordFilterT);
-    shared_ptr<DocumentProcessorIf> processor(new ProcessorT(
-        tokenizer, stemmer, stopwordFilter, clock_
-    ));
+    shared_ptr<DocumentProcessorIf> processor(
+        new ProcessorT(tokenizer, stemmer, stopwordFilter, clock_));
     auto threadPool = make_shared<FutureExecutor<CPUThreadPoolExecutor>>(
-      options_->getDocumentProcessingThreadCount()
-    );
+        options_->getDocumentProcessingThreadCount());
     shared_ptr<util::Sha1HasherIf> hasher(new HasherT);
-    processor_.reset(new ProcessWorkerT(
-      processor, hasher, threadPool
-    ));
+    processor_.reset(new ProcessWorkerT(processor, hasher, threadPool));
   }
 
-  template<typename CentroidUpdateWorkerT, typename CentroidUpdaterFactoryT>
+  template <typename CentroidUpdateWorkerT, typename CentroidUpdaterFactoryT>
   void buildCentroidUpdateWorker() {
     assert(persistence_.get() != nullptr);
     assert(clock_.get() != nullptr);
 
     shared_ptr<CentroidUpdaterFactoryIf> updaterFactory(
-      new CentroidUpdaterFactoryT(persistence_, centroidMetadataDb_, clock_)
-    );
+        new CentroidUpdaterFactoryT(persistence_, centroidMetadataDb_, clock_));
     auto threadPool = make_shared<FutureExecutor<CPUThreadPoolExecutor>>(
-      options_->getCentroidUpdateThreadCount()
-    );
-    centroidUpdater_.reset(new CentroidUpdateWorkerT(
-      updaterFactory, threadPool
-    ));
+        options_->getCentroidUpdateThreadCount());
+    centroidUpdater_.reset(
+        new CentroidUpdateWorkerT(updaterFactory, threadPool));
   }
 
-  template<typename SimilarityScoreWorkerT>
+  template <typename SimilarityScoreWorkerT>
   void buildSimilarityWorker() {
     assert(persistence_.get() != nullptr);
     auto threadPool = make_shared<FutureExecutor<CPUThreadPoolExecutor>>(
-      options_->getSimilarityScoreThreadCount()
-    );
-    similarityWorker_.reset(
-      new SimilarityScoreWorkerT(persistence_, centroidMetadataDb_, threadPool)
-    );
+        options_->getSimilarityScoreThreadCount());
+    similarityWorker_.reset(new SimilarityScoreWorkerT(
+        persistence_, centroidMetadataDb_, threadPool));
   }
 
-  template<typename RelevanceServerT>
-  shared_ptr<RelevanceServerIf> buildServer(){
+  template <typename RelevanceServerT>
+  shared_ptr<RelevanceServerIf> buildServer() {
     assert(clock_.get() != nullptr);
     assert(persistence_.get() != nullptr);
     assert(processor_.get() != nullptr);
     assert(similarityWorker_.get() != nullptr);
     assert(centroidUpdater_.get() != nullptr);
     auto server = make_shared<RelevanceServerT>(
-      persistence_, centroidMetadataDb_, clock_, similarityWorker_, processor_, centroidUpdater_
-    );
+        persistence_, centroidMetadataDb_, clock_, similarityWorker_,
+        processor_, centroidUpdater_);
     server->initialize();
     return server;
   }
 
-  template<typename RelevanceServerT>
-  shared_ptr<apache::thrift::ThriftServer> buildThriftServer(){
-    auto service = make_shared<ThriftRelevanceServer>(
-      buildServer<RelevanceServerT>()
-    );
+  template <typename RelevanceServerT>
+  shared_ptr<apache::thrift::ThriftServer> buildThriftServer() {
+    auto service =
+        make_shared<ThriftRelevanceServer>(buildServer<RelevanceServerT>());
     bool allowInsecureLoopback = true;
     string saslPolicy = "";
     auto thriftServer = make_shared<apache::thrift::ThriftServer>(
-      saslPolicy, allowInsecureLoopback
-    );
+        saslPolicy, allowInsecureLoopback);
     thriftServer->setInterface(service);
     thriftServer->setTaskExpireTime(options_->getTaskExpireTime());
     thriftServer->setPort(options_->getThriftPort());
     return thriftServer;
   }
-
 };
 
 } // server

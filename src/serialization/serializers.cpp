@@ -22,39 +22,39 @@ void binarySerialize(std::string &result, models::Centroid &target) {
   binarySerializeAny<models::Centroid>(result, target);
 }
 
-void binaryDeserialize(std::string &data, models::ProcessedDocument* result) {
+void binaryDeserialize(std::string &data, models::ProcessedDocument *result) {
   binaryDeserializeAny<models::ProcessedDocument>(data, result);
 }
 
-void binaryDeserialize(std::string &data, models::WordVector* result) {
+void binaryDeserialize(std::string &data, models::WordVector *result) {
   binaryDeserializeAny<models::WordVector>(data, result);
 }
 
-void binaryDeserialize(std::string &data, models::Centroid* result) {
+void binaryDeserialize(std::string &data, models::Centroid *result) {
   binaryDeserializeAny<models::Centroid>(data, result);
 }
 
-void jsonSerialize(std::string &result, models::ProcessedDocument* target) {
+void jsonSerialize(std::string &result, models::ProcessedDocument *target) {
   jsonSerializeAny<models::ProcessedDocument>(result, target);
 }
 
-void jsonSerialize(std::string &result, models::WordVector* target) {
+void jsonSerialize(std::string &result, models::WordVector *target) {
   jsonSerializeAny<models::WordVector>(result, target);
 }
 
-void jsonSerialize(std::string &result, models::Centroid* target) {
+void jsonSerialize(std::string &result, models::Centroid *target) {
   jsonSerializeAny<models::Centroid>(result, target);
 }
 
-void jsonDeserialize(std::string &data, models::ProcessedDocument* result) {
+void jsonDeserialize(std::string &data, models::ProcessedDocument *result) {
   jsonDeserializeAny<models::ProcessedDocument>(data, result);
 }
 
-void jsonDeserialize(std::string &data, models::WordVector* result) {
+void jsonDeserialize(std::string &data, models::WordVector *result) {
   jsonDeserializeAny<models::WordVector>(data, result);
 }
 
-void jsonDeserialize(std::string &data, models::Centroid* result) {
+void jsonDeserialize(std::string &data, models::Centroid *result) {
   jsonDeserializeAny<models::Centroid>(data, result);
 }
 

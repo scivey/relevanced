@@ -20,7 +20,7 @@ using ::testing::_;
 
 TEST(InMemoryRockHandle, TestPutGet) {
   InMemoryRockHandle rockHandle("foo");
-  string xVal {"x-val"};
+  string xVal{"x-val"};
   EXPECT_TRUE(rockHandle.put("x-key", xVal));
   EXPECT_EQ("x-val", rockHandle.get("x-key"));
   string gottenInPlace;
@@ -44,14 +44,14 @@ TEST(InMemoryRockHandle, TestExistsMissing) {
 TEST(InMemoryRockHandle, TestExistsForReals1) {
   InMemoryRockHandle rockHandle("foo");
   EXPECT_FALSE(rockHandle.exists("x-key"));
-  string xVal {"x-val"};
+  string xVal{"x-val"};
   EXPECT_TRUE(rockHandle.put("x-key", xVal));
   EXPECT_TRUE(rockHandle.exists("x-key"));
 }
 
 TEST(InMemoryRockHandle, TestExistsForReals2) {
   InMemoryRockHandle rockHandle("foo");
-  string xVal {"x-val"};
+  string xVal{"x-val"};
   EXPECT_TRUE(rockHandle.put("x-key", xVal));
   EXPECT_TRUE(rockHandle.exists("x-key"));
 }
@@ -63,7 +63,7 @@ TEST(InMemoryRockHandle, TestDeleteMissing) {
 
 TEST(InMemoryRockHandle, TestDeleteHappy) {
   InMemoryRockHandle rockHandle("foo");
-  string xVal {"x-val"};
+  string xVal{"x-val"};
   rockHandle.put("x-key", xVal);
   EXPECT_TRUE(rockHandle.exists("x-key"));
   EXPECT_TRUE(rockHandle.del("x-key"));
@@ -73,8 +73,8 @@ TEST(InMemoryRockHandle, TestDeleteHappy) {
 
 TEST(InMemoryRockHandle, TestCRUD) {
   InMemoryRockHandle rockHandle("foo");
-  string xVal {"x-val"};
-  string yVal {"y-val"};
+  string xVal{"x-val"};
+  string yVal{"y-val"};
   EXPECT_FALSE(rockHandle.exists("x-key"));
   EXPECT_FALSE(rockHandle.exists("y-key"));
 
@@ -104,17 +104,16 @@ TEST(InMemoryRockHandle, TestCRUD) {
 
 TEST(InMemoryRockHandle, TestIterAllBasic) {
   InMemoryRockHandle rockHandle("foo");
-  map<string, string> values {
-    {"x-key", "x-val"},
-    {"y-key", "y-val"},
-    {"z-key", "z-val"}
-  };
-  for (auto &elem: values) {
+  map<string, string> values{
+      {"x-key", "x-val"}, {"y-key", "y-val"}, {"z-key", "z-val"}};
+  for (auto &elem : values) {
     rockHandle.put(elem.first, elem.second);
   }
   vector<string> keysSeen;
   vector<string> valuesSeen;
-  rockHandle.iterAll([&keysSeen, &valuesSeen](const string& key, function<void(string&)> read, function<void()> escape) {
+  rockHandle.iterAll([&keysSeen, &valuesSeen](const string &key,
+                                              function<void(string &) > read,
+                                              function<void()> escape) {
     keysSeen.push_back(key);
     string val;
     read(val);
@@ -132,21 +131,21 @@ TEST(InMemoryRockHandle, TestIterAllBasic) {
 
 TEST(InMemoryRockHandle, TestIterAllEscape) {
   InMemoryRockHandle rockHandle("foo");
-  map<string, string> values {
-    {"a-key", "a-val"},
-    {"b-key", "b-val"},
-    {"c-key", "c-val"},
-    {"d-key", "d-val"},
-    {"e-key", "e-val"},
-    {"f-key", "f-val"}
-  };
-  for (auto &elem: values) {
+  map<string, string> values{{"a-key", "a-val"},
+                             {"b-key", "b-val"},
+                             {"c-key", "c-val"},
+                             {"d-key", "d-val"},
+                             {"e-key", "e-val"},
+                             {"f-key", "f-val"}};
+  for (auto &elem : values) {
     rockHandle.put(elem.first, elem.second);
   }
   vector<string> keysSeen;
   vector<string> valuesSeen;
   size_t counter = 0;
-  rockHandle.iterAll([&keysSeen, &valuesSeen, &counter](const string& key, function<void(string&)> read, function<void()> escape) {
+  rockHandle.iterAll([&keysSeen, &valuesSeen, &counter](
+      const string &key, function<void(string &) > read,
+      function<void()> escape) {
     counter++;
     if (counter > 4) {
       escape();
@@ -171,25 +170,26 @@ TEST(InMemoryRockHandle, TestIterAllEscape) {
 
 TEST(InMemoryRockHandle, TestIterRange) {
   InMemoryRockHandle rockHandle("foo");
-  map<string, string> values {
-    {"a-key", "a-val"},
-    {"b-key", "b-val"},
-    {"c-key", "c-val"},
-    {"d-key", "d-val"},
-    {"e-key", "e-val"},
-    {"f-key", "f-val"}
-  };
-  for (auto &elem: values) {
+  map<string, string> values{{"a-key", "a-val"},
+                             {"b-key", "b-val"},
+                             {"c-key", "c-val"},
+                             {"d-key", "d-val"},
+                             {"e-key", "e-val"},
+                             {"f-key", "f-val"}};
+  for (auto &elem : values) {
     rockHandle.put(elem.first, elem.second);
   }
   vector<string> keysSeen;
   vector<string> valuesSeen;
-  rockHandle.iterRange("b", "e", [&keysSeen, &valuesSeen](const string& key, function<void(string&)> read, function<void()> escape) {
-    keysSeen.push_back(key);
-    string val;
-    read(val);
-    valuesSeen.push_back(val);
-  });
+  rockHandle.iterRange("b", "e",
+                       [&keysSeen, &valuesSeen](const string &key,
+                                                function<void(string &) > read,
+                                                function<void()> escape) {
+                         keysSeen.push_back(key);
+                         string val;
+                         read(val);
+                         valuesSeen.push_back(val);
+                       });
   EXPECT_EQ(3, keysSeen.size());
   EXPECT_EQ(3, valuesSeen.size());
   EXPECT_EQ("b-key", keysSeen.at(0));
@@ -203,25 +203,26 @@ TEST(InMemoryRockHandle, TestIterRange) {
 
 TEST(InMemoryRockHandle, TestIterPrefix) {
   InMemoryRockHandle rockHandle("foo");
-  map<string, string> values {
-    {"bar:x", "bar-x-val"},
-    {"bar:y", "bar-y-val"},
-    {"foo:x", "foo-x-val"},
-    {"foo:y", "foo-y-val"},
-    {"zap:x", "zap-x-val"},
-    {"zap:y", "zap-y-val"}
-  };
-  for (auto &elem: values) {
+  map<string, string> values{{"bar:x", "bar-x-val"},
+                             {"bar:y", "bar-y-val"},
+                             {"foo:x", "foo-x-val"},
+                             {"foo:y", "foo-y-val"},
+                             {"zap:x", "zap-x-val"},
+                             {"zap:y", "zap-y-val"}};
+  for (auto &elem : values) {
     rockHandle.put(elem.first, elem.second);
   }
   vector<string> keysSeen;
   vector<string> valuesSeen;
-  rockHandle.iterPrefix("foo", [&keysSeen, &valuesSeen](const string& key, function<void(string&)> read, function<void()> escape) {
-    keysSeen.push_back(key);
-    string val;
-    read(val);
-    valuesSeen.push_back(val);
-  });
+  rockHandle.iterPrefix("foo",
+                        [&keysSeen, &valuesSeen](const string &key,
+                                                 function<void(string &) > read,
+                                                 function<void()> escape) {
+                          keysSeen.push_back(key);
+                          string val;
+                          read(val);
+                          valuesSeen.push_back(val);
+                        });
   EXPECT_EQ(2, keysSeen.size());
   EXPECT_EQ(2, valuesSeen.size());
   EXPECT_EQ("foo:x", keysSeen.at(0));
@@ -244,18 +245,17 @@ TEST(TestRockHandle, TestIterPrefixFromOffset1) {
 
   vector<string> keys;
   vector<string> values;
-  handle.iterPrefixFromOffset("x", 2, 5, [&keys, &values](const string &key, function<void(string&)> read, function<void()>) {
-    keys.push_back(key);
-    string val;
-    read(val);
-    values.push_back(val);
-  });
-  vector<string> expectedKeys {
-    "x:key3", "x:key4", "x:key5", "x:key6", "x:key7"
-  };
-  vector<string> expectedVals {
-    "val3", "val4", "val5", "val6", "val7"
-  };
+  handle.iterPrefixFromOffset("x", 2, 5,
+                              [&keys, &values](const string &key,
+                                               function<void(string &) > read,
+                                               function<void()>) {
+                                keys.push_back(key);
+                                string val;
+                                read(val);
+                                values.push_back(val);
+                              });
+  vector<string> expectedKeys{"x:key3", "x:key4", "x:key5", "x:key6", "x:key7"};
+  vector<string> expectedVals{"val3", "val4", "val5", "val6", "val7"};
   EXPECT_EQ(expectedVals, values);
   EXPECT_EQ(expectedKeys, keys);
 }
@@ -274,18 +274,17 @@ TEST(TestRockHandle, TestIterPrefixFromOffsetZero) {
 
   vector<string> keys;
   vector<string> values;
-  handle.iterPrefixFromOffset("x", 0, 5, [&keys, &values](const string &key, function<void(string&)> read, function<void()>) {
-    keys.push_back(key);
-    string val;
-    read(val);
-    values.push_back(val);
-  });
-  vector<string> expectedKeys {
-    "x:key1", "x:key2", "x:key3", "x:key4", "x:key5"
-  };
-  vector<string> expectedVals {
-    "val1", "val2", "val3", "val4", "val5"
-  };
+  handle.iterPrefixFromOffset("x", 0, 5,
+                              [&keys, &values](const string &key,
+                                               function<void(string &) > read,
+                                               function<void()>) {
+                                keys.push_back(key);
+                                string val;
+                                read(val);
+                                values.push_back(val);
+                              });
+  vector<string> expectedKeys{"x:key1", "x:key2", "x:key3", "x:key4", "x:key5"};
+  vector<string> expectedVals{"val1", "val2", "val3", "val4", "val5"};
   EXPECT_EQ(expectedVals, values);
   EXPECT_EQ(expectedKeys, keys);
 }
@@ -300,18 +299,17 @@ TEST(TestRockHandle, TestIterPrefixFromOffsetNotEnough) {
 
   vector<string> keys;
   vector<string> values;
-  handle.iterPrefixFromOffset("x", 2, 5, [&keys, &values](const string &key, function<void(string&)> read, function<void()>) {
-    keys.push_back(key);
-    string val;
-    read(val);
-    values.push_back(val);
-  });
-  vector<string> expectedKeys {
-    "x:key3", "x:key4", "x:key5"
-  };
-  vector<string> expectedVals {
-    "val3", "val4", "val5"
-  };
+  handle.iterPrefixFromOffset("x", 2, 5,
+                              [&keys, &values](const string &key,
+                                               function<void(string &) > read,
+                                               function<void()>) {
+                                keys.push_back(key);
+                                string val;
+                                read(val);
+                                values.push_back(val);
+                              });
+  vector<string> expectedKeys{"x:key3", "x:key4", "x:key5"};
+  vector<string> expectedVals{"val3", "val4", "val5"};
   EXPECT_EQ(expectedVals, values);
   EXPECT_EQ(expectedKeys, keys);
 }
@@ -327,15 +325,18 @@ TEST(TestRockHandle, TestIterPrefixFromOffsetTooFar) {
   vector<string> keys;
   vector<string> values;
   bool iterated = false;
-  handle.iterPrefixFromOffset("x", 10, 5, [&iterated, &keys, &values](const string &key, function<void(string&)> read, function<void()>) {
-    iterated = true;
-    keys.push_back(key);
-    string val;
-    read(val);
-    values.push_back(val);
-  });
-  vector<string> expectedKeys {};
-  vector<string> expectedVals {};
+  handle.iterPrefixFromOffset(
+      "x", 10, 5, [&iterated, &keys, &values](const string &key,
+                                              function<void(string &) > read,
+                                              function<void()>) {
+        iterated = true;
+        keys.push_back(key);
+        string val;
+        read(val);
+        values.push_back(val);
+      });
+  vector<string> expectedKeys{};
+  vector<string> expectedVals{};
   EXPECT_FALSE(iterated);
   EXPECT_EQ(expectedVals, values);
   EXPECT_EQ(expectedKeys, keys);
@@ -347,15 +348,18 @@ TEST(TestRockHandle, TestIterPrefixFromOffsetNone) {
   vector<string> keys;
   vector<string> values;
   bool iterated = false;
-  handle.iterPrefixFromOffset("x", 2, 5, [&iterated, &keys, &values](const string &key, function<void(string&)> read, function<void()>) {
-    iterated = true;
-    keys.push_back(key);
-    string val;
-    read(val);
-    values.push_back(val);
-  });
-  vector<string> expectedKeys {};
-  vector<string> expectedVals {};
+  handle.iterPrefixFromOffset(
+      "x", 2, 5, [&iterated, &keys, &values](const string &key,
+                                             function<void(string &) > read,
+                                             function<void()>) {
+        iterated = true;
+        keys.push_back(key);
+        string val;
+        read(val);
+        values.push_back(val);
+      });
+  vector<string> expectedKeys{};
+  vector<string> expectedVals{};
   EXPECT_FALSE(iterated);
   EXPECT_EQ(expectedVals, values);
   EXPECT_EQ(expectedKeys, keys);
@@ -377,23 +381,22 @@ TEST(TestRockHandle, TestIterPrefixFromOffsetEscape) {
   vector<string> keys;
   vector<string> values;
   size_t counter = 0;
-  handle.iterPrefixFromOffset("x", 2, 7, [&keys, &values, &counter](const string &key, function<void(string&)> read, function<void()> escape) {
-    counter++;
-    if (counter > 3) {
-      escape();
-      return;
-    }
-    keys.push_back(key);
-    string val;
-    read(val);
-    values.push_back(val);
-  });
-  vector<string> expectedKeys {
-    "x:key3", "x:key4", "x:key5"
-  };
-  vector<string> expectedVals {
-    "val3", "val4", "val5"
-  };
+  handle.iterPrefixFromOffset(
+      "x", 2, 7, [&keys, &values, &counter](const string &key,
+                                            function<void(string &) > read,
+                                            function<void()> escape) {
+        counter++;
+        if (counter > 3) {
+          escape();
+          return;
+        }
+        keys.push_back(key);
+        string val;
+        read(val);
+        values.push_back(val);
+      });
+  vector<string> expectedKeys{"x:key3", "x:key4", "x:key5"};
+  vector<string> expectedVals{"val3", "val4", "val5"};
   EXPECT_EQ(expectedVals, values);
   EXPECT_EQ(expectedKeys, keys);
 }
@@ -414,24 +417,22 @@ TEST(TestRockHandle, TestIterPrefixFromOffsetZeroEscape) {
   vector<string> keys;
   vector<string> values;
   size_t counter = 0;
-  handle.iterPrefixFromOffset("x", 0, 6, [&keys, &values, &counter](const string &key, function<void(string&)> read, function<void()> escape) {
-    counter++;
-    if (counter > 3) {
-      escape();
-      return;
-    }
-    keys.push_back(key);
-    string val;
-    read(val);
-    values.push_back(val);
-  });
-  vector<string> expectedKeys {
-    "x:key1", "x:key2", "x:key3"
-  };
-  vector<string> expectedVals {
-    "val1", "val2", "val3"
-  };
+  handle.iterPrefixFromOffset(
+      "x", 0, 6, [&keys, &values, &counter](const string &key,
+                                            function<void(string &) > read,
+                                            function<void()> escape) {
+        counter++;
+        if (counter > 3) {
+          escape();
+          return;
+        }
+        keys.push_back(key);
+        string val;
+        read(val);
+        values.push_back(val);
+      });
+  vector<string> expectedKeys{"x:key1", "x:key2", "x:key3"};
+  vector<string> expectedVals{"val1", "val2", "val3"};
   EXPECT_EQ(expectedVals, values);
   EXPECT_EQ(expectedKeys, keys);
 }
-

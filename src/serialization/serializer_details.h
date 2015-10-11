@@ -9,7 +9,7 @@
 namespace relevanced {
 namespace serialization {
 
-template<typename T>
+template <typename T>
 struct BinaryDeserializer {
   static void deserialize(std::string &data, T *result) {
     ((void) data);
@@ -19,66 +19,61 @@ struct BinaryDeserializer {
   }
 };
 
-template<typename T>
+template <typename T>
 struct BinarySerializer {
   static void serialize(std::string &result, T &target) {
     ((void) result);
     ((void) target);
 
     LOG(INFO) << "default binary serialization";
-
   }
 };
 
-template<typename T>
+template <typename T>
 void binarySerializeAny(std::string &result, T &target) {
   BinarySerializer<T>::serialize(result, target);
 }
 
-template<typename T>
+template <typename T>
 void binaryDeserializeAny(std::string &data, T *result) {
   BinaryDeserializer<T>::deserialize(data, result);
 }
 
-template<typename T>
+template <typename T>
 void thriftBinarySerialize(std::string &result, T &target) {
-  apache::thrift::Serializer<
-    apache::thrift::BinaryProtocolReader,
-    apache::thrift::BinaryProtocolWriter
-  > serializer;
+  apache::thrift::Serializer<apache::thrift::BinaryProtocolReader,
+                             apache::thrift::BinaryProtocolWriter> serializer;
   serializer.serialize<T>(target, &result);
 }
 
-template<typename T>
+template <typename T>
 void thriftBinaryDeserialize(std::string &data, T &target) {
-  apache::thrift::Serializer<
-    apache::thrift::BinaryProtocolReader,
-    apache::thrift::BinaryProtocolWriter
-  > serializer;
+  apache::thrift::Serializer<apache::thrift::BinaryProtocolReader,
+                             apache::thrift::BinaryProtocolWriter> serializer;
   serializer.deserialize<T>(data, target);
 }
 
-template<typename T>
+template <typename T>
 struct JsonSerializer {
-  static void serialize(std::string &result, T*) {
+  static void serialize(std::string &result, T *) {
     LOG(INFO) << "default json serialization";
     result = "";
   }
 };
 
-template<typename T>
+template <typename T>
 struct JsonDeserializer {
-  static void deserialize(const std::string&, T*) {
+  static void deserialize(const std::string &, T *) {
     LOG(INFO) << "default json deserialization";
   }
 };
 
-template<typename T>
+template <typename T>
 void jsonSerializeAny(std::string &result, T *target) {
   JsonSerializer<T>::serialize(result, target);
 }
 
-template<typename T>
+template <typename T>
 void jsonDeserializeAny(const std::string &jsonStr, T *result) {
   JsonDeserializer<T>::deserialize(jsonStr, result);
 }

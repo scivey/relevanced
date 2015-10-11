@@ -8,26 +8,47 @@
 
 using namespace std;
 
-class MockRock: public persistence::RockHandleIf {
-public:
+class MockRock : public persistence::RockHandleIf {
+ public:
   MOCK_METHOD2(put, bool(string, rocksdb::Slice));
-  MOCK_METHOD1(get, string(const string&));
-  MOCK_METHOD2(get, bool(const string&, string&));
-  MOCK_METHOD1(exists, bool(const string&));
-  MOCK_METHOD1(del, bool(const string&));
-  bool iterRange(const std::string &start, const std::string &end, std::function<void (const std::string&, std::function<void(std::string&)>, std::function<void()>)> iterFn) override {
+  MOCK_METHOD1(get, string(const string &));
+  MOCK_METHOD2(get, bool(const string &, string &));
+  MOCK_METHOD1(exists, bool(const string &));
+  MOCK_METHOD1(del, bool(const string &));
+  bool iterRange(const std::string &start,
+                 const std::string &end,
+                 std::function<void(const std::string &,
+                                    std::function<void(std::string &) >,
+                                    std::function<void()>) > iterFn) override {
     return false;
   }
-  bool iterPrefix(const std::string &prefix, std::function<void (const std::string&, std::function<void(std::string&)>, std::function<void()>)> iterFn) override {
+  bool iterPrefix(const std::string &prefix,
+                  std::function<void(const std::string &,
+                                     std::function<void(std::string &) >,
+                                     std::function<void()>) > iterFn) override {
     return false;
   }
-  bool iterPrefixFromOffset(const std::string&, size_t, size_t, std::function<void (const std::string&, std::function<void(std::string&)>, std::function<void()>)> iterFn) override {
+  bool iterPrefixFromOffset(
+      const std::string &,
+      size_t,
+      size_t,
+      std::function<void(const std::string &,
+                         std::function<void(std::string &) >,
+                         std::function<void()>) > iterFn) override {
     return false;
   }
-  bool iterPrefixFromMember(const std::string&, const std::string&, size_t, std::function<void (const std::string&, std::function<void(std::string&)>, std::function<void()>)> iterFn) override {
+  bool iterPrefixFromMember(
+      const std::string &,
+      const std::string &,
+      size_t,
+      std::function<void(const std::string &,
+                         std::function<void(std::string &) >,
+                         std::function<void()>) > iterFn) override {
     return false;
   }
-  bool iterAll(std::function<void (const std::string&, std::function<void(std::string&)>, std::function<void()>)> iterFn) override {
+  bool iterAll(std::function<void(const std::string &,
+                                  std::function<void(std::string &) >,
+                                  std::function<void()>) > iterFn) override {
     return false;
   }
 };

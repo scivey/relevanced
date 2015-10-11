@@ -4,10 +4,8 @@
 namespace relevanced {
 namespace release_metadata {
 
-  std::string getGitVersion();
-  std::string getGitRevisionSha();
-  std::string getUtcBuildTimestamp();
-
-
+std::string getGitVersion();
+std::string getGitRevisionSha();
+std::string getUtcBuildTimestamp();
 }
 }

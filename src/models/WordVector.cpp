@@ -14,17 +14,20 @@ namespace models {
 using namespace std;
 using namespace folly;
 
-WordVector::WordVector(){}
+WordVector::WordVector() {}
 
 WordVector::WordVector(map<string, double> scores, double magnitude)
-  : scores(scores), magnitude(magnitude) {}
+    : scores(scores), magnitude(magnitude) {}
 
-WordVector::WordVector(map<string, double> scores, double magnitude, double docWeight)
-  : scores(scores), magnitude(magnitude), documentWeight(docWeight) {}
+WordVector::WordVector(map<string, double> scores,
+                       double magnitude,
+                       double docWeight)
+    : scores(scores), magnitude(magnitude), documentWeight(docWeight) {}
 
-double WordVector::score(const map<string, double> &otherScores, double otherMagnitude) {
+double WordVector::score(const map<string, double> &otherScores,
+                         double otherMagnitude) {
   double dotProd = 0.0;
-  for (auto &elem: otherScores) {
+  for (auto &elem : otherScores) {
     auto selfScore = scores.find(elem.first);
     if (selfScore == scores.end()) {
       continue;

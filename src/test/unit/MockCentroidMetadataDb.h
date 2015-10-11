@@ -12,7 +12,7 @@ using namespace folly;
 using namespace relevanced;
 using namespace relevanced::persistence;
 
-class MockCentroidMetadataDb: public CentroidMetadataDbIf {
+class MockCentroidMetadataDb : public CentroidMetadataDbIf {
   Synchronized<map<string, uint64_t>> timestamps_;
 
   Future<Optional<uint64_t>> getOptionalKey(const string &key) {
@@ -27,9 +27,7 @@ class MockCentroidMetadataDb: public CentroidMetadataDbIf {
   }
 
   void setKey(const string &key, uint64_t value) {
-    SYNCHRONIZED(timestamps_) {
-      timestamps_[key] = value;
-    }
+    SYNCHRONIZED(timestamps_) { timestamps_[key] = value; }
   }
 
   Future<Try<bool>> setKeyFuture(const string &key, uint64_t value) {
@@ -38,18 +36,20 @@ class MockCentroidMetadataDb: public CentroidMetadataDbIf {
     return makeFuture(result);
   }
 
-public:
+ public:
   Future<Optional<uint64_t>> getCreatedTimestamp(const string &centroidId) {
     auto key = sformat("{}:created", centroidId);
     return getOptionalKey(key);
   }
 
-  Future<Optional<uint64_t>> getLastCalculatedTimestamp(const string &centroidId) {
+  Future<Optional<uint64_t>> getLastCalculatedTimestamp(
+      const string &centroidId) {
     auto key = sformat("{}:lastCalculated", centroidId);
     return getOptionalKey(key);
   }
 
-  Future<Optional<uint64_t>> getLastDocumentChangeTimestamp(const string &centroidId) {
+  Future<Optional<uint64_t>> getLastDocumentChangeTimestamp(
+      const string &centroidId) {
     auto key = sformat("{}:lastDocumentChange", centroidId);
     return getOptionalKey(key);
   }
@@ -75,19 +75,21 @@ public:
     return makeFuture(result);
   }
 
-  Future<Try<bool>> setCreatedTimestamp(const string &centroidId, uint64_t val) {
+  Future<Try<bool>> setCreatedTimestamp(const string &centroidId,
+                                        uint64_t val) {
     auto key = sformat("{}:created", centroidId);
     return setKeyFuture(key, val);
   }
 
-  Future<Try<bool>> setLastCalculatedTimestamp(const string &centroidId, uint64_t val) {
+  Future<Try<bool>> setLastCalculatedTimestamp(const string &centroidId,
+                                               uint64_t val) {
     auto key = sformat("{}:lastCalculated", centroidId);
     return setKeyFuture(key, val);
   }
 
-  Future<Try<bool>> setLastDocumentChangeTimestamp(const string &centroidId, uint64_t val) {
+  Future<Try<bool>> setLastDocumentChangeTimestamp(const string &centroidId,
+                                                   uint64_t val) {
     auto key = sformat("{}:lastDocumentChange", centroidId);
     return setKeyFuture(key, val);
   }
-
 };

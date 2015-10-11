@@ -12,16 +12,23 @@ namespace relevanced {
 namespace persistence {
 
 class CentroidMetadataDbIf {
-public:
-  virtual folly::Future<folly::Optional<uint64_t>> getCreatedTimestamp(const std::string&) = 0;
-  virtual folly::Future<folly::Optional<uint64_t>> getLastCalculatedTimestamp(const std::string&) = 0;
-  virtual folly::Future<folly::Optional<uint64_t>> getLastDocumentChangeTimestamp(const std::string&) = 0;
+ public:
+  virtual folly::Future<folly::Optional<uint64_t>> getCreatedTimestamp(
+      const std::string&) = 0;
+  virtual folly::Future<folly::Optional<uint64_t>> getLastCalculatedTimestamp(
+      const std::string&) = 0;
+  virtual folly::Future<folly::Optional<uint64_t>>
+  getLastDocumentChangeTimestamp(const std::string&) = 0;
 
-  virtual folly::Future<folly::Try<bool>> isCentroidUpToDate(const std::string&) = 0;
+  virtual folly::Future<folly::Try<bool>> isCentroidUpToDate(
+      const std::string&) = 0;
 
-  virtual folly::Future<folly::Try<bool>> setCreatedTimestamp(const std::string&, uint64_t) = 0;
-  virtual folly::Future<folly::Try<bool>> setLastCalculatedTimestamp(const std::string&, uint64_t) = 0;
-  virtual folly::Future<folly::Try<bool>> setLastDocumentChangeTimestamp(const std::string&, uint64_t) = 0;
+  virtual folly::Future<folly::Try<bool>> setCreatedTimestamp(
+      const std::string&, uint64_t) = 0;
+  virtual folly::Future<folly::Try<bool>> setLastCalculatedTimestamp(
+      const std::string&, uint64_t) = 0;
+  virtual folly::Future<folly::Try<bool>> setLastDocumentChangeTimestamp(
+      const std::string&, uint64_t) = 0;
   virtual ~CentroidMetadataDbIf() = default;
 };
 
@@ -31,19 +38,27 @@ public:
  *  `setCentroidMetadata` and `getCentroidMetadata`.
  */
 
-class CentroidMetadataDb: public CentroidMetadataDbIf {
+class CentroidMetadataDb : public CentroidMetadataDbIf {
   std::shared_ptr<PersistenceIf> persistence_;
-public:
+
+ public:
   CentroidMetadataDb(std::shared_ptr<PersistenceIf>);
-  folly::Future<folly::Optional<uint64_t>> getCreatedTimestamp(const std::string&) override;
-  folly::Future<folly::Optional<uint64_t>> getLastCalculatedTimestamp(const std::string&) override;
-  folly::Future<folly::Optional<uint64_t>> getLastDocumentChangeTimestamp(const std::string&) override;
+  folly::Future<folly::Optional<uint64_t>> getCreatedTimestamp(
+      const std::string&) override;
+  folly::Future<folly::Optional<uint64_t>> getLastCalculatedTimestamp(
+      const std::string&) override;
+  folly::Future<folly::Optional<uint64_t>> getLastDocumentChangeTimestamp(
+      const std::string&) override;
 
-  folly::Future<folly::Try<bool>> isCentroidUpToDate(const std::string&) override;
+  folly::Future<folly::Try<bool>> isCentroidUpToDate(
+      const std::string&) override;
 
-  folly::Future<folly::Try<bool>> setCreatedTimestamp(const std::string&, uint64_t) override;
-  folly::Future<folly::Try<bool>> setLastCalculatedTimestamp(const std::string&, uint64_t) override;
-  folly::Future<folly::Try<bool>> setLastDocumentChangeTimestamp(const std::string&, uint64_t) override;
+  folly::Future<folly::Try<bool>> setCreatedTimestamp(const std::string&,
+                                                      uint64_t) override;
+  folly::Future<folly::Try<bool>> setLastCalculatedTimestamp(const std::string&,
+                                                             uint64_t) override;
+  folly::Future<folly::Try<bool>> setLastDocumentChangeTimestamp(
+      const std::string&, uint64_t) override;
 };
 
 

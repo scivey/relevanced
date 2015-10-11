@@ -30,8 +30,8 @@ using relevanced::tokenizer::TokenizerIf;
 using ::testing::Return;
 using ::testing::_;
 
-class MockDocumentProcessor: public DocumentProcessorIf {
-public:
+class MockDocumentProcessor : public DocumentProcessorIf {
+ public:
   MOCK_METHOD1(process, ProcessedDocument(const Document&));
   MOCK_METHOD1(processNew, shared_ptr<ProcessedDocument>(const Document&));
   MOCK_METHOD1(processNew, shared_ptr<ProcessedDocument>(shared_ptr<Document>));
@@ -42,39 +42,25 @@ TEST(DocumentProcessingWorker, Simple) {
   MockDocumentProcessor mockProcessor;
 
   shared_ptr<DocumentProcessorIf> processorPtr(
-    &mockProcessor, NonDeleter<DocumentProcessorIf>()
-  );
+      &mockProcessor, NonDeleter<DocumentProcessorIf>());
 
   MockHasher hasher;
-  shared_ptr<Sha1HasherIf> hasherPtr(
-    &hasher, NonDeleter<Sha1HasherIf>()
-  );
+  shared_ptr<Sha1HasherIf> hasherPtr(&hasher, NonDeleter<Sha1HasherIf>());
 
-  DocumentProcessingWorker worker(
-    processorPtr,
-    hasherPtr,
-    threadPool
-  );
+  DocumentProcessingWorker worker(processorPtr, hasherPtr, threadPool);
 
   shared_ptr<ProcessedDocument> processed = make_shared<ProcessedDocument>(
-    "processed-doc-id",
-    map<string, double>{
-      {"some", 1.3},
-      {"bears", 9.6}
-    },
-    20.3
-  );
+      "processed-doc-id",
+      map<string, double>{{"some", 1.3}, {"bears", 9.6}},
+      20.3);
 
-  shared_ptr<Document> doc = make_shared<Document>(
-    "doc-id",
-    "This is some text about bears"
-  );
+  shared_ptr<Document> doc =
+      make_shared<Document>("doc-id", "This is some text about bears");
 
   EXPECT_CALL(hasher, hash("This is some text about bears"))
-    .WillOnce(Return("SHA1_HASH"));
+      .WillOnce(Return("SHA1_HASH"));
 
-  EXPECT_CALL(mockProcessor, processNew(doc))
-    .WillOnce(Return(processed));
+  EXPECT_CALL(mockProcessor, processNew(doc)).WillOnce(Return(processed));
 
   auto result = worker.processNew(doc).get();
   EXPECT_EQ(processed, result);

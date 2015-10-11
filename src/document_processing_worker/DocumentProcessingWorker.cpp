@@ -24,24 +24,25 @@ using models::ProcessedDocument;
 
 
 DocumentProcessingWorker::DocumentProcessingWorker(
-  shared_ptr<DocumentProcessorIf> processor,
-  shared_ptr<util::Sha1HasherIf> hasher,
-  shared_ptr<FutureExecutor<CPUThreadPoolExecutor>> threadPool
-) : processor_(processor), hasher_(hasher), threadPool_(threadPool) {}
+    shared_ptr<DocumentProcessorIf> processor,
+    shared_ptr<util::Sha1HasherIf> hasher,
+    shared_ptr<FutureExecutor<CPUThreadPoolExecutor>> threadPool)
+    : processor_(processor), hasher_(hasher), threadPool_(threadPool) {}
 
 
-Future<shared_ptr<ProcessedDocument>> DocumentProcessingWorker::processNew(shared_ptr<Document> doc) {
-  return threadPool_->addFuture([this, doc](){
+Future<shared_ptr<ProcessedDocument>> DocumentProcessingWorker::processNew(
+    shared_ptr<Document> doc) {
+  return threadPool_->addFuture([this, doc]() {
     auto result = processor_->processNew(doc);
     result->sha1Hash.assign(hasher_->hash(doc->text));
     return result;
   });
 }
 
-Future<shared_ptr<ProcessedDocument>> DocumentProcessingWorker::processNewWithoutHash(shared_ptr<Document> doc) {
-  return threadPool_->addFuture([this, doc](){
-    return processor_->processNew(doc);
-  });
+Future<shared_ptr<ProcessedDocument>>
+DocumentProcessingWorker::processNewWithoutHash(shared_ptr<Document> doc) {
+  return threadPool_->addFuture(
+      [this, doc]() { return processor_->processNew(doc); });
 }
 
 

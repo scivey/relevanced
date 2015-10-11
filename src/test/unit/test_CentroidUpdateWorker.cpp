@@ -32,13 +32,13 @@ using persistence::exceptions::CentroidDoesNotExist;
 using ::testing::Return;
 using ::testing::_;
 
-class MockCentroidUpdater: public CentroidUpdaterIf {
-public:
+class MockCentroidUpdater : public CentroidUpdaterIf {
+ public:
   MOCK_METHOD0(run, Try<bool>());
 };
 
-class MockCentroidUpdaterFactory: public CentroidUpdaterFactoryIf {
-public:
+class MockCentroidUpdaterFactory : public CentroidUpdaterFactoryIf {
+ public:
   MOCK_METHOD1(makeForCentroidId, shared_ptr<CentroidUpdaterIf>(const string&));
 };
 
@@ -47,19 +47,16 @@ TEST(CentroidUpdateWorker, SimpleSuccess) {
   MockCentroidUpdaterFactory updaterFactory;
   MockCentroidUpdater updater;
 
-  shared_ptr<CentroidUpdaterIf> updaterPtr(
-    &updater, NonDeleter<CentroidUpdaterIf>()
-  );
+  shared_ptr<CentroidUpdaterIf> updaterPtr(&updater,
+                                           NonDeleter<CentroidUpdaterIf>());
 
   shared_ptr<CentroidUpdaterFactoryIf> factoryPtr(
-    &updaterFactory, NonDeleter<CentroidUpdaterFactoryIf>()
-  );
+      &updaterFactory, NonDeleter<CentroidUpdaterFactoryIf>());
 
-  EXPECT_CALL(updater, run())
-    .WillOnce(Return(Try<bool>(true)));
+  EXPECT_CALL(updater, run()).WillOnce(Return(Try<bool>(true)));
 
   EXPECT_CALL(updaterFactory, makeForCentroidId("centroid-id"))
-    .WillOnce(Return(updaterPtr));
+      .WillOnce(Return(updaterPtr));
 
   CentroidUpdateWorker worker(factoryPtr, threadPool);
 
@@ -73,19 +70,18 @@ TEST(CentroidUpdateWorker, SimpleFailure) {
   MockCentroidUpdaterFactory updaterFactory;
   MockCentroidUpdater updater;
 
-  shared_ptr<CentroidUpdaterIf> updaterPtr(
-    &updater, NonDeleter<CentroidUpdaterIf>()
-  );
+  shared_ptr<CentroidUpdaterIf> updaterPtr(&updater,
+                                           NonDeleter<CentroidUpdaterIf>());
 
   shared_ptr<CentroidUpdaterFactoryIf> factoryPtr(
-    &updaterFactory, NonDeleter<CentroidUpdaterFactoryIf>()
-  );
+      &updaterFactory, NonDeleter<CentroidUpdaterFactoryIf>());
 
   EXPECT_CALL(updater, run())
-    .WillOnce(Return(Try<bool>(make_exception_wrapper<CentroidDoesNotExist>())));
+      .WillOnce(
+          Return(Try<bool>(make_exception_wrapper<CentroidDoesNotExist>())));
 
   EXPECT_CALL(updaterFactory, makeForCentroidId("centroid-id"))
-    .WillOnce(Return(updaterPtr));
+      .WillOnce(Return(updaterPtr));
 
   CentroidUpdateWorker worker(factoryPtr, threadPool);
 

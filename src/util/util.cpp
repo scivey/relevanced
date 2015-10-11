@@ -41,7 +41,7 @@ int64_t getChronoEpochTime() {
 string sha1(const string &input) {
   size_t hashLen = 20;
   unsigned char hashBuff[hashLen];
-  SHA1((const unsigned char*) input.c_str(), input.size(), hashBuff);
+  SHA1((const unsigned char *) input.c_str(), input.size(), hashBuff);
   ostringstream output;
   for (size_t i = 0; i < hashLen; i++) {
     unsigned char c = hashBuff[i];

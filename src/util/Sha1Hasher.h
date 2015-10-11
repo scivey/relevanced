@@ -8,21 +8,18 @@ namespace relevanced {
 namespace util {
 
 class Sha1HasherIf {
-public:
+ public:
   virtual std::string hash(const std::string&) = 0;
   virtual std::string hash(std::string*) = 0;
 };
 
-class Sha1Hasher: public Sha1HasherIf {
-public:
-  std::string hash(const std::string& text) override {
-    return sha1(text);
-  }
-  std::string hash(std::string *textPtr) override {
+class Sha1Hasher : public Sha1HasherIf {
+ public:
+  std::string hash(const std::string& text) override { return sha1(text); }
+  std::string hash(std::string* textPtr) override {
     auto text = *textPtr;
     return sha1(text);
   }
 };
-
 }
 }

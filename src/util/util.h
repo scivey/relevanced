@@ -14,57 +14,50 @@ namespace util {
 
 
 // used to make phony shared_ptr<T> instances that don't call `free()`
-template<typename T>
+template <typename T>
 struct NoDelete {
-    void operator()(T*) const {
-    }
+  void operator()(T *) const {}
 };
 
-template<typename T>
+template <typename T>
 void defaultDelete(T *t) {
-    delete t;
+  delete t;
 }
 
 // a type-erased version of std::unique_ptr
-template<typename T>
+template <typename T>
 struct UniquePointer {
-    std::unique_ptr<T, std::function<void (T*)>> ptr;
-    UniquePointer(T *t, std::function<void (T*)> deleteFunc) {
-        std::unique_ptr<T, std::function<void (T*)>> temp(t, deleteFunc);
-        ptr = std::move(temp);
-    }
-    UniquePointer(T *t) {
-      std::unique_ptr<T, std::function<void (T*)>> temp(
-          t, defaultDelete<T>
-      );
-      ptr = std::move(temp);
-    }
+  std::unique_ptr<T, std::function<void(T *) >> ptr;
+  UniquePointer(T *t, std::function<void(T *) > deleteFunc) {
+    std::unique_ptr<T, std::function<void(T *) >> temp(t, deleteFunc);
+    ptr = std::move(temp);
+  }
+  UniquePointer(T *t) {
+    std::unique_ptr<T, std::function<void(T *) >> temp(t, defaultDelete<T>);
+    ptr = std::move(temp);
+  }
 
-    UniquePointer(const UniquePointer<T> &other) = delete;
+  UniquePointer(const UniquePointer<T> &other) = delete;
 
-    UniquePointer(std::unique_ptr<T, std::function<void (T*)>> &&otherPtr)
-        : ptr(std::move(otherPtr)){}
+  UniquePointer(std::unique_ptr<T, std::function<void(T *) >> &&otherPtr)
+      : ptr(std::move(otherPtr)) {}
 
-    UniquePointer(UniquePointer<T>&& other) noexcept:
-        UniquePointer(std::move(other.ptr)) {}
+  UniquePointer(UniquePointer<T> &&other) noexcept
+      : UniquePointer(std::move(other.ptr)) {}
 
-    UniquePointer<T> &operator=(UniquePointer<T> &&other) noexcept {
-      ptr = std::move(other.ptr);
-      return *this;
-    }
+  UniquePointer<T> &operator=(UniquePointer<T> &&other) noexcept {
+    ptr = std::move(other.ptr);
+    return *this;
+  }
 
-    T* get() {
-      return ptr.get();
-    }
+  T *get() { return ptr.get(); }
 
-    T* operator->() {
-        return ptr.get();
-    }
+  T *operator->() { return ptr.get(); }
 };
 
-template<typename T>
+template <typename T>
 class Counter {
-public:
+ public:
   std::map<T, size_t> counts;
   void incrBy(const T &key, size_t amount) {
     if (counts.find(key) != counts.end()) {
@@ -73,26 +66,24 @@ public:
       counts[key] = 1;
     }
   }
-  void incr(const T &key) {
-    incrBy(key, 1);
-  }
+  void incr(const T &key) { incrBy(key, 1); }
 };
 
 
-template<typename T1, typename T2>
+template <typename T1, typename T2>
 std::vector<T1> getSortedKeys(const std::map<T1, T2> &aMap) {
   std::vector<T1> result;
-  for (auto &elem: aMap) {
+  for (auto &elem : aMap) {
     result.push_back(elem.first);
   }
   std::sort(result.begin(), result.end());
   return result;
 }
 
-template<typename T>
+template <typename T>
 std::vector<T> vecOfSet(const std::set<T> &t) {
   std::vector<T> output;
-  for (auto &elem: t) {
+  for (auto &elem : t) {
     output.push_back(elem);
   }
   return output;

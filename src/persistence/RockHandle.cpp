@@ -25,11 +25,9 @@ using namespace rocksdb;
 namespace relevanced {
 namespace persistence {
 
-class ColonPrefixTransform: public rocksdb::SliceTransform {
-public:
-  const char* Name() const override {
-    return "ColonPrefixTransform";
-  }
+class ColonPrefixTransform : public rocksdb::SliceTransform {
+ public:
+  const char *Name() const override { return "ColonPrefixTransform"; }
   rocksdb::Slice Transform(const Slice &src) const override {
     assert(InDomain(src));
     auto str = src.ToString();
@@ -51,7 +49,7 @@ public:
   }
 };
 
-RockHandle::RockHandle(string dbPath): dbPath_(dbPath) {
+RockHandle::RockHandle(string dbPath) : dbPath_(dbPath) {
   options_.IncreaseParallelism();
   options_.OptimizeLevelStyleCompaction();
   options_.create_if_missing = true;
@@ -62,7 +60,8 @@ RockHandle::RockHandle(string dbPath): dbPath_(dbPath) {
   table_options.filter_policy.reset(NewBloomFilterPolicy(10, true));
   options_.table_factory.reset(NewBlockBasedTableFactory(table_options));
   rocksdb::OptimisticTransactionDB *txnDbPtr = nullptr;
-  auto status = rocksdb::OptimisticTransactionDB::Open(options_, dbPath_.c_str(), &txnDbPtr);
+  auto status = rocksdb::OptimisticTransactionDB::Open(
+      options_, dbPath_.c_str(), &txnDbPtr);
   assert(status.ok());
   assert(txnDbPtr != nullptr);
   txnDb_.reset(txnDbPtr);
@@ -100,20 +99,19 @@ bool RockHandle::del(const string &key) {
   return true;
 }
 
-bool RockHandle::iterRange(const string &start, const string &end, function<void (const string&, function<void(string&)>, function<void()>)> iterFn) {
+bool RockHandle::iterRange(
+    const string &start,
+    const string &end,
+    function<void(const string &, function<void(string &) >, function<void()>) >
+        iterFn) {
   rocksdb::Iterator *it = db_->NewIterator(readOptions_);
-  ScopeGuard guard = makeGuard([it](){
-    delete it;
-  });
+  ScopeGuard guard = makeGuard([it]() { delete it; });
   (void) guard;
   bool foundAny = false;
   bool stop = false;
-  function<void ()> escapeFunc([&stop](){
-    stop = true;
-  });
-  function<void (string &)> readValFunc([&it](string &result){
-    result = it->value().ToString();
-  });
+  function<void()> escapeFunc([&stop]() { stop = true; });
+  function<void(string &) > readValFunc(
+      [&it](string &result) { result = it->value().ToString(); });
   for (it->Seek(start); it->Valid() && it->key().ToString() < end; it->Next()) {
     foundAny = true;
     iterFn(it->key().ToString(), readValFunc, escapeFunc);
@@ -124,40 +122,58 @@ bool RockHandle::iterRange(const string &start, const string &end, function<void
   return foundAny;
 }
 
-bool RockHandle::iterPrefix(const string &prefix, function<void (const string&, function<void(string&)>, function<void()>)> iterFn) {
+bool RockHandle::iterPrefix(
+    const string &prefix,
+    function<void(const string &, function<void(string &) >, function<void()>) >
+        iterFn) {
   string start = prefix + ":";
   string end = prefix + ";";
   return iterRange(start, end, iterFn);
 }
 
-bool RockHandle::iterPrefixFromOffset(const string &prefix, size_t offset, size_t limitCount, function<void (const string&, function<void(string&)>, function<void()>)> iterFn) {
+bool RockHandle::iterPrefixFromOffset(
+    const string &prefix,
+    size_t offset,
+    size_t limitCount,
+    function<void(const string &, function<void(string &) >, function<void()>) >
+        iterFn) {
   string start = prefix + ":";
   string end = prefix + ";";
   size_t offsetSeen = 0;
   size_t limitSeen = 0;
   bool anySeen = false;
-  iterRange(start, end, [&anySeen, &offsetSeen, &limitSeen, offset, limitCount, &iterFn](const string &key, function<void(string&)> read, function<void()> escape) {
-    offsetSeen++;
-    if (offsetSeen <= offset) {
-      return;
-    }
-    anySeen = true;
-    limitSeen++;
-    if (limitSeen > limitCount) {
-      escape();
-      return;
-    }
-    iterFn(key, read, escape);
-  });
+  iterRange(start, end,
+            [&anySeen, &offsetSeen, &limitSeen, offset, limitCount, &iterFn](
+                const string &key, function<void(string &) > read,
+                function<void()> escape) {
+              offsetSeen++;
+              if (offsetSeen <= offset) {
+                return;
+              }
+              anySeen = true;
+              limitSeen++;
+              if (limitSeen > limitCount) {
+                escape();
+                return;
+              }
+              iterFn(key, read, escape);
+            });
   return anySeen;
 }
 
-bool RockHandle::iterPrefixFromMember(const string &prefix, const string &member, size_t limitCount, function<void (const string&, function<void(string&)>, function<void()>)> iterFn) {
+bool RockHandle::iterPrefixFromMember(
+    const string &prefix,
+    const string &member,
+    size_t limitCount,
+    function<void(const string &, function<void(string &) >, function<void()>) >
+        iterFn) {
   string start = sformat("{}:{}", prefix, member);
   string end = prefix + ";";
   size_t limitSeen = 0;
   bool anySeen = false;
-  iterRange(start, end, [&anySeen, &limitSeen, limitCount, &iterFn](const string &key, function<void(string&)> read, function<void()> escape) {
+  iterRange(start, end, [&anySeen, &limitSeen, limitCount, &iterFn](
+                            const string &key, function<void(string &) > read,
+                            function<void()> escape) {
     anySeen = true;
     limitSeen++;
     if (limitSeen > limitCount) {
@@ -169,7 +185,8 @@ bool RockHandle::iterPrefixFromMember(const string &prefix, const string &member
   return anySeen;
 }
 
-bool RockHandle::iterAll(function<void (const string&, function<void(string&)>, function<void()>)> iterFn) {
+bool RockHandle::iterAll(function<void(
+    const string &, function<void(string &) >, function<void()>) > iterFn) {
   string start = "a";
   string end = "zzz";
   return iterRange(start, end, iterFn);
@@ -177,4 +194,3 @@ bool RockHandle::iterAll(function<void (const string&, function<void(string&)>, 
 
 } // persistence
 } // relevanced
-

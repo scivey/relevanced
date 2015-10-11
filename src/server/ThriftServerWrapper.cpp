@@ -8,12 +8,10 @@ using apache::thrift::ThriftServer;
 namespace relevanced {
 namespace server {
 
-ThriftServerWrapper::ThriftServerWrapper(shared_ptr<ThriftServer> pImpl):
-  pImpl_(pImpl){}
+ThriftServerWrapper::ThriftServerWrapper(shared_ptr<ThriftServer> pImpl)
+    : pImpl_(pImpl) {}
 
-void ThriftServerWrapper::serve() {
-  pImpl_->serve();
-}
+void ThriftServerWrapper::serve() { pImpl_->serve(); }
 
 } // server
 } // relevanced

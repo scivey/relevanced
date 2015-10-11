@@ -6,13 +6,14 @@
 
 
 namespace apache {
-  namespace thrift {
-    class ThriftServer;
-  }
+namespace thrift {
+class ThriftServer;
+}
 }
 
 namespace relevanced {
 namespace server {
-  std::shared_ptr<ThriftServerWrapper> buildNormalThriftServer(std::shared_ptr<RelevanceServerOptions>);
+std::shared_ptr<ThriftServerWrapper> buildNormalThriftServer(
+    std::shared_ptr<RelevanceServerOptions>);
 }
 }

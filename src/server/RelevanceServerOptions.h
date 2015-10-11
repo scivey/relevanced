@@ -16,16 +16,16 @@ namespace server {
  * there.
  */
 class RelevanceServerOptions {
-  std::string dataDir_ {"./data"};
-  int thriftPort_ {8097};
+  std::string dataDir_{"./data"};
+  int thriftPort_{8097};
   std::chrono::milliseconds taskExpireTime_{60000};
-  bool integrationTestMode_ {false};
-  int rocksdbThreads_ {8};
-  int centroidUpdateThreads_ {4};
-  int similarityScoreThreads_ {4};
-  int documentProcessingThreads_ {4};
+  bool integrationTestMode_{false};
+  int rocksdbThreads_{8};
+  int centroidUpdateThreads_{4};
+  int similarityScoreThreads_{4};
+  int documentProcessingThreads_{4};
 
-public:
+ public:
   RelevanceServerOptions();
   std::string getDataDir();
   void setDataDir(std::string dataDir);

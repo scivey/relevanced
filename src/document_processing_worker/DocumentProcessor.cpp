@@ -21,12 +21,13 @@ using models::ProcessedDocument;
 using namespace std;
 using util::UniquePointer;
 
-void DocumentProcessor::process_(const Document &doc, ProcessedDocument *result) {
+void DocumentProcessor::process_(const Document &doc,
+                                 ProcessedDocument *result) {
   // computes normalized frequency for each term in the document:
   // raw frequency divided by total number of (non-stopword) terms
   map<string, double> wordCounts;
   size_t totalWords = 0;
-  for (auto &word: tokenizer_->tokenize(doc.text)) {
+  for (auto &word : tokenizer_->tokenize(doc.text)) {
     stemmer_->stemInPlace(word);
     if (!stopwordFilter_->isStopword(word)) {
       totalWords++;
@@ -39,7 +40,7 @@ void DocumentProcessor::process_(const Document &doc, ProcessedDocument *result)
   }
   double dTotal = (double) totalWords;
   double magnitude = 0.0;
-  for (auto &elem: wordCounts) {
+  for (auto &elem : wordCounts) {
     double normalized = elem.second / dTotal;
     wordCounts[elem.first] = normalized;
     magnitude += pow(normalized, 2);
@@ -54,7 +55,8 @@ void DocumentProcessor::process_(const Document &doc, ProcessedDocument *result)
   result->updated = timestamp;
 }
 
-void DocumentProcessor::process_(const Document &doc, shared_ptr<ProcessedDocument> result) {
+void DocumentProcessor::process_(const Document &doc,
+                                 shared_ptr<ProcessedDocument> result) {
   return process_(doc, result.get());
 }
 
@@ -64,13 +66,15 @@ ProcessedDocument DocumentProcessor::process(const Document &doc) {
   return processed;
 }
 
-shared_ptr<ProcessedDocument> DocumentProcessor::processNew(const Document &doc) {
+shared_ptr<ProcessedDocument> DocumentProcessor::processNew(
+    const Document &doc) {
   auto result = std::make_shared<ProcessedDocument>(doc.id);
   process_(doc, result);
   return result;
 }
 
-shared_ptr<ProcessedDocument> DocumentProcessor::processNew(shared_ptr<Document> doc) {
+shared_ptr<ProcessedDocument> DocumentProcessor::processNew(
+    shared_ptr<Document> doc) {
   auto result = std::make_shared<ProcessedDocument>(doc->id);
   auto d2 = *doc;
   process_(d2, result);
