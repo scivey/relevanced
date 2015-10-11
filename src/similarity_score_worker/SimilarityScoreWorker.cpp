@@ -17,7 +17,7 @@
 #include "models/ProcessedDocument.h"
 #include "models/WordVector.h"
 #include "persistence/CentroidMetadataDb.h"
-#include "persistence/exceptions.h"
+#include "gen-cpp2/RelevancedProtocol_types.h"
 #include "persistence/Persistence.h"
 #include "similarity_score_worker/SimilarityScoreWorker.h"
 #include "util/util.h"
@@ -29,7 +29,7 @@ using models::WordVector;
 using models::ProcessedDocument;
 using models::Centroid;
 
-using persistence::exceptions::CentroidDoesNotExist;
+using thrift_protocol::ECentroidDoesNotExist;
 using namespace wangle;
 using namespace folly;
 using namespace std;
@@ -97,7 +97,7 @@ Future<Try<double>> SimilarityScoreWorker::getDocumentSimilarity(
     auto centroid = getLoadedCentroid_(centroidId);
     if (!centroid.hasValue()) {
       LOG(INFO) << "relevance request against null centroid: " << centroidId;
-      return Try<double>(make_exception_wrapper<CentroidDoesNotExist>());
+      return Try<double>(make_exception_wrapper<ECentroidDoesNotExist>());
     }
     return Try<double>(centroid.value()->score(&doc->wordVector));
   });
@@ -114,7 +114,7 @@ Future<Try<double>> SimilarityScoreWorker::getCentroidSimilarity(
     auto centroid1 = getLoadedCentroid_(centroid1Id);
     auto centroid2 = getLoadedCentroid_(centroid2Id);
     if (!centroid1.hasValue() || !centroid2.hasValue()) {
-      return Try<double>(make_exception_wrapper<CentroidDoesNotExist>());
+      return Try<double>(make_exception_wrapper<ECentroidDoesNotExist>());
     }
     return Try<double>(
         centroid1.value()->score(&centroid2.value().get()->wordVector));

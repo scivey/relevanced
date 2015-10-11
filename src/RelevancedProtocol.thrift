@@ -7,93 +7,116 @@ struct WordVectorDTO {
     3: required map<string, double> scores;
 }
 
+struct CentroidMetadataDTO {
+    1: required string id;
+    2: required i64 created;
+    3: required i64 lastDocumentChange;
+    4: required i64 lastCalculated;
+}
+
 struct CentroidDTO {
     1: required string id;
     2: required WordVectorDTO wordVector;
 }
 
-struct ProcessedDocumentDTO {
+struct ProcessedDocumentMetadataDTO {
     1: required string id;
+    2: required string sha1Hash;
+    3: required i64 created;
+    4: required i64 updated;
+}
+
+struct ProcessedDocumentDTO {
+    1: required ProcessedDocumentMetadataDTO metadata;
     2: required WordVectorDTO wordVector;
-    3: required string sha1Hash;
-    4: required i64 created;
-    5: required i64 updated;
 }
 
-enum StatusCode {
-    OK = 0,
-    CENTROID_DOES_NOT_EXIST = 1,
-    CENTROID_ALREADY_EXISTS = 2,
-    DOCUMENT_DOES_NOT_EXIST = 3,
-    DOCUMENT_ALREADY_EXISTS = 4,
-    UNKNOWN_EXCEPTION = 5,
-    DOCUMENT_ALREADY_IN_CENTROID = 6,
-    DOCUMENT_NOT_IN_CENTROID = 7,
-    OUT_OF_MEMORY = 8,
-    NO_DISK_SPACE = 9
+struct GetDocumentMetadataResponse {
+    1: required ProcessedDocumentMetadataDTO metadata;
 }
 
-struct Status {
-    1: required StatusCode code;
-    2: required string message;
+struct GetFullDocumentResponse {
+    1: required ProcessedDocumentDTO document;
 }
 
-struct GetDocumentResponse {
-    1: required Status status;
-    2: required string document;
-}
-
-struct SimilarityResponse {
-    1: required Status status;
-    2: required double similarity;
+struct GetCentroidMetadataResponse {
+    1: required CentroidMetadataDTO metadata;
 }
 
 struct MultiSimilarityResponse {
-    1: required Status status;
-    2: required map<string, double> scores;
-}
-
-struct GetCentroidSizeResponse {
-    1: required Status status;
-    2: required i32 size;
+    1: required map<string, double> scores;
 }
 
 struct ListCentroidDocumentsResponse {
-    1: required Status status;
-    2: required list<string> documents;
+    1: required list<string> documents;
 }
 
-struct CrudResponse {
+struct ListDocumentsResponse {
+    1: required list<string> documents;
+}
+
+struct ListCentroidsResponse {
+    1: required list<string> centroids;
+}
+
+struct CreateDocumentResponse {
     1: required string id;
 }
 
-exception TCentroidDoesNotExist {
+struct DeleteDocumentResponse {
+    1: required string id;
+}
+
+struct CreateCentroidResponse {
+    1: required string id;
+}
+
+struct DeleteCentroidResponse {
+    1: required string id;
+}
+
+struct AddDocumentToCentroidResponse {
+    1: required string centroidId;
+    2: required string documentId;
+}
+
+struct RemoveDocumentFromCentroidResponse {
+    1: required string centroidId;
+    2: required string documentId;
+}
+
+struct JoinCentroidResponse {
+    1: required string id;
+    2: required bool recalculated;
+}
+
+exception ECentroidDoesNotExist {
     1: string id;
     2: string message;
 }
 
-exception TCentroidAlreadyExists {
+exception ECentroidAlreadyExists {
     1: string id;
     2: string message;
 }
 
-exception TDocumentDoesNotExist {
+exception EDocumentDoesNotExist {
     1: string id;
     2: string message;
 }
 
-exception TDocumentAlreadyExists {
+exception EDocumentAlreadyExists {
     1: string id;
     2: string message;
 }
 
-exception TDocumentNotInCentroid {
+exception EDocumentNotInCentroid {
     1: string documentId;
     2: string centroidId;
     3: string message;
 }
 
-exception TDocumentAlreadyInCentroid {
+exception EDocumentAlreadyInCentroid {
     1: string documentId;
     2: string centroidId;
     3: string message;
@@ -102,20 +125,20 @@ exception TDocumentAlreadyInCentroid {
 service Relevanced {
     void ping(),
     map<string, string> getServerMetadata(),
-    SimilarityResponse getDocumentSimilarity(1: string centroidId, 2: string docId) throws (1: TCentroidDoesNotExist centroidErr, 2: TDocumentDoesNotExist docErr),
-    MultiSimilarityResponse multiGetTextSimilarity(1: list<string> centroidIds, 2: string text) throws (1: TCentroidDoesNotExist err),
-    SimilarityResponse getTextSimilarity(1: string centroidId, 2: string text) throws (1: TCentroidDoesNotExist err),
-    SimilarityResponse getCentroidSimilarity(1: string centroid1Id, 2: string centroid2Id) throws (1: TCentroidDoesNotExist err),
-    CrudResponse createDocument(1: string text),
-    CrudResponse createDocumentWithID(1: string id, 2: string text) throws (1: TDocumentAlreadyExists err),
-    CrudResponse deleteDocument(1: string id) throws(1: TDocumentDoesNotExist err),
-    GetDocumentResponse getDocument(1: string id) throws(1: TDocumentDoesNotExist err),
-    CrudResponse createCentroid(1: string centroidId) throws(1: TCentroidAlreadyExists err),
-    CrudResponse deleteCentroid(1: string centroidId) throws(1: TCentroidDoesNotExist err),
-    ListCentroidDocumentsResponse listAllDocumentsForCentroid(1: string centroidId) throws (1: TCentroidDoesNotExist err),
-    CrudResponse addDocumentToCentroid(1: string centroidId, 2: string docId) throws (1: TCentroidDoesNotExist centroidErr, 2: TDocumentDoesNotExist docErr, 3: TDocumentAlreadyInCentroid bothErr),
-    CrudResponse removeDocumentFromCentroid(1: string centroidId, 2: string docId) throws (1: TCentroidDoesNotExist centroidErr, 2: TDocumentDoesNotExist docErr, 3: TDocumentNotInCentroid bothErr),
-    bool joinCentroid(1: string centroidId) throws (1: TCentroidDoesNotExist err),
-    list<string> listAllCentroids(),
-    list<string> listAllDocuments()
+    double getDocumentSimilarity(1: string centroidId, 2: string docId) throws (1: ECentroidDoesNotExist centroidErr, 2: EDocumentDoesNotExist docErr),
+    MultiSimilarityResponse multiGetTextSimilarity(1: list<string> centroidIds, 2: string text) throws (1: ECentroidDoesNotExist err),
+    double getTextSimilarity(1: string centroidId, 2: string text) throws (1: ECentroidDoesNotExist err),
+    double getCentroidSimilarity(1: string centroid1Id, 2: string centroid2Id) throws (1: ECentroidDoesNotExist err),
+    CreateDocumentResponse createDocument(1: string text),
+    CreateDocumentResponse createDocumentWithID(1: string id, 2: string text) throws (1: EDocumentAlreadyExists err),
+    DeleteDocumentResponse deleteDocument(1: string id) throws (1: EDocumentDoesNotExist err),
+    GetDocumentMetadataResponse getDocumentMetadata(1: string id) throws (1: EDocumentDoesNotExist err),
+    CreateCentroidResponse createCentroid(1: string centroidId) throws (1: ECentroidAlreadyExists err),
+    DeleteCentroidResponse deleteCentroid(1: string centroidId) throws (1: ECentroidDoesNotExist err),
+    ListCentroidDocumentsResponse listAllDocumentsForCentroid(1: string centroidId) throws (1: ECentroidDoesNotExist err),
+    AddDocumentToCentroidResponse addDocumentToCentroid(1: string centroidId, 2: string docId) throws (1: ECentroidDoesNotExist centroidErr, 2: EDocumentDoesNotExist docErr, 3: EDocumentAlreadyInCentroid bothErr),
+    RemoveDocumentFromCentroidResponse removeDocumentFromCentroid(1: string centroidId, 2: string docId) throws (1: ECentroidDoesNotExist centroidErr, 2: EDocumentDoesNotExist docErr, 3: EDocumentNotInCentroid bothErr),
+    JoinCentroidResponse joinCentroid(1: string centroidId) throws (1: ECentroidDoesNotExist err),
+    ListCentroidsResponse listAllCentroids(),
+    ListDocumentsResponse listAllDocuments()
 }

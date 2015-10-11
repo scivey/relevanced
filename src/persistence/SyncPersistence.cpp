@@ -20,7 +20,7 @@
 #include "models/Centroid.h"
 #include "models/ProcessedDocument.h"
 #include "models/WordVector.h"
-#include "persistence/exceptions.h"
+#include "gen-cpp2/RelevancedProtocol_types.h"
 #include "persistence/RockHandle.h"
 #include "serialization/serializers.h"
 #include "util/util.h"
@@ -33,7 +33,7 @@ using namespace folly;
 using models::ProcessedDocument;
 using models::Centroid;
 
-using namespace persistence::exceptions;
+using namespace thrift_protocol;
 
 SyncPersistence::SyncPersistence(util::UniquePointer<RockHandleIf> rockHandle)
     : rockHandle_(std::move(rockHandle)) {}
@@ -58,7 +58,7 @@ Try<bool> SyncPersistence::saveDocument(shared_ptr<ProcessedDocument> doc) {
 Try<bool> SyncPersistence::deleteDocument(const string &id) {
   auto key = sformat("documents:{}", id);
   if (!rockHandle_->exists(key)) {
-    return Try<bool>(make_exception_wrapper<DocumentDoesNotExist>());
+    return Try<bool>(make_exception_wrapper<EDocumentDoesNotExist>());
   }
   bool rc = rockHandle_->del(key);
   return Try<bool>(rc);
@@ -131,7 +131,7 @@ Try<shared_ptr<ProcessedDocument>> SyncPersistence::loadDocument(
         shared_ptr<ProcessedDocument>(loadedOpt.value()));
   }
   return Try<shared_ptr<ProcessedDocument>>(
-      make_exception_wrapper<DocumentDoesNotExist>());
+      make_exception_wrapper<EDocumentDoesNotExist>());
 }
 
 Optional<shared_ptr<ProcessedDocument>> SyncPersistence::loadDocumentOption(
@@ -154,7 +154,7 @@ Try<bool> SyncPersistence::createNewCentroid(const string &id) {
   auto key = sformat("centroids:{}", id);
   if (rockHandle_->exists(key)) {
     LOG(INFO) << format("centroid '{}' already exists", id);
-    return Try<bool>(make_exception_wrapper<CentroidAlreadyExists>());
+    return Try<bool>(make_exception_wrapper<ECentroidAlreadyExists>());
   }
   Centroid centroid(id);
   saveCentroid(id, &centroid);
@@ -164,7 +164,7 @@ Try<bool> SyncPersistence::createNewCentroid(const string &id) {
 Try<bool> SyncPersistence::deleteCentroid(const string &id) {
   auto mainKey = sformat("centroids:{}", id);
   if (!rockHandle_->exists(mainKey)) {
-    return Try<bool>(make_exception_wrapper<CentroidDoesNotExist>());
+    return Try<bool>(make_exception_wrapper<ECentroidDoesNotExist>());
   }
   rockHandle_->del(mainKey);
   vector<string> associatedDocuments;
@@ -215,7 +215,7 @@ Try<shared_ptr<Centroid>> SyncPersistence::loadCentroid(const string &id) {
   auto loadedRaw = loadCentroidRaw(id);
   if (!loadedRaw.hasValue()) {
     return Try<shared_ptr<Centroid>>(
-        make_exception_wrapper<CentroidDoesNotExist>());
+        make_exception_wrapper<ECentroidDoesNotExist>());
   }
   return Try<shared_ptr<Centroid>>(shared_ptr<Centroid>(loadedRaw.value()));
 }
@@ -281,10 +281,10 @@ vector<string> SyncPersistence::listCentroidRangeFromId(
 Try<bool> SyncPersistence::addDocumentToCentroid(const string &centroidId,
                                                  const string &documentId) {
   if (!doesCentroidExist(centroidId)) {
-    return Try<bool>(make_exception_wrapper<CentroidDoesNotExist>());
+    return Try<bool>(make_exception_wrapper<ECentroidDoesNotExist>());
   }
   if (!doesDocumentExist(documentId)) {
-    return Try<bool>(make_exception_wrapper<DocumentDoesNotExist>());
+    return Try<bool>(make_exception_wrapper<EDocumentDoesNotExist>());
   }
   auto key = sformat("{}__documents:{}", centroidId, documentId);
   string val = "1";
@@ -295,10 +295,10 @@ Try<bool> SyncPersistence::addDocumentToCentroid(const string &centroidId,
 Try<bool> SyncPersistence::removeDocumentFromCentroid(
     const string &centroidId, const string &documentId) {
   if (!doesCentroidExist(centroidId)) {
-    return Try<bool>(make_exception_wrapper<CentroidDoesNotExist>());
+    return Try<bool>(make_exception_wrapper<ECentroidDoesNotExist>());
   }
   if (!doesDocumentExist(documentId)) {
-    return Try<bool>(make_exception_wrapper<DocumentDoesNotExist>());
+    return Try<bool>(make_exception_wrapper<EDocumentDoesNotExist>());
   }
   auto key = sformat("{}__documents:{}", centroidId, documentId);
   rockHandle_->del(key);
@@ -312,7 +312,7 @@ Try<bool> SyncPersistence::doesCentroidHaveDocument(const string &centroidId,
     return Try<bool>(true);
   }
   if (!doesCentroidExist(centroidId)) {
-    return Try<bool>(make_exception_wrapper<CentroidDoesNotExist>());
+    return Try<bool>(make_exception_wrapper<ECentroidDoesNotExist>());
   }
   return Try<bool>(false);
 }
@@ -336,7 +336,7 @@ Try<vector<string>> SyncPersistence::listAllDocumentsForCentroid(
     const string &centroidId) {
   auto docs = listAllDocumentsForCentroidRaw(centroidId);
   if (!docs.size() && !doesCentroidExist(centroidId)) {
-    return Try<vector<string>>(make_exception_wrapper<CentroidDoesNotExist>());
+    return Try<vector<string>>(make_exception_wrapper<ECentroidDoesNotExist>());
   }
   return Try<vector<string>>(docs);
 }
@@ -386,7 +386,7 @@ Try<vector<string>> SyncPersistence::listCentroidDocumentRangeFromOffset(
   Optional<vector<string>> result;
   auto docs = listCentroidDocumentRangeFromOffsetRaw(centroidId, offset, limit);
   if (!docs.size() && !doesCentroidExist(centroidId)) {
-    return Try<vector<string>>(make_exception_wrapper<CentroidDoesNotExist>());
+    return Try<vector<string>>(make_exception_wrapper<ECentroidDoesNotExist>());
   }
   return Try<vector<string>>(docs);
 }
@@ -427,7 +427,7 @@ Try<vector<string>> SyncPersistence::listCentroidDocumentRangeFromDocumentId(
   auto docs =
       listCentroidDocumentRangeFromDocumentIdRaw(centroidId, documentId, limit);
   if (!docs.size() && !doesCentroidExist(centroidId)) {
-    return Try<vector<string>>(make_exception_wrapper<CentroidDoesNotExist>());
+    return Try<vector<string>>(make_exception_wrapper<ECentroidDoesNotExist>());
   }
   return Try<vector<string>>(docs);
 }

@@ -19,7 +19,7 @@ def load_large_poli():
     return crawl.crawl_urls(urls.POLITICS)
 
 def init_documents(client):
-    existing_docs = set(client.list_all_documents())
+    existing_docs = set(client.list_all_documents().documents)
     math_docs = list(load_large_math())
     articles_by_url = {}
     urls_by_length = []
@@ -38,15 +38,15 @@ def init_documents(client):
             res = client.create_document_with_id(
                 url, text
             )
-            print('created : %s' % res)
+            print('created : %s' % res.id)
 
 def init_centroids(client):
-    existing_centroids = set(client.list_all_centroids())
+    existing_centroids = set(client.list_all_centroids().centroids)
     for coll in ('wiki_math', 'wiki_poli'):
         if coll not in existing_centroids:
             client.create_centroid(coll)
-    existing_math_docs = set(client.list_all_documents_for_centroid('wiki_math'))
-    existing_poli_docs = set(client.list_all_documents_for_centroid('wiki_poli'))
+    existing_math_docs = set(client.list_all_documents_for_centroid('wiki_math').documents)
+    existing_poli_docs = set(client.list_all_documents_for_centroid('wiki_poli').documents)
 
     for url in load_large_math().keys():
         if url not in existing_math_docs:
@@ -63,7 +63,7 @@ def init_centroids(client):
 def main():
     client = get_client()
     init_documents(client)
-    if not len(client.list_all_centroids()) >= 2:
+    if not len(client.list_all_centroids().centroids) >= 2:
         init_centroids(client)
     client.join_centroid('wiki_math')
     client.join_centroid('wiki_poli')

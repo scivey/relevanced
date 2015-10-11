@@ -21,6 +21,8 @@ thrift-java:
 	thrift-0.9 --gen java -o build/thrift src/RelevancedProtocol.thrift
 	mv ./build/thrift/gen-java/org/relevanced/client/gen_thrift_protocol ./clients/java/client/src/main/java/org/relevanced/client/
 
+thrift-all: thrift thrift-py thrift-node thrift-java
+
 build-docker-standalone:
 	cp build/deb/*.deb scripts/packaging/containers/standalone_server/data/
 	sudo docker build -t relevanced/relevanced scripts/packaging/containers/standalone_server

@@ -11,7 +11,7 @@
 #include <wangle/concurrent/CPUThreadPoolExecutor.h>
 #include <wangle/concurrent/FutureExecutor.h>
 
-#include "persistence/exceptions.h"
+#include "gen-cpp2/RelevancedProtocol_types.h"
 #include "TestHelpers.h"
 #include "centroid_update_worker/CentroidUpdater.h"
 #include "centroid_update_worker/CentroidUpdaterFactory.h"
@@ -28,7 +28,7 @@ using namespace relevanced::document_processing_worker;
 using namespace relevanced::models;
 
 
-using persistence::exceptions::CentroidDoesNotExist;
+using thrift_protocol::ECentroidDoesNotExist;
 using ::testing::Return;
 using ::testing::_;
 
@@ -78,7 +78,7 @@ TEST(CentroidUpdateWorker, SimpleFailure) {
 
   EXPECT_CALL(updater, run())
       .WillOnce(
-          Return(Try<bool>(make_exception_wrapper<CentroidDoesNotExist>())));
+          Return(Try<bool>(make_exception_wrapper<ECentroidDoesNotExist>())));
 
   EXPECT_CALL(updaterFactory, makeForCentroidId("centroid-id"))
       .WillOnce(Return(updaterPtr));

@@ -19,7 +19,7 @@
 #include "models/Centroid.h"
 #include "models/ProcessedDocument.h"
 #include "models/WordVector.h"
-#include "persistence/exceptions.h"
+#include "gen-cpp2/RelevancedProtocol_types.h"
 #include "persistence/Persistence.h"
 #include "persistence/CentroidMetadataDb.h"
 #include "util/util.h"
@@ -33,7 +33,7 @@ namespace centroid_update_worker {
 using models::WordVector;
 using models::Centroid;
 using models::ProcessedDocument;
-using persistence::exceptions::CentroidDoesNotExist;
+using thrift_protocol::ECentroidDoesNotExist;
 using util::UniquePointer;
 
 CentroidUpdater::CentroidUpdater(
@@ -50,7 +50,7 @@ Try<bool> CentroidUpdater::run() {
   LOG(INFO) << "CentroidUpdater::run";
   if (!persistence_->doesCentroidExist(centroidId_).get()) {
     LOG(INFO) << format("centroid '{}' does not exist!", centroidId_);
-    return Try<bool>(make_exception_wrapper<CentroidDoesNotExist>());
+    return Try<bool>(make_exception_wrapper<ECentroidDoesNotExist>());
   }
 
   const uint64_t startTimestamp = clock_->getEpochTime();
@@ -66,7 +66,7 @@ Try<bool> CentroidUpdater::run() {
         "received falsy document list for centroid '{}'; it must have been "
         "deleted. aborting.",
         centroidId_);
-    return Try<bool>(make_exception_wrapper<CentroidDoesNotExist>());
+    return Try<bool>(make_exception_wrapper<ECentroidDoesNotExist>());
   }
 
   vector<string> idSet = firstIdSet.value();
@@ -123,7 +123,7 @@ Try<bool> CentroidUpdater::run() {
           "received falsy document list for centroid '{}'; it must have been "
           "deleted. aborting.",
           centroidId_);
-      return Try<bool>(make_exception_wrapper<CentroidDoesNotExist>());
+      return Try<bool>(make_exception_wrapper<ECentroidDoesNotExist>());
     }
     idSet = std::move(nextIdSet.value());
 

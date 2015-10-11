@@ -63,17 +63,19 @@ template <>
 struct BinarySerializer<ProcessedDocument> {
   static void serialize(std::string &result, ProcessedDocument &target) {
     thrift_protocol::ProcessedDocumentDTO docDto;
+    thrift_protocol::ProcessedDocumentMetadataDTO metadataDto;
     docDto.wordVector.scores = target.wordVector.scores;
     docDto.wordVector.magnitude = target.wordVector.magnitude;
     docDto.wordVector.documentWeight = target.wordVector.documentWeight;
-    docDto.id = target.id;
-    docDto.updated = target.updated;
-    docDto.created = target.created;
+    metadataDto.id = target.id;
+    metadataDto.updated = target.updated;
+    metadataDto.created = target.created;
     if (target.sha1Hash.hasValue()) {
-      docDto.sha1Hash = target.sha1Hash.value();
+      metadataDto.sha1Hash = target.sha1Hash.value();
     } else {
-      docDto.sha1Hash = "";
+      metadataDto.sha1Hash = "";
     }
+    docDto.metadata = metadataDto;
     serialization::thriftBinarySerialize(result, docDto);
   }
 };
@@ -83,14 +85,14 @@ struct BinaryDeserializer<ProcessedDocument> {
   static void deserialize(std::string &data, ProcessedDocument *result) {
     thrift_protocol::ProcessedDocumentDTO docDto;
     serialization::thriftBinaryDeserialize(data, docDto);
-    result->id = docDto.id;
     result->wordVector.scores = docDto.wordVector.scores;
     result->wordVector.magnitude = docDto.wordVector.magnitude;
     result->wordVector.documentWeight = docDto.wordVector.documentWeight;
-    result->updated = docDto.updated;
-    result->created = docDto.created;
-    if (docDto.sha1Hash.size() > 0) {
-      result->sha1Hash.assign(docDto.sha1Hash);
+    result->updated = docDto.metadata.updated;
+    result->created = docDto.metadata.created;
+    result->id = docDto.metadata.id;
+    if (docDto.metadata.sha1Hash.size() > 0) {
+      result->sha1Hash.assign(docDto.metadata.sha1Hash);
     }
   }
 };

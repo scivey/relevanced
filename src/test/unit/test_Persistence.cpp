@@ -12,7 +12,7 @@
 #include <wangle/concurrent/FutureExecutor.h>
 
 #include "TestHelpers.h"
-#include "persistence/exceptions.h"
+#include "gen-cpp2/RelevancedProtocol_types.h"
 #include "persistence/Persistence.h"
 #include "models/ProcessedDocument.h"
 #include "models/Centroid.h"

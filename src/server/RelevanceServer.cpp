@@ -15,7 +15,7 @@
 #include "document_processing_worker/DocumentProcessingWorker.h"
 #include "models/Document.h"
 #include "models/ProcessedDocument.h"
-#include "persistence/exceptions.h"
+#include "gen-cpp2/RelevancedProtocol_types.h"
 #include "persistence/Persistence.h"
 #include "persistence/CentroidMetadataDb.h"
 #include "release_metadata/release_metadata.h"
@@ -30,8 +30,8 @@ namespace server {
 
 using namespace std;
 using namespace folly;
-using persistence::exceptions::DocumentAlreadyExists;
-using persistence::exceptions::CentroidDoesNotExist;
+using thrift_protocol::EDocumentAlreadyExists;
+using thrift_protocol::ECentroidDoesNotExist;
 
 using similarity_score_worker::SimilarityScoreWorkerIf;
 using centroid_update_worker::CentroidUpdateWorkerIf;
@@ -141,7 +141,7 @@ Future<Try<unique_ptr<string>>> RelevanceServer::internalCreateDocumentWithID(
             .then([this, id](Try<bool> result) {
               if (result.hasException()) {
                 return Try<unique_ptr<string>>(
-                    make_exception_wrapper<DocumentAlreadyExists>());
+                    make_exception_wrapper<EDocumentAlreadyExists>());
               }
               return Try<unique_ptr<string>>(folly::make_unique<string>(id));
             });
@@ -236,7 +236,7 @@ Future<Try<bool>> RelevanceServer::joinCentroid(unique_ptr<string> centroidId) {
   return centroidMetadataDb_->isCentroidUpToDate(
                                   cId).then([this, cId](Try<bool> isUpToDate) {
     if (isUpToDate.hasException()) {
-      Try<bool> result(make_exception_wrapper<CentroidDoesNotExist>());
+      Try<bool> result(make_exception_wrapper<ECentroidDoesNotExist>());
       return makeFuture(result);
     }
     if (isUpToDate.value()) {
@@ -245,7 +245,7 @@ Future<Try<bool>> RelevanceServer::joinCentroid(unique_ptr<string> centroidId) {
     }
     return centroidUpdateWorker_->joinUpdate(cId).then([](Try<string> result) {
       if (result.hasException()) {
-        return Try<bool>(make_exception_wrapper<CentroidDoesNotExist>());
+        return Try<bool>(make_exception_wrapper<ECentroidDoesNotExist>());
       }
       return Try<bool>(true);
     });

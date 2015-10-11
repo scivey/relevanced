@@ -15,7 +15,7 @@
 
 #include "document_processing_worker/DocumentProcessor.h"
 #include "persistence/Persistence.h"
-#include "persistence/exceptions.h"
+#include "gen-cpp2/RelevancedProtocol_types.h"
 #include "persistence/CentroidMetadataDb.h"
 
 #include "persistence/SyncPersistence.h"
@@ -35,8 +35,8 @@ using namespace relevanced::util;
 using namespace relevanced::models;
 using namespace relevanced::similarity_score_worker;
 using namespace relevanced::persistence;
-using namespace relevanced::persistence::exceptions;
-using relevanced::persistence::exceptions::CentroidDoesNotExist;
+using namespace relevanced::thrift_protocol;
+using relevanced::thrift_protocol::ECentroidDoesNotExist;
 using relevanced::stopwords::StopwordFilterIf;
 using relevanced::stemmer::StemmerIf;
 using relevanced::tokenizer::TokenizerIf;
@@ -195,7 +195,7 @@ TEST(SimilarityScoreWorker, TestGetDocumentSimilarityMissingCentroid) {
   shared_ptr<Centroid> c1Ptr(&c1, NonDeleter<Centroid>());
   worker->setLoadedCentroid_("irrelevant-centroid-1", c1Ptr);
   auto result = worker->getDocumentSimilarity("centroid-1", &document).get();
-  EXPECT_TRUE(result.hasException<CentroidDoesNotExist>());
+  EXPECT_TRUE(result.hasException<ECentroidDoesNotExist>());
 }
 
 
@@ -209,5 +209,5 @@ TEST(SimilarityScoreWorker, TestGetDocumentSimilarityNoCentroidNoNoneAtAll) {
           {"dog", 5.8}, {"fox", 4.1}, {"sarah_jessica_parker", 15.1}},
       mag3(5.8, 4.1, 15.1));
   auto result = worker->getDocumentSimilarity("centroid-1", &document).get();
-  EXPECT_TRUE(result.hasException<CentroidDoesNotExist>());
+  EXPECT_TRUE(result.hasException<ECentroidDoesNotExist>());
 }
