@@ -44,20 +44,23 @@ public:
  * The central coordinator of the application.  `RelevanceServer`:
  *
  * - Dispatches CRUD requests back to its injected `Persistence` instance.
- * - Routes responses with raw text through its injected `DocumentProcessingWorker`,
-     then sends the vectorized documents on to `Persistence` (for operations like
-     `createDocument`) or to `SimilarityScoreWorker` (for operations like `getRelevanceForText`).
- * - Keeps track of centroid document membership changes that it has passed on to `Persistence`,
- *   and asks its injected `CentroidUpdateWorker` to recalculate the centroid when appropriate.
- * - Listens for successful centroid updates from its `CentroidUpdateWorker` (via `onUpdate`),
- *   and tells its `SimilarityScoreWorker` instance to reload specific centroids as updated
-     models for them become available.
+ * - Routes responses with raw text through its injected
+ *   `DocumentProcessingWorker`, then sends the vectorized documents on to
+ *   `Persistence` (for operations like `createDocument`) or to
+ *   `SimilarityScoreWorker` (for operations like `getRelevanceForText`).
+ * - Keeps track of centroid document membership changes that it has passed
+ *   on to `Persistence`, and asks its injected `CentroidUpdateWorker` to
+ *   recalculate the centroid when appropriate.
+ * - Listens for successful centroid updates from its `CentroidUpdateWorker`
+ *   (via `onUpdate`), and tells its `SimilarityScoreWorker` instance to
+ *   reload specific centroids as updated models for them become available.
  *
  * This logic is implemented in its own class, rather than in the Thrift
  * server interface implementation, to make it easier to provide alternative
  * ways of interfacing with a single running `RelevanceServer` instance.
  *
  */
+
 class RelevanceServer: public RelevanceServerIf {
   std::shared_ptr<persistence::PersistenceIf> persistence_;
   std::shared_ptr<persistence::CentroidMetadataDbIf> centroidMetadataDb_;

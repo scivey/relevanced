@@ -27,16 +27,19 @@ public:
 };
 
 /**
- * `SimilarityScoreWorker` is responsible for calculating all similarity scores.
+ * `SimilarityScoreWorker` is responsible for calculating all
+ *  similarity scores.
  * This really involves two responsibilities:
- * - It does the actual similarity computation, i.e. it calls the appropriate centroid's
- *   `score` method from a thread in its dedicated pool.
- * - It keeps all centroids loaded in memory so it can quickly response to requests,
-     and reloads them whenever instructed to make sure they stay current.
+ * - It does the actual similarity computation, i.e. it calls the appropriate
+ *   centroid's `score` method from a thread in its dedicated pool.
+ * - It keeps all centroids loaded in memory so it can quickly response to
+ *   requests, and reloads them whenever instructed to make sure they stay
+ *   current.
  *
- * In practice, similarity scores are requested by the parent `RelevanceServer` in response
- * to a corresponding client request.  Similarly, requests to reload the centroid are
- * sent by the `RelevanceServer` when it becomes aware of new data.
+ * In practice, similarity scores are requested by the parent
+ * `RelevanceServer` in response to a corresponding client request.
+ * Similarly, requests to reload the centroid are sent by the
+ * `RelevanceServer` when it becomes aware of new data.
  *
  */
 
