@@ -8,7 +8,9 @@ npm install relevanced-client --save
 
 The Javascript client API has the same commands described in the [language-agnostic command overview](../commands.md), but they are asynchronous and return ES6-style promises.  The client also has promise-returning `connect` and `disconnect` methods for managing the connection lifecycle.
 
-Example:
+See the [binary classifier](../examples/javascript-binary-classifier.md) example for more practical use.
+
+Simple example:
 
 ```javascript
 var RelevancedClient = require('relevanced-client').RelevancedClient;
