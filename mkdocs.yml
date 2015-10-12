@@ -11,6 +11,7 @@ pages:
 - Examples:
   - Binary Classifier (Python): examples/python-binary-classifier.md
   - Multiclass Classifier (Python): examples/python-multiclass-classifier.md
+  - Binary Classifier (Javascript): examples/javascript-binary-classifier.md
 - Installation:
   - Building: installation/building.md
   - Docker Image: installation/docker.md
