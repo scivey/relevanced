@@ -1,11 +1,15 @@
 # Python Client
 
+## Installation
+
 The Python client is available on PyPI; you can install it with `pip` by running:
 
 ```bash
 pip install relevanced-client
 ```
 You may need to run this command with `sudo`, depending on how and where you're installing it.
+
+## API
 
 The Python client API has the same commands described in the [language-agnostic command overview](../commands.md), but they are converted to snake-case to be more Pythonic.  For example:
 

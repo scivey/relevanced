@@ -1,6 +1,6 @@
 # Ruby Client
 
-## Installing
+## Installation
 
 The Ruby client is available on RubyGems; you can install it by running:
 

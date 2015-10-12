@@ -1,10 +1,14 @@
 # Javascript Client
 
+## Installation
+
 The Javascript client for NodeJS is available on [NPM](https://www.npmjs.com/package/relevanced-client); you can install it in an NPM-managed project by running:
 
 ```bash
 npm install relevanced-client --save
 ```
+
+## API
 
 The Javascript client API has the same commands described in the [language-agnostic command overview](../commands.md), but they are asynchronous and return ES6-style promises.  The client also has promise-returning `connect` and `disconnect` methods for managing the connection lifecycle.
 
