@@ -3,7 +3,7 @@
 The Python client is available on PyPI; you can install it with `pip` by running:
 
 ```bash
-pip install relevanced_client
+pip install relevanced-client
 ```
 
 The Python client API has the same commands described in the [language-agnostic command overview](../commands.md), but they are converted to snake-case to be more Pythonic.  For example:
