@@ -17,7 +17,8 @@ pages:
   - Docker Image: installation/docker.md
 - Commands: commands.md
 - Clients:
-  - Python: clients/python.md
   - Javascript: clients/javascript.md
+  - Python: clients/python.md
   - Ruby: clients/ruby.md
+  - Java: clients/java.md
 
