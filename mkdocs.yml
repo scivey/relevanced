@@ -13,8 +13,10 @@ pages:
   - Multiclass Classifier (Python): examples/python-multiclass-classifier.md
   - Binary Classifier (Javascript): examples/javascript-binary-classifier.md
 - Installation:
-  - Building: installation/building.md
+  - OS Packages: installation/os-packages.md
   - Docker Image: installation/docker.md
+  - Configuration: installation/configuration.md
+  - Building from Source: installation/building-from-source.md
 - Commands: commands.md
 - Clients:
   - Javascript: clients/javascript.md

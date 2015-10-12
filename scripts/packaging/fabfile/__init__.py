@@ -190,9 +190,8 @@ def build_relevanced_for_revision(git_tag):
             run('git clone https://github.com/scivey/relevanced.git')
     with cd('%s/relevanced' % env.build):
         run('git remote update')
-        # run('git checkout master && git pull')
+        run('git checkout master && git pull')
         run('git checkout %s' % git_tag, warn_only=True)
-        run('git pull')
         run('make thrift')
         run('CXX=clang++-3.6 make build-server-static')
         run('CXX=clang++-3.6 make deb-package-local')

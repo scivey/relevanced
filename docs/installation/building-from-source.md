@@ -1,4 +1,4 @@
-# Building
+# Building from Source
 
 If you have difficulties with the build process, you may be interested in deploying the [containerized version of relevanced](docker.md).
 
@@ -16,8 +16,7 @@ There are scripts for building all of these dependencies.
 ### Running the build
 With the dependencies installed, run:
 ```bash
-mkdir build
-cd build && cmake ../
-make unit_test_runner # optional
+mkdir -p build/bin
+cd build/bin && cmake ../../
 make relevanced
 ```
