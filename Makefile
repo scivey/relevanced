@@ -4,6 +4,11 @@ clean:
 thrift:
 	python -m thrift_compiler.main --gen cpp2 -o src src/RelevancedProtocol.thrift
 
+thrift-rb:
+	rm -rf client/ruby/client/lib/gen-rb
+	thrift-0.9 --gen rb -o build/thrift src/RelevancedProtocol.thrift
+	mv ./build/thrift/gen-rb ./clients/ruby/client/lib/
+
 thrift-py:
 	rm -rf client/python/client/relevanced_client/gen_py
 	mkdir -p build/thrift && rm -rf build/thrift/gen-py
