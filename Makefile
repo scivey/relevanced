@@ -5,12 +5,13 @@ thrift:
 	python -m thrift_compiler.main --gen cpp2 -o src src/RelevancedProtocol.thrift
 
 thrift-rb:
-	rm -rf client/ruby/client/lib/gen-rb
+	rm -rf ./clients/ruby/client/lib/gen-rb
 	thrift-0.9 --gen rb -o build/thrift src/RelevancedProtocol.thrift
+	find build/thrift/gen-rb -name *.rb -exec sed -r -i'' -e "s/require 'rel/require_relative 'rel/" {} \;
 	mv ./build/thrift/gen-rb ./clients/ruby/client/lib/
 
 thrift-py:
-	rm -rf client/python/client/relevanced_client/gen_py
+	rm -rf ./clients/python/client/relevanced_client/gen_py
 	mkdir -p build/thrift && rm -rf build/thrift/gen-py
 	thrift-0.9 --gen py -o build/thrift src/RelevancedProtocol.thrift
 	mv ./build/thrift/gen-py ./clients/python/client/relevanced_client/gen_py
@@ -22,7 +23,7 @@ thrift-node:
 	mv ./build/thrift/gen-nodejs ./clients/nodejs/client/
 
 thrift-java:
-	rm -rf clients/java/client/src/main/java/org/relevanced/client/gen_thrift_protocol
+	rm -rf ./clients/java/client/src/main/java/org/relevanced/client/gen_thrift_protocol
 	mkdir -p build/thrift && rm -rf build/thrift/gen-java
 	thrift-0.9 --gen java -o build/thrift src/RelevancedProtocol.thrift
 	mv ./build/thrift/gen-java/org/relevanced/client/gen_thrift_protocol ./clients/java/client/src/main/java/org/relevanced/client/
@@ -112,6 +113,12 @@ publish-node:
 
 publish-python:
 	cd ./clients/python/client && python setup.py register -r pypi && python setup.py sdist upload -r pypi
+
+publish-ruby:
+	rm -f ./clients/ruby/client/*.gem
+	cd ./clients/ruby/client && gem build relevanced_client.gemspec
+	mv ./clients/ruby/client/*.gem ./clients/ruby/client/relevanced_client.gem
+	gem push ./clients/ruby/client/relevanced_client.gem
 
 format-all:
 	find src  \( -name "*.h" -o -name "*.cpp" -o -name "*.mm" \) -exec clang-format -i {} +

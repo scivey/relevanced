@@ -1,9 +1,10 @@
 $:.push('gen-rb')
 
 require 'thrift'
-require 'relevanced'
+require File.join(File.dirname(__FILE__), 'gen-rb', 'relevanced')
 
 module RelevancedClient
+
     class Client
         def initialize(host, port)
             @host = host
@@ -39,7 +40,6 @@ module RelevancedClient
         def get_text_similarity(centroid_id, text)
             @thrift_client.getTextSimilarity(centroid_id, text)
         end
-
 
         def get_centroid_similarity(centroid_1_id, centroid_2_id)
             @thrift_client.getCentroidSimilarity(
