@@ -19,3 +19,5 @@ pages:
 - Clients:
   - Python: clients/python.md
   - Javascript: clients/javascript.md
+  - Ruby: clients/ruby.md
+
