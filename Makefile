@@ -31,6 +31,7 @@ thrift-java:
 thrift-all: thrift thrift-py thrift-node thrift-java
 
 build-docker-standalone:
+	rm -f scripts/packaging/containers/standalone_server/data/*
 	cp build/deb/*.deb scripts/packaging/containers/standalone_server/data/
 	sudo docker build -t relevanced/relevanced scripts/packaging/containers/standalone_server
 
