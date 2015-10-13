@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
     s.name        = 'relevanced_client'
-    s.version     = '0.9.1'
+    s.version     = '0.9.2'
     s.date        = '2015-10-11'
     s.summary     = "relevanced client"
     s.description = "Ruby client for relevanced-server"
