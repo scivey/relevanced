@@ -52,7 +52,7 @@ module RelevancedClient
         end
 
         def create_document_with_id(document_id, text)
-            @thrift_client.createDocumentWithId(
+            @thrift_client.createDocumentWithID(
                 document_id, text
             )
         end

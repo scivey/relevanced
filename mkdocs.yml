@@ -12,6 +12,7 @@ pages:
   - Binary Classifier (Python): examples/python-binary-classifier.md
   - Multiclass Classifier (Python): examples/python-multiclass-classifier.md
   - Binary Classifier (Javascript): examples/javascript-binary-classifier.md
+  - Binary Classifier (Ruby): examples/ruby-binary-classifier.md
   - Binary Classifier (Scala): examples/scala-binary-classifier.md
   - Binary Classifier (Java): examples/java-binary-classifier.md
   - Multiclass Classifier (Java): examples/java-multiclass-classifier.md
