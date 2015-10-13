@@ -1,8 +1,8 @@
-# Java Client
+# JVM Clients
 
 ## Installation
 
-The Java client is available from Sonatype OSS.
+Relevanced has a Java client which can also be used from any other JVM language.  It's hosted on Sonatype OSS.
 
 To add it to a Maven project, add the following dependency to your `pom.xml` file:
 ```xml
@@ -56,3 +56,8 @@ public class Main {
     }
 }
 ```
+
+
+Also see the Java [binary classifier](../examples/java-binary-classifier.md) and [multi-class classifier](../examples/java-multiclass-classifier.md) examples for more practical use.
+
+There is also a [Scala version](../examples/scala-binary-classifier.md) of the binary classifier example.

@@ -33,3 +33,5 @@ some_score = client.get_document_similarity(
 )
 
 ```
+
+Also see the Ruby [binary classifier](../examples/ruby-binary-classifier.md) example for more practical use.

@@ -26,5 +26,5 @@ pages:
   - Javascript: clients/javascript.md
   - Python: clients/python.md
   - Ruby: clients/ruby.md
-  - Java: clients/java.md
+  - JVM: clients/jvm.md
 
