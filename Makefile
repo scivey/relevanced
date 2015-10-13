@@ -121,5 +121,12 @@ publish-ruby:
 	mv ./clients/ruby/client/*.gem ./clients/ruby/client/relevanced_client.gem
 	gem push ./clients/ruby/client/relevanced_client.gem
 
+publish-jvm:
+	cd ./clients/java/client && sbt publishSigned
+
+publish-clients: publish-node publish-python publish-ruby publish-jvm
+
+.PHONY: publish-node publish-python publish-ruby publish-jvm publish-clients
+
 format-all:
 	find src  \( -name "*.h" -o -name "*.cpp" -o -name "*.mm" \) -exec clang-format -i {} +
