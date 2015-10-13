@@ -2,8 +2,28 @@
 
 ## Installation
 
-The Java client [exists](https://github.com/scivey/relevanced/tree/master/clients/java/client), but is not yet easily accessible.  It will be available from [Maven Central](http://search.maven.org/) as soon as Sonatype OSSRH approves creation of the `org.relevanced.client` repository.
+The Java client is available from Sonatype OSS.
 
+To add it to a Maven project, add the following dependency to your `pom.xml` file:
+```xml
+<dependency>
+  <groupId>org.relevanced</groupId>
+  <artifactId>client</artifactId>
+  <version>0.9.1-SNAPSHOT</version>
+</dependency>
+```
+
+To add it to an SBT project (Java or Scala), add the same dependency to the `libraryDependencies` in `build.sbt`.  You will also need to add the Sonatype OSS Snapshots repository to your `resolvers`:
+
+```scala
+resolvers +=
+  "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
+
+libraryDependencies ++= Seq(
+   "org.relevanced" % "client" % "0.9.1-SNAPSHOT"
+)
+
+```
 ## API
 
 The Java client API has the same commands described in the [language-agnostic command overview](../commands.md), and follows the same `camelCase` naming convention.  In the case of the synchronous client (`RelevancedBlockingClient`), the semantics are exactly identical to the description in that document.

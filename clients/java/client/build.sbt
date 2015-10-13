@@ -17,7 +17,7 @@ crossPaths := false
 // This forbids including Scala related libraries into the dependency
 autoScalaLibrary := false
 sourceDirectories in Compile += file("src")
-mainClass in (Compile, run) := Some("org.relevanced.client.Main")
+// mainClass in (Compile, run) := Some("org.relevanced.client.Main")
 
 // library dependencies. (org name) % (project name) % (version)
 libraryDependencies ++= Seq(
