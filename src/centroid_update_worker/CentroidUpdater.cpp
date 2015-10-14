@@ -87,7 +87,7 @@ Try<bool> CentroidUpdater::run() {
       vector<Future<Optional<shared_ptr<ProcessedDocument>>>> documentFutures;
 
       // get batch of documents in parallel
-      for (size_t i = docNum; i < lastDocIndex; i++) {
+      for (size_t i = docNum; i <= lastDocIndex; i++) {
         documentFutures.push_back(
             persistence_->loadDocumentOption(idSet.at(i)));
       }

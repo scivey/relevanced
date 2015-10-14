@@ -8,6 +8,8 @@
 #include <folly/futures/Try.h>
 #include <folly/Optional.h>
 #include <folly/Synchronized.h>
+#include <folly/Format.h>
+
 #include <wangle/concurrent/CPUThreadPoolExecutor.h>
 #include <wangle/concurrent/FutureExecutor.h>
 
@@ -99,7 +101,9 @@ Future<Try<double>> SimilarityScoreWorker::getDocumentSimilarity(
       LOG(INFO) << "relevance request against null centroid: " << centroidId;
       return Try<double>(make_exception_wrapper<ECentroidDoesNotExist>());
     }
-    return Try<double>(centroid.value()->score(&doc->wordVector));
+    auto result = centroid.value()->score(&doc->wordVector);
+    LOG(INFO) << format("relevance vs centroid '{}' : {}", centroidId, result);
+    return Try<double>(result);
   });
 }
 

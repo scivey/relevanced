@@ -62,6 +62,12 @@ class RelevanceServerIf {
 
   virtual folly::Future<folly::Unit> debugEraseAllData() = 0;
 
+  virtual folly::Future<folly::Try<std::shared_ptr<models::Centroid>>>
+    debugGetFullCentroid(std::unique_ptr<std::string> centroidId) = 0;
+
+  virtual folly::Future<folly::Try<std::shared_ptr<models::ProcessedDocument>>>
+    debugGetFullProcessedDocument(std::unique_ptr<std::string> documentId) = 0;
+
   virtual ~RelevanceServerIf() = default;
 };
 
@@ -155,6 +161,13 @@ class RelevanceServer : public RelevanceServerIf {
       override;
 
   folly::Future<folly::Unit> debugEraseAllData() override;
+
+  folly::Future<folly::Try<std::shared_ptr<models::Centroid>>>
+    debugGetFullCentroid(std::unique_ptr<std::string> centroidId) override;
+
+  folly::Future<folly::Try<std::shared_ptr<models::ProcessedDocument>>>
+    debugGetFullProcessedDocument(std::unique_ptr<std::string> documentId) override;
+
 };
 
 } // server

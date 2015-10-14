@@ -89,6 +89,13 @@ class ThriftRelevanceServer : public thrift_protocol::RelevancedSvIf {
   future_listAllDocuments() override;
 
   folly::Future<folly::Unit> future_debugEraseAllData() override;
+
+  folly::Future<std::unique_ptr<thrift_protocol::CentroidDTO>>
+  future_debugGetFullCentroid(std::unique_ptr<std::string>) override;
+
+  folly::Future<std::unique_ptr<thrift_protocol::ProcessedDocumentDTO>>
+  future_debugGetFullProcessedDocument(std::unique_ptr<std::string>) override;
+
 };
 
 } // server

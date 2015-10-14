@@ -14,6 +14,7 @@
 #include "document_processing_worker/DocumentProcessor.h"
 #include "document_processing_worker/DocumentProcessingWorker.h"
 #include "models/Document.h"
+#include "models/Centroid.h"
 #include "models/ProcessedDocument.h"
 #include "gen-cpp2/RelevancedProtocol_types.h"
 #include "persistence/Persistence.h"
@@ -38,7 +39,7 @@ using centroid_update_worker::CentroidUpdateWorkerIf;
 using document_processing_worker::DocumentProcessingWorkerIf;
 using models::Document;
 using models::ProcessedDocument;
-
+using models::Centroid;
 
 using util::UniquePointer;
 
@@ -281,6 +282,15 @@ Future<unique_ptr<map<string, string>>> RelevanceServer::getServerMetadata() {
 Future<folly::Unit> RelevanceServer::debugEraseAllData() {
   return persistence_->debugEraseAllData();
 }
+
+Future<Try<shared_ptr<Centroid>>> RelevanceServer::debugGetFullCentroid(unique_ptr<string> centroidId) {
+  return persistence_->loadCentroid(*centroidId);
+}
+
+Future<Try<shared_ptr<ProcessedDocument>>> RelevanceServer::debugGetFullProcessedDocument(unique_ptr<string> documentId) {
+  return persistence_->loadDocument(*documentId);
+}
+
 
 
 } // server

@@ -14,11 +14,15 @@
 #include "gen-cpp2/RelevancedProtocol_types.h"
 #include "server/ThriftRelevanceServer.h"
 #include "server/RelevanceServer.h"
+#include "models/Centroid.h"
+#include "models/ProcessedDocument.h"
 
 namespace relevanced {
 namespace server {
 
 using namespace thrift_protocol;
+using models::Centroid;
+using models::ProcessedDocument;
 using namespace std;
 using namespace folly;
 
@@ -239,6 +243,40 @@ Future<folly::Unit>
 ThriftRelevanceServer::future_debugEraseAllData() {
   return server_->debugEraseAllData();
 }
+
+Future<unique_ptr<CentroidDTO>>
+ThriftRelevanceServer::future_debugGetFullCentroid(unique_ptr<string> centroidId) {
+  return server_->debugGetFullCentroid(std::move(centroidId)).then([](Try<shared_ptr<Centroid>> result) {
+    result.throwIfFailed();
+    auto centroid = result.value();
+    auto response = folly::make_unique<CentroidDTO>();
+    response->id = centroid->id;
+    response->wordVector.magnitude = centroid->wordVector.magnitude;
+    response->wordVector.documentWeight = centroid->wordVector.documentWeight;
+    response->wordVector.scores = centroid->wordVector.scores;
+    return std::move(response);
+  });
+}
+
+Future<unique_ptr<ProcessedDocumentDTO>>
+ThriftRelevanceServer::future_debugGetFullProcessedDocument(unique_ptr<string> documentId) {
+  return server_->debugGetFullProcessedDocument(std::move(documentId)).then([](Try<shared_ptr<ProcessedDocument>> result) {
+    result.throwIfFailed();
+    auto document = result.value();
+    auto response = folly::make_unique<ProcessedDocumentDTO>();
+    response->metadata.id = document->id;
+    response->metadata.created = document->created;
+    response->metadata.updated = document->updated;
+    if (document->sha1Hash.hasValue()) {
+      response->metadata.sha1Hash = document->sha1Hash.value();
+    }
+    response->wordVector.magnitude = document->wordVector.magnitude;
+    response->wordVector.documentWeight = document->wordVector.documentWeight;
+    response->wordVector.scores = document->wordVector.scores;
+    return std::move(response);
+  });
+}
+
 
 } // server
 } // relevanced

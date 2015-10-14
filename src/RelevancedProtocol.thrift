@@ -141,5 +141,7 @@ service Relevanced {
     JoinCentroidResponse joinCentroid(1: string centroidId) throws (1: ECentroidDoesNotExist err),
     ListCentroidsResponse listAllCentroids(),
     ListDocumentsResponse listAllDocuments(),
-    void debugEraseAllData()
+    void debugEraseAllData(),
+    CentroidDTO debugGetFullCentroid(1: string centroidId) throws (1: ECentroidDoesNotExist err),
+    ProcessedDocumentDTO debugGetFullProcessedDocument(1: string documentId) throws (1: EDocumentDoesNotExist err)
 }
