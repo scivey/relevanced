@@ -452,6 +452,9 @@ Try<bool> SyncPersistence::setCentroidMetadata(const string &centroidId,
   return Try<bool>(true);
 }
 
+void SyncPersistence::debugEraseAllData() {
+  rockHandle_->eraseEverything();
+}
 
 } // persistence
 } // relevanced

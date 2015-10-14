@@ -48,6 +48,8 @@ class InMemoryRockHandle : public RockHandleIf {
       std::function<void(const std::string &,
                          std::function<void(std::string &) >,
                          std::function<void()>) > iterFn) override;
+
+  bool eraseEverything() override;
 };
 
 } // persistence

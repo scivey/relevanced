@@ -222,6 +222,11 @@ Future<Try<bool>> Persistence::setCentroidMetadata(const string &centroidId,
   });
 }
 
+Future<folly::Unit> Persistence::debugEraseAllData() {
+  return threadPool_->addFuture([this](){
+    syncHandle_->debugEraseAllData();
+  });
+}
 
 } // persistence
 } // relevanced

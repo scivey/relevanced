@@ -59,6 +59,20 @@ RockHandle::RockHandle(string dbPath) : dbPath_(dbPath) {
   struct BlockBasedTableOptions table_options;
   table_options.filter_policy.reset(NewBloomFilterPolicy(10, true));
   options_.table_factory.reset(NewBlockBasedTableFactory(table_options));
+  openDb();
+}
+
+void RockHandle::closeDb() {
+  if (txnDb_.get() != nullptr) {
+    rocksdb::OptimisticTransactionDB *txnDb = txnDb_.release();
+    delete txnDb;
+    db_ = nullptr;
+  }
+}
+
+void RockHandle::openDb() {
+  assert(db_ == nullptr);
+  assert(txnDb_.get() == nullptr);
   rocksdb::OptimisticTransactionDB *txnDbPtr = nullptr;
   auto status = rocksdb::OptimisticTransactionDB::Open(
       options_, dbPath_.c_str(), &txnDbPtr);
@@ -190,6 +204,15 @@ bool RockHandle::iterAll(function<void(
   string start = "a";
   string end = "zzz";
   return iterRange(start, end, iterFn);
+}
+
+// this method is only meant for testing purposes.
+// THERE IS NO ATTEMPT TO SYNCHRONIZE WITH OTHER THREADS.
+bool RockHandle::eraseEverything(){
+  closeDb();
+  auto status = rocksdb::DestroyDB(dbPath_, options_);
+  openDb();
+  return status.ok();
 }
 
 } // persistence

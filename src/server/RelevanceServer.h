@@ -59,6 +59,9 @@ class RelevanceServerIf {
   listAllCentroids() = 0;
   virtual folly::Future<std::unique_ptr<std::vector<std::string>>>
   listAllDocuments() = 0;
+
+  virtual folly::Future<folly::Unit> debugEraseAllData() = 0;
+
   virtual ~RelevanceServerIf() = default;
 };
 
@@ -150,6 +153,8 @@ class RelevanceServer : public RelevanceServerIf {
       override;
   folly::Future<std::unique_ptr<std::vector<std::string>>> listAllDocuments()
       override;
+
+  folly::Future<folly::Unit> debugEraseAllData() override;
 };
 
 } // server

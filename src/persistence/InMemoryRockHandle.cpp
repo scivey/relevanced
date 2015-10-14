@@ -174,6 +174,7 @@ bool InMemoryRockHandle::iterPrefixFromMember(
   return anySeen;
 }
 
+bool InMemoryRockHandle::eraseEverything(){ return false; }
 
 } // persistence
 } // relevanced

@@ -57,6 +57,8 @@ class RockHandleIf {
   virtual bool iterAll(std::function<void(const std::string &,
                                           std::function<void(std::string &) >,
                                           std::function<void()>) > iterFn) = 0;
+  virtual bool eraseEverything() = 0;
+
   virtual ~RockHandleIf() = default;
 };
 
@@ -68,7 +70,8 @@ class RockHandle : public RockHandleIf {
   const std::string dbPath_;
   std::unique_ptr<rocksdb::OptimisticTransactionDB> txnDb_;
   rocksdb::DB *db_;
-
+  void openDb();
+  void closeDb();
  public:
   RockHandle(std::string dbPath);
   bool put(std::string key, rocksdb::Slice) override;
@@ -102,6 +105,8 @@ class RockHandle : public RockHandleIf {
   bool iterAll(std::function<void(const std::string &,
                                   std::function<void(std::string &) >,
                                   std::function<void()>) > iterFn) override;
+
+  bool eraseEverything() override;
 };
 
 

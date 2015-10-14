@@ -140,5 +140,6 @@ service Relevanced {
     RemoveDocumentFromCentroidResponse removeDocumentFromCentroid(1: string centroidId, 2: string docId) throws (1: ECentroidDoesNotExist centroidErr, 2: EDocumentDoesNotExist docErr, 3: EDocumentNotInCentroid bothErr),
     JoinCentroidResponse joinCentroid(1: string centroidId) throws (1: ECentroidDoesNotExist err),
     ListCentroidsResponse listAllCentroids(),
-    ListDocumentsResponse listAllDocuments()
+    ListDocumentsResponse listAllDocuments(),
+    void debugEraseAllData()
 }

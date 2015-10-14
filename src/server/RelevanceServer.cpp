@@ -236,18 +236,21 @@ Future<Try<bool>> RelevanceServer::joinCentroid(unique_ptr<string> centroidId) {
   return centroidMetadataDb_->isCentroidUpToDate(
                                   cId).then([this, cId](Try<bool> isUpToDate) {
     if (isUpToDate.hasException()) {
-      Try<bool> result(make_exception_wrapper<ECentroidDoesNotExist>());
+      Try<bool> result(isUpToDate.exception());
       return makeFuture(result);
     }
     if (isUpToDate.value()) {
       Try<bool> result(true);
       return makeFuture(result);
     }
-    return centroidUpdateWorker_->joinUpdate(cId).then([](Try<string> result) {
+    return centroidUpdateWorker_->joinUpdate(cId).then([this, cId](Try<string> result) {
       if (result.hasException()) {
-        return Try<bool>(make_exception_wrapper<ECentroidDoesNotExist>());
+        Try<bool> toReturn(result.exception());
+        return makeFuture(toReturn);
       }
-      return Try<bool>(true);
+      return scoreWorker_->reloadCentroid(cId).then([](){
+        return Try<bool>(true);
+      });
     });
   });
 }
@@ -273,6 +276,10 @@ Future<unique_ptr<map<string, string>>> RelevanceServer::getServerMetadata() {
   metadata->insert(make_pair("relevanced_utc_build_timestamp",
                              release_metadata::getUtcBuildTimestamp()));
   return makeFuture(std::move(metadata));
+}
+
+Future<folly::Unit> RelevanceServer::debugEraseAllData() {
+  return persistence_->debugEraseAllData();
 }
 
 

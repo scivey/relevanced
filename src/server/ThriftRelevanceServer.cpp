@@ -235,5 +235,10 @@ ThriftRelevanceServer::future_getServerMetadata() {
   return server_->getServerMetadata();
 }
 
+Future<folly::Unit>
+ThriftRelevanceServer::future_debugEraseAllData() {
+  return server_->debugEraseAllData();
+}
+
 } // server
 } // relevanced

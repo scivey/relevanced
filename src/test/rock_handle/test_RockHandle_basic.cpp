@@ -460,3 +460,33 @@ TEST(TestRockHandle, TestIterPrefixFromMemberMissing) {
   EXPECT_EQ(expectedVals, values);
   EXPECT_EQ(expectedKeys, keys);
 }
+
+TEST(TestRockHandle, TestEraseEverythingSimple) {
+  RockHandle handle(getDataDir());
+  handle.put("x:key1", "val1");
+  string val;
+  EXPECT_TRUE(handle.get("x:key1", val));
+  EXPECT_EQ("val1", val);
+  handle.eraseEverything();
+  val = "";
+  EXPECT_FALSE(handle.get("x:key1", val));
+  EXPECT_EQ("", val);
+}
+
+TEST(TestRockHandle, TestEraseEverythingStillGood) {
+  RockHandle handle(getDataDir());
+  handle.put("x:key1", "val1");
+  string val;
+  EXPECT_TRUE(handle.get("x:key1", val));
+  EXPECT_EQ("val1", val);
+  handle.eraseEverything();
+  val = "";
+  EXPECT_FALSE(handle.get("x:key1", val));
+  EXPECT_EQ("", val);
+  handle.put("x:key1", "val1-again");
+  EXPECT_TRUE(handle.get("x:key1", val));
+  EXPECT_EQ("val1-again", val);
+  handle.put("x:key2", "val2");
+  EXPECT_TRUE(handle.get("x:key2", val));
+  EXPECT_EQ("val2", val);
+}

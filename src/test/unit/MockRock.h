@@ -15,6 +15,7 @@ class MockRock : public persistence::RockHandleIf {
   MOCK_METHOD2(get, bool(const string &, string &));
   MOCK_METHOD1(exists, bool(const string &));
   MOCK_METHOD1(del, bool(const string &));
+  MOCK_METHOD1(eraseEverything, void());
   bool iterRange(const std::string &start,
                  const std::string &end,
                  std::function<void(const std::string &,

@@ -87,6 +87,8 @@ class PersistenceIf {
   virtual folly::Future<folly::Try<bool>> setCentroidMetadata(
       const std::string &, const std::string &, std::string) = 0;
 
+  virtual folly::Future<folly::Unit> debugEraseAllData() = 0;
+
   virtual ~PersistenceIf() = default;
 };
 
@@ -167,6 +169,7 @@ class Persistence : public PersistenceIf {
   folly::Future<folly::Try<bool>> setCentroidMetadata(const std::string &,
                                                       const std::string &,
                                                       std::string) override;
+  folly::Future<folly::Unit> debugEraseAllData() override;
 };
 
 

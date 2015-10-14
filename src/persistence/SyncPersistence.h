@@ -83,6 +83,7 @@ class SyncPersistenceIf {
                                                const std::string &,
                                                std::string) = 0;
 
+  virtual void debugEraseAllData() = 0;
   virtual ~SyncPersistenceIf() = default;
 };
 
@@ -163,6 +164,8 @@ class SyncPersistence : public SyncPersistenceIf {
   folly::Try<bool> setCentroidMetadata(const std::string &,
                                        const std::string &,
                                        std::string) override;
+
+  void debugEraseAllData() override;
 };
 
 } // persistence
