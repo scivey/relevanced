@@ -46,6 +46,8 @@ class PersistenceIf {
   loadCentroid(const std::string &id) = 0;
   virtual folly::Future<folly::Optional<std::shared_ptr<models::Centroid>>>
   loadCentroidOption(const std::string &id) = 0;
+  virtual folly::Future<folly::Optional<std::unique_ptr<models::Centroid>>>
+  loadCentroidUniqueOption(const std::string &id) = 0;
   virtual folly::Future<std::vector<std::string>> listAllCentroids() = 0;
   virtual folly::Future<std::vector<std::string>> listCentroidRangeFromOffset(
       size_t, size_t) = 0;
@@ -129,6 +131,9 @@ class Persistence : public PersistenceIf {
       const std::string &id) override;
   folly::Future<folly::Optional<std::shared_ptr<models::Centroid>>>
   loadCentroidOption(const std::string &id) override;
+
+  folly::Future<folly::Optional<std::unique_ptr<models::Centroid>>>
+  loadCentroidUniqueOption(const std::string &id) override;
   folly::Future<std::vector<std::string>> listAllCentroids() override;
   folly::Future<std::vector<std::string>> listCentroidRangeFromOffset(
       size_t, size_t) override;

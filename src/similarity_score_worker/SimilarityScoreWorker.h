@@ -12,7 +12,7 @@
 
 #include "declarations.h"
 #include "util/util.h"
-
+#include "util/ConcurrentMap.h"
 namespace relevanced {
 namespace similarity_score_worker {
 
@@ -52,8 +52,10 @@ class SimilarityScoreWorker : public SimilarityScoreWorkerIf {
   std::shared_ptr<persistence::CentroidMetadataDbIf> centroidMetadataDb_;
   std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>>
       threadPool_;
-  folly::Synchronized<std::map<std::string, std::shared_ptr<models::Centroid>>>
-      centroids_;
+
+  std::unique_ptr<util::ConcurrentMap<std::string, models::Centroid>> centroids_;
+  // folly::Synchronized<std::map<std::string, std::shared_ptr<models::Centroid>>>
+  //     centroids_;
 
  public:
   SimilarityScoreWorker(
@@ -61,10 +63,10 @@ class SimilarityScoreWorker : public SimilarityScoreWorkerIf {
       std::shared_ptr<persistence::CentroidMetadataDbIf> metadataDb,
       std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>>
           threadPool);
-  void setLoadedCentroid_(const std::string &id,
-                          std::shared_ptr<models::Centroid>);
-  folly::Optional<std::shared_ptr<models::Centroid>> getLoadedCentroid_(
-      const std::string &id);
+  // void setLoadedCentroid_(const std::string &id,
+  //                         std::shared_ptr<models::Centroid>);
+  // folly::Optional<std::shared_ptr<models::Centroid>> getLoadedCentroid_(
+  //     const std::string &id);
   void initialize() override;
   folly::Future<bool> reloadCentroid(std::string id) override;
   folly::Future<folly::Try<double>> getDocumentSimilarity(

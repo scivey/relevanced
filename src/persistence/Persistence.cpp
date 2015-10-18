@@ -116,6 +116,12 @@ Future<Optional<shared_ptr<Centroid>>> Persistence::loadCentroidOption(
       [this, id]() { return syncHandle_->loadCentroidOption(id); });
 }
 
+Future<Optional<unique_ptr<Centroid>>> Persistence::loadCentroidUniqueOption(
+    const string &id) {
+  return threadPool_->addFuture(
+      [this, id]() { return std::move(syncHandle_->loadCentroidUniqueOption(id)); });
+}
+
 Future<vector<string>> Persistence::listAllCentroids() {
   return threadPool_->addFuture(
       [this]() { return syncHandle_->listAllCentroids(); });

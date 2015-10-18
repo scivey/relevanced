@@ -230,6 +230,17 @@ Optional<shared_ptr<Centroid>> SyncPersistence::loadCentroidOption(
   return result;
 }
 
+Optional<unique_ptr<Centroid>> SyncPersistence::loadCentroidUniqueOption(
+    const string &id) {
+  Optional<unique_ptr<Centroid>> result;
+  auto loadedRaw = loadCentroidRaw(id);
+  if (loadedRaw.hasValue()) {
+    result.assign(std::move(unique_ptr<Centroid>(loadedRaw.value())));
+  }
+  return result;
+}
+
+
 vector<string> SyncPersistence::listAllCentroids() {
   string prefix = "centroids";
   vector<string> centroidIds;
