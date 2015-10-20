@@ -112,24 +112,6 @@ ThriftRelevanceServer::future_deleteDocument(unique_ptr<string> id) {
       });
 }
 
-// Future<unique_ptr<GetDocumentMetadataResponse>>
-// ThriftRelevanceServer::future_getDocumentMetadata(unique_ptr<string> id) {
-//   auto docId = *id;
-//   return server_->getDocument(std::move(id))
-//       .then([docId](Try<unique_ptr<string>> result) {
-//         auto response = folly::make_unique<GetDocumentResponse>();
-//         if (result.hasException()) {
-//           if (result.hasException<EDocumentDoesNotExist>()) {
-//             TDocumentDoesNotExist exn;
-//             exn.id = docId;
-//             throw exn;
-//           }
-//           result.throwIfFailed();
-//         }
-//         response->document = *result.value();
-//         return std::move(response);
-//       });
-// }
 
 Future<unique_ptr<CreateCentroidResponse>>
 ThriftRelevanceServer::future_createCentroid(unique_ptr<string> centroidId) {
@@ -271,6 +253,10 @@ ThriftRelevanceServer::future_debugGetFullProcessedDocument(unique_ptr<string> d
       response->metadata.sha1Hash = document->sha1Hash.value();
     }
     response->wordVector.magnitude = document->magnitude;
+    for (auto &elem: document->scoredWords) {
+      string k = elem.word;
+      response->wordVector.scores[k] = elem.score;
+    }
     // response->wordVector.documentWeight = document->wordVector.documentWeight;
     // response->wordVector.scores = document->wordVector.scores;
     return std::move(response);
