@@ -41,5 +41,19 @@ double WordVector::score(WordVector *other) {
   return score(other->scores, other->magnitude);
 }
 
+double WordVector::score(ProcessedDocument *other) {
+  double dotProd = 0.0;
+  for (auto &elem: other->scoredWords) {
+    string key = elem.word;
+    auto selfScore = scores.find(key);
+    if (selfScore == scores.end()) {
+      continue;
+    }
+    dotProd += (elem.score * selfScore->second);
+  }
+  return dotProd / (magnitude * other->magnitude);
+}
+
+
 } // models
 } // relevanced

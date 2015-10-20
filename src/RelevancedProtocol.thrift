@@ -7,6 +7,11 @@ struct WordVectorDTO {
     3: required map<string, double> scores;
 }
 
+struct ScoredWordDTO {
+    1: required binary wordBuff;
+    2: required double score;
+}
+
 struct CentroidMetadataDTO {
     1: required string id;
     2: required i64 created;
@@ -24,6 +29,12 @@ struct ProcessedDocumentMetadataDTO {
     2: required string sha1Hash;
     3: required i64 created;
     4: required i64 updated;
+}
+
+struct ProcessedDocumentPersistenceDTO {
+    1: required ProcessedDocumentMetadataDTO metadata;
+    2: required list<ScoredWordDTO> scoredWords;
+    3: required double magnitude;
 }
 
 struct ProcessedDocumentDTO {

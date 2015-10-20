@@ -7,6 +7,7 @@
 #include <folly/Conv.h>
 #include <folly/DynamicConverter.h>
 
+#include "models/ProcessedDocument.h"
 #include "serialization/serializers.h"
 #include "util/util.h"
 
@@ -24,6 +25,7 @@ class WordVector {
   double score(const std::map<std::string, double> &otherScores,
                double otherMagnitude);
   double score(WordVector *other);
+  double score(ProcessedDocument *other);
 };
 
 } // models

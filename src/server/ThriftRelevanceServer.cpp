@@ -270,9 +270,9 @@ ThriftRelevanceServer::future_debugGetFullProcessedDocument(unique_ptr<string> d
     if (document->sha1Hash.hasValue()) {
       response->metadata.sha1Hash = document->sha1Hash.value();
     }
-    response->wordVector.magnitude = document->wordVector.magnitude;
-    response->wordVector.documentWeight = document->wordVector.documentWeight;
-    response->wordVector.scores = document->wordVector.scores;
+    response->wordVector.magnitude = document->magnitude;
+    // response->wordVector.documentWeight = document->wordVector.documentWeight;
+    // response->wordVector.scores = document->wordVector.scores;
     return std::move(response);
   });
 }

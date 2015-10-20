@@ -1,7 +1,9 @@
 #pragma once
 
 #include <string>
+#include <vector>
 #include "models/WordVector.h"
+#include "text_util/ScoredWord.h"
 #include <folly/Optional.h>
 
 namespace relevanced {
@@ -11,17 +13,15 @@ class ProcessedDocument {
  public:
   std::string id;
   folly::Optional<std::string> sha1Hash;
-  WordVector wordVector;
+  std::vector<text_util::ScoredWord> scoredWords;
+  double magnitude;
   uint64_t created{0};
   uint64_t updated{0};
   ProcessedDocument() {}
   ProcessedDocument(std::string id) : id(id) {}
-  ProcessedDocument(std::string id, WordVector wordVec)
-      : id(id), wordVector(wordVec) {}
-  ProcessedDocument(std::string id,
-                    std::map<std::string, double> scores,
-                    double mag)
-      : id(id), wordVector(scores, mag) {}
+  ProcessedDocument(std::string id, std::vector<text_util::ScoredWord> scoredWords, double magnitude)
+      : id(id), scoredWords(scoredWords), magnitude(magnitude) {}
+
 };
 
 } // models

@@ -9,18 +9,27 @@
 #include "serialization/serializers.h"
 #include "serialization/serializer_details.h"
 #include "gen-cpp2/RelevancedProtocol_types.h"
-
+#include "text_util/ScoredWord.h"
 namespace folly {
 
+using namespace std;
+using relevanced::text_util::ScoredWord;
 using relevanced::models::ProcessedDocument;
 using relevanced::models::WordVector;
 
 template <>
 struct DynamicConstructor<ProcessedDocument> {
   static folly::dynamic construct(const ProcessedDocument &doc) {
-    auto wordVec = folly::toDynamic(doc.wordVector);
+    WordVector wordVec;
+    for (auto &elem: doc.scoredWords) {
+      string k = elem.word;
+      wordVec.scores.insert(make_pair(k, elem.score));
+    }
+    wordVec.magnitude = doc.magnitude;
+    auto dWordVec = folly::toDynamic(wordVec);
     folly::dynamic self = folly::dynamic::object;
     self["id"] = doc.id;
+    self["wordVector"] = dWordVec;
     self["created"] = doc.created;
     self["updated"] = doc.updated;
     if (doc.sha1Hash.hasValue()) {
@@ -35,9 +44,8 @@ struct DynamicConstructor<ProcessedDocument> {
 template <>
 struct DynamicConverter<ProcessedDocument> {
   static ProcessedDocument convert(const folly::dynamic &dyn) {
-    auto wordVec = folly::convertTo<WordVector>(dyn["wordVector"]);
     auto id = folly::convertTo<std::string>(dyn["id"]);
-    ProcessedDocument result(id, wordVec);
+    ProcessedDocument result(id);
     auto updated = folly::convertTo<uint64_t>(dyn["updated"]);
     auto created = folly::convertTo<uint64_t>(dyn["created"]);
     result.updated = updated;
@@ -57,16 +65,22 @@ namespace serialization {
 
 using models::WordVector;
 using models::ProcessedDocument;
-
+using text_util::ScoredWord;
 
 template <>
 struct BinarySerializer<ProcessedDocument> {
   static void serialize(std::string &result, ProcessedDocument &target) {
-    thrift_protocol::ProcessedDocumentDTO docDto;
+    thrift_protocol::ProcessedDocumentPersistenceDTO docDto;
     thrift_protocol::ProcessedDocumentMetadataDTO metadataDto;
-    docDto.wordVector.scores = target.wordVector.scores;
-    docDto.wordVector.magnitude = target.wordVector.magnitude;
-    docDto.wordVector.documentWeight = target.wordVector.documentWeight;
+
+    for (auto &elem: target.scoredWords) {
+      thrift_protocol::ScoredWordDTO wordDto;
+      wordDto.wordBuff = elem.word;
+      wordDto.score = elem.score;
+      docDto.scoredWords.push_back(wordDto);
+    }
+    docDto.magnitude = target.magnitude;
+
     metadataDto.id = target.id;
     metadataDto.updated = target.updated;
     metadataDto.created = target.created;
@@ -83,11 +97,13 @@ struct BinarySerializer<ProcessedDocument> {
 template <>
 struct BinaryDeserializer<ProcessedDocument> {
   static void deserialize(std::string &data, ProcessedDocument *result) {
-    thrift_protocol::ProcessedDocumentDTO docDto;
+    thrift_protocol::ProcessedDocumentPersistenceDTO docDto;
     serialization::thriftBinaryDeserialize(data, docDto);
-    result->wordVector.scores = docDto.wordVector.scores;
-    result->wordVector.magnitude = docDto.wordVector.magnitude;
-    result->wordVector.documentWeight = docDto.wordVector.documentWeight;
+    for (auto &elem: docDto.scoredWords) {
+      uint8_t buffSize = (uint8_t) elem.wordBuff.size();
+      result->scoredWords.push_back(ScoredWord{elem.wordBuff.c_str(), buffSize, elem.score});
+    }
+    result->magnitude = docDto.magnitude;
     result->updated = docDto.metadata.updated;
     result->created = docDto.metadata.created;
     result->id = docDto.metadata.id;

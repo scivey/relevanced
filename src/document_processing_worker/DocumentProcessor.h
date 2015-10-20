@@ -2,6 +2,7 @@
 #include <memory>
 
 #include "declarations.h"
+#include "text_util/ThreadSafeUtf8Stemmer.h"
 
 namespace relevanced {
 namespace document_processing_worker {
@@ -25,7 +26,7 @@ class DocumentProcessor : public DocumentProcessorIf {
   std::shared_ptr<tokenizer::TokenizerIf> tokenizer_;
   std::shared_ptr<stopwords::StopwordFilterIf> stopwordFilter_;
   std::shared_ptr<util::ClockIf> clock_;
-
+  text_util::ThreadSafeUtf8Stemmer utf8Stemmer_;
  public:
   DocumentProcessor(std::shared_ptr<tokenizer::TokenizerIf> tokenizer,
                     std::shared_ptr<stemmer::StemmerIf> stemmer,

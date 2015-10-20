@@ -107,11 +107,12 @@ Try<bool> CentroidUpdater::run() {
         }
         LOG(INFO) << format("adding document: '{}'", idSet.at(i));
         docCount++;
-        for (auto &elem : doc.value()->wordVector.scores) {
-          if (centroidScores.find(elem.first) == centroidScores.end()) {
-            centroidScores[elem.first] = elem.second;
+        for (auto &elem : doc.value()->scoredWords) {
+          string key = elem.word;
+          if (centroidScores.find(key) == centroidScores.end()) {
+            centroidScores[key] = elem.score;
           } else {
-            centroidScores[elem.first] += elem.second;
+            centroidScores[key] += elem.score;
           }
         }
       }

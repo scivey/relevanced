@@ -109,7 +109,7 @@ Future<Try<double>> SimilarityScoreWorker::getDocumentSimilarity(
       LOG(INFO) << "relevance request against null centroid: " << centroidId;
       return Try<double>(make_exception_wrapper<ECentroidDoesNotExist>());
     }
-    auto result = centroid.value()->score(&doc->wordVector);
+    auto result = centroid.value()->score(doc);
     LOG(INFO) << format("relevance vs centroid '{}' : {}", centroidId, result);
     return Try<double>(result);
   });
