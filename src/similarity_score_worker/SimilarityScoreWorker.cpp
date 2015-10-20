@@ -60,12 +60,6 @@ void SimilarityScoreWorker::initialize() {
       LOG(INFO) << format("centroid '{}' doesn't seem to exist...", id);
     }
   }
-  // SYNCHRONIZED(centroids_) {
-  //   for (auto &id : centroidIds) {
-  //     LOG(INFO) << format("loading centroid '{}' ...", id);
-  //     ;
-  //   }
-  // }
   LOG(INFO) << "SimilarityScoreWorker initialized.";
 }
 
@@ -77,34 +71,16 @@ Future<bool> SimilarityScoreWorker::reloadCentroid(string id) {
           return false;
         }
         centroids_->insertOrUpdate(id, std::move(centroid.value()));
-        // SYNCHRONIZED(centroids_) { centroids_[id] = centroid.value(); }
         LOG(INFO) << format("inserted reloaded centroid '{}'", id);
         return true;
       });
 }
 
-// Optional<shared_ptr<Centroid>> SimilarityScoreWorker::getLoadedCentroid_(
-//     const string &id) {
-//   Optional<shared_ptr<Centroid>> center;
-//   SYNCHRONIZED(centroids_) {
-//     auto elem = centroids_.find(id);
-//     if (elem != centroids_.end()) {
-//       center.assign(elem->second);
-//     }
-//   }
-//   return center;
-// }
-
-// void SimilarityScoreWorker::setLoadedCentroid_(const string &id,
-//                                                shared_ptr<Centroid> centroid) {
-//   SYNCHRONIZED(centroids_) { centroids_[id] = centroid; }
-// }
 
 Future<Try<double>> SimilarityScoreWorker::getDocumentSimilarity(
     string centroidId, ProcessedDocument *doc) {
   return threadPool_->addFuture([this, centroidId, doc]() {
     auto centroid = centroids_->getOption(centroidId);
-    // auto centroid = getLoadedCentroid_(centroidId);
     if (!centroid.hasValue()) {
       LOG(INFO) << "relevance request against null centroid: " << centroidId;
       return Try<double>(make_exception_wrapper<ECentroidDoesNotExist>());
