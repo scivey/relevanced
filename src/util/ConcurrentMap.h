@@ -4,7 +4,6 @@
 #include <exception>
 #include <folly/ConcurrentSkipList.h>
 #include <folly/Optional.h>
-#include <folly/MicroSpinLock.h>
 #include "util/MultiVersionPtr.h"
 namespace relevanced {
 namespace util {
@@ -24,17 +23,14 @@ public:
     TKey defaultKey;
     key_ = defaultKey;
   }
-  ConcurrentMapItem(const TKey &key): key_(key){
-  }
+  ConcurrentMapItem(const TKey &key): key_(key){}
   ConcurrentMapItem(const TKey &key, std::unique_ptr<TVal>&& val): key_(key) {
     hasValue_ = true;
     std::unique_ptr<TVal> tempV = std::move(val);
     val_.reset(tempV.release());
   }
   TReadPtr getValuePtr() {
-    if (!hasValue_) {
-      throw new std::runtime_error("bad!");
-    }
+    DCHECK(hasValue_);
     return val_;
   }
   const TKey& getKey() {

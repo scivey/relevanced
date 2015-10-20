@@ -3,7 +3,6 @@
 #include <memory>
 #include <atomic>
 #include <type_traits>
-
 namespace relevanced {
 namespace util {
 
@@ -14,6 +13,7 @@ protected:
   std::atomic<size_t> usage_ {0};
 
   T *getPtr() {
+    DCHECK(ptr_ != nullptr);
     return ptr_;
   }
 
@@ -37,53 +37,74 @@ public:
 
   class Proxy {
     protected:
-      MultiVersionPtr<T> *base {nullptr};
+      std::atomic<MultiVersionPtr<T>*> base {nullptr};
       friend class MultiVersionPtr<T>;
       void decrBase() {
-        if (base != nullptr) {
-          if (base->decrCount() == 0) {
-            delete base;
+        auto currentBase = base.exchange(nullptr);
+        if (currentBase != nullptr) {
+          if (currentBase->decrCount() == 0) {
+            delete currentBase;
           }
         }
       }
-      void clear() {
-        base = nullptr;
+      MultiVersionPtr<T>* clearAtomic(){
+        auto prevBase = base.exchange(nullptr);
+        return prevBase;
       }
       void setBase(MultiVersionPtr<T> *parent) {
-        if (base != parent) {
-          decrBase();
-          base = parent;
-          base->incrCount();
+        for (;;) {
+          auto prevBase = base.load();
+          if (prevBase == parent) {
+            break;
+          }
+          if (base.compare_exchange_strong(prevBase, parent)) {
+            if (parent != nullptr) {
+              parent->incrCount();
+            }
+            if (prevBase != nullptr) {
+              if (prevBase->decrCount() == 0) {
+                delete prevBase;
+              }
+            }
+            break;
+          }
         }
       }
     public:
       void reset(T *newParent) {
+        DCHECK(newParent != nullptr);
         auto base = new MultiVersionPtr<T>(newParent, this);
         ((void) base);
       }
       T *get() {
-        return base->getPtr();
+        auto currentBase = base.load();
+        DCHECK(currentBase != nullptr);
+        auto result = currentBase->getPtr();
+        DCHECK(result != nullptr);
+        return result;
       }
       Proxy(){}
       Proxy(MultiVersionPtr<T> *parent) {
+        DCHECK(parent != nullptr);
         setBase(parent);
       }
       Proxy(const Proxy& other) {
-        setBase(other.base);
+        setBase(other.base.load());
       }
       Proxy(Proxy &&other) {
-        base = other.base;
-        other.clear();
+        setBase(other.base.load());
       }
       ~Proxy(){
         decrBase();
       }
       Proxy& operator=(const Proxy &other) {
-        setBase(other.base);
+        setBase(other.base.load());
         return *this;
       }
       T *operator->() {
-        return base->getPtr();
+        auto currentBase = base.load();
+        DCHECK(currentBase != nullptr);
+        return currentBase->getPtr();
       }
   };
 
