@@ -1,5 +1,6 @@
 # Allow the source files to find headers in src/
 include_directories(${PROJECT_SOURCE_DIR}/src)
+include_directories(${PROJECT_SOURCE_DIR}/external/libstemmer/include)
 
 add_cxx_compiler_flag(-Wall)
 add_cxx_compiler_flag(-Wextra)
@@ -35,6 +36,8 @@ set(RELEVANCED_COMMON_DYNAMIC_LIBS
     "dl"
 )
 
+set(LIBSTEMMER ${PROJECT_SOURCE_DIR}/external/libstemmer/libstemmer.o)
+
 set(RELEVANCED_NONSTATIC_ADDITIONAL_LIBS
     "thriftcpp2"
     "thrift"
@@ -69,10 +72,12 @@ set(RELEVANCED_STATIC_STATIC_LIBS
 
 set(RELEVANCED_NONSTATIC_LINK_LIBS
     ${RELEVANCED_NONSTATIC_ADDITIONAL_LIBS}
+    ${LIBSTEMMER}
     ${RELEVANCED_COMMON_DYNAMIC_LIBS}
 )
 set(RELEVANCED_STATIC_LINK_LIBS
     ${RELEVANCED_STATIC_STATIC_LIBS}
+    ${LIBSTEMMER}
     ${RELEVANCED_COMMON_DYNAMIC_LIBS}
 )
 
@@ -107,6 +112,11 @@ set(RELEVANCED_BASE_SOURCES
     "tokenizer/Tokenizer.cpp"
     "util/util.cpp"
     "release_metadata/release_metadata.cpp"
+    "text_util/ConllTokenIterator.cpp"
+    "text_util/DestructiveConllTokenIterator.cpp"
+    "text_util/ScoredWord.cpp"
+    "text_util/TextScorer.cpp"
+    "text_util/Utf8Stemmer.cpp"
 )
 
 add_library(relevanced_core ${RELEVANCED_BASE_SOURCES})

@@ -3,6 +3,7 @@
 include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/external/gtest-1.7.0-min/include)
 include_directories(${PROJECT_SOURCE_DIR}/external/gmock-1.7.0/include)
+include_directories(${PROJECT_SOURCE_DIR}/external/libstemmer/include)
 include_directories(${PROJECT_SOURCE_DIR}/src/test/unit)
 
 set(RELEVANCED_LINK_LIBRARIES

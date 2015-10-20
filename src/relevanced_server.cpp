@@ -9,7 +9,6 @@
 #include "buildServerOptions.h"
 #include "server/ThriftServerWrapper.h"
 #include "server/simpleServerBuilders.h"
-
 using namespace std;
 using namespace relevanced;
 using namespace relevanced::server;
