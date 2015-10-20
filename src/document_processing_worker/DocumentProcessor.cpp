@@ -5,6 +5,7 @@
 #include <vector>
 #include <tuple>
 #include <cmath>
+#include <glog/logging.h>
 #include "DocumentProcessor.h"
 #include "models/Document.h"
 #include "models/ProcessedDocument.h"
@@ -65,7 +66,7 @@ void DocumentProcessor::process_(const Document &doc, ProcessedDocument *result)
         continue;
       }
       scoredWords.push_back(scored);
-      wordsByStr[view] = scoredWords.size() - 1;
+      wordsByStr.insert(make_pair(view, scoredWords.size() - 1));
     } else {
       auto existing = &scoredWords.at(existingIndex->second);
       existing->score += 1;
