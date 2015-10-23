@@ -55,8 +55,8 @@ void DocumentProcessor::process_(Document &doc, ProcessedDocument *result) {
     accumulator.add(view);
   }
   accumulator.build();
-  result->scoredWords = std::move(accumulator.getScores());
   result->magnitude = accumulator.getMagnitude();
+  result->scoredWords = std::move(accumulator.getScores());
   result->id = doc.id;
   auto timestamp = clock_->getEpochTime();
   result->created = timestamp;

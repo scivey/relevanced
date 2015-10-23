@@ -73,6 +73,10 @@ docs:
 
 test-unit:
 	mkdir -p build/bin
+	cd build/bin && make unit_test_runner -j4 && ./src/test/unit_test_runner
+
+test-unit-refresh:
+	mkdir -p build/bin
 	cd build/bin && cmake ../../ && make unit_test_runner -j4 && ./src/test/unit_test_runner
 
 test-rock:

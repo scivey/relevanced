@@ -31,6 +31,7 @@ set(UNIT_TEST_SOURCES
   "unit/test_CentroidUpdateWorker.cpp"
   "unit/test_CentroidUpdater.cpp"
   "unit/test_CentroidMetadataDb.cpp"
+  "unit/test_DocumentAccumulator.cpp"
   "unit/test_DocumentProcessingWorker.cpp"
   "unit/test_DocumentProcessor.cpp"
   "unit/test_DocumentSerialization.cpp"
@@ -40,6 +41,7 @@ set(UNIT_TEST_SOURCES
   "unit/test_SyncPersistence.cpp"
   "unit/test_Persistence.cpp"
   "unit/test_Tokenizer.cpp"
+  "unit/test_WordAccumulator.cpp"
   "unit/runTests.cpp"
 )
 

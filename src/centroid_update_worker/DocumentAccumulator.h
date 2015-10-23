@@ -17,7 +17,7 @@ public:
 };
 
 class DocumentAccumulator: public DocumentAccumulatorIf {
-  size_t documentCount_;
+  size_t documentCount_ {0};
   std::map<std::string, double> scores_;
   double magnitude_ {0};
   bool staleMagnitude_ {true};

@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <functional>
 #include <map>
+#include <unordered_map>
 #include <memory>
 #include <set>
 #include <sstream>
@@ -81,6 +82,24 @@ std::vector<T1> getSortedKeys(const std::map<T1, T2> &aMap) {
     result.push_back(elem.first);
   }
   std::sort(result.begin(), result.end());
+  return result;
+}
+
+template <typename TKey, typename TVal>
+std::set<TKey> getKeySet(const std::map<TKey, TVal> &aMap) {
+  std::set<TKey> result;
+  for (auto &elem : aMap) {
+    result.insert(elem.first);
+  }
+  return result;
+}
+
+template <typename TKey, typename TVal>
+std::set<TKey> getKeySet(const std::unordered_map<TKey, TVal> &aMap) {
+  std::set<TKey> result;
+  for (auto &elem : aMap) {
+    result.insert(elem.first);
+  }
   return result;
 }
 
