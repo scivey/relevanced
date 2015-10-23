@@ -14,8 +14,8 @@
 #include "stopwords/StopwordFilter.h"
 #include "stemmer/StemmerIf.h"
 #include "tokenizer/Tokenizer.h"
-#include "TestHelpers.h"
-#include "MockHasher.h"
+#include "testing/TestHelpers.h"
+#include "testing/MockHasher.h"
 #include "util/Sha1Hasher.h"
 #include "text_util/ScoredWord.h"
 

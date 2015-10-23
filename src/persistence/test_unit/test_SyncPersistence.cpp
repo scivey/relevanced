@@ -16,9 +16,10 @@
 #include "persistence/SyncPersistence.h"
 #include "stemmer/StemmerIf.h"
 #include "stopwords/StopwordFilter.h"
-#include "TestHelpers.h"
 #include "tokenizer/Tokenizer.h"
 #include "util/util.h"
+#include "testing/TestHelpers.h"
+#include "testing/MockRock.h"
 
 using namespace std;
 using namespace relevanced;
@@ -29,7 +30,6 @@ using util::UniquePointer;
 using ::testing::Return;
 using ::testing::_;
 
-#include "MockRock.h"
 
 // TEST(SyncPersistence, DoesDocumentExistTrue) {
 //   MockRock mockRock;

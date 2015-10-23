@@ -8,7 +8,7 @@
 #include <rocksdb/db.h>
 #include <rocksdb/slice.h>
 #include "util/util.h"
-#include "TestHelpers.h"
+#include "testing/TestHelpers.h"
 #include "persistence/InMemoryRockHandle.h"
 
 using namespace std;
@@ -113,7 +113,7 @@ TEST(InMemoryRockHandle, TestIterAllBasic) {
   vector<string> valuesSeen;
   rockHandle.iterAll([&keysSeen, &valuesSeen](const string &key,
                                               function<void(string &) > read,
-                                              function<void()> escape) {
+                                              function<void()>) {
     keysSeen.push_back(key);
     string val;
     read(val);
@@ -184,7 +184,7 @@ TEST(InMemoryRockHandle, TestIterRange) {
   rockHandle.iterRange("b", "e",
                        [&keysSeen, &valuesSeen](const string &key,
                                                 function<void(string &) > read,
-                                                function<void()> escape) {
+                                                function<void()>) {
                          keysSeen.push_back(key);
                          string val;
                          read(val);
@@ -217,7 +217,7 @@ TEST(InMemoryRockHandle, TestIterPrefix) {
   rockHandle.iterPrefix("foo",
                         [&keysSeen, &valuesSeen](const string &key,
                                                  function<void(string &) > read,
-                                                 function<void()> escape) {
+                                                 function<void()>) {
                           keysSeen.push_back(key);
                           string val;
                           read(val);

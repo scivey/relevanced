@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 #include <memory>
-#include "TestHelpers.h"
+#include "testing/TestHelpers.h"
 #include "models/Document.h"
 #include "document_processing_worker/DocumentProcessor.h"
 #include "models/ProcessedDocument.h"
@@ -11,7 +11,7 @@
 #include "stemmer/Utf8Stemmer.h"
 
 #include "util/Clock.h"
-#include "MockClock.h"
+#include "testing/MockClock.h"
 
 using namespace std;
 using namespace relevanced;
@@ -27,7 +27,7 @@ using ::testing::_;
 
 class MockStopwordFilter : public StopwordFilterIf {
  public:
-  bool isStopword(const string &text) {
+  bool isStopword(const string&) {
     return false;
   }
 };

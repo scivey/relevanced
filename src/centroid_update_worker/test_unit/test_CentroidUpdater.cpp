@@ -15,7 +15,7 @@
 #include "persistence/Persistence.h"
 #include "persistence/SyncPersistence.h"
 #include "gen-cpp2/RelevancedProtocol_types.h"
-#include "TestHelpers.h"
+#include "testing/TestHelpers.h"
 #include "centroid_update_worker/CentroidUpdater.h"
 #include "centroid_update_worker/CentroidUpdaterFactory.h"
 #include "centroid_update_worker/CentroidUpdateWorker.h"
@@ -26,8 +26,8 @@
 #include "text_util/ScoredWord.h"
 #include "util/Clock.h"
 
-#include "MockClock.h"
-#include "MockCentroidMetadataDb.h"
+#include "testing/MockClock.h"
+#include "testing/MockCentroidMetadataDb.h"
 #include "centroid_update_worker/DocumentAccumulatorFactory.h"
 
 using namespace std;
@@ -113,7 +113,7 @@ class StubSyncPersistence : public persistence::SyncPersistenceIf {
   MOCK_METHOD1(createNewCentroid, Try<bool>(const string&));
   MOCK_METHOD1(deleteCentroid, Try<bool>(const string&));
   MOCK_METHOD1(loadCentroid, Try<shared_ptr<Centroid>>(const string&));
-  Optional<UniquePointer<Centroid>> loadCentroidUniqueOption(const string& id) {
+  Optional<UniquePointer<Centroid>> loadCentroidUniqueOption(const string&) {
     Optional<UniquePointer<Centroid>> result;
     return result;
   }

@@ -73,24 +73,24 @@ docs:
 
 test-unit:
 	mkdir -p build/bin
-	cd build/bin && make unit_test_runner -j4 && ./src/test/unit_test_runner
+	cd build/bin && make unit_test_runner -j4 && ./src/unit_test_runner
 
 test-unit-refresh:
 	mkdir -p build/bin
-	cd build/bin && cmake ../../ && make unit_test_runner -j4 && ./src/test/unit_test_runner
+	cd build/bin && cmake ../../ && make unit_test_runner -j4 && ./src/unit_test_runner
 
 test-rock:
 	mkdir -p build/bin
 	rm -rf build/bin/test_data && mkdir -p build/bin/test_data
-	cd build/bin && cmake ../../ && make rock_handle_test -j4 && ./src/test/rock_handle_test
+	cd build/bin && cmake ../../ && make slow_rock_handle_test -j4 && ./src/slow_rock_handle_test
 
 test-func:
 	mkdir -p build/bin
-	cd build/bin && make func_test -j4 && ./src/test/func_test
+	cd build/bin && make func_test_runner -j4 && ./src/func_test_runner
 
 test-func-refresh:
 	mkdir -p build/bin
-	cd build/bin && cmake ../../ && make func_test -j4 && ./src/test/func_test
+	cd build/bin && cmake ../../ && make func_test_runner -j4 && ./src/func_test_runner
 
 .PHONY: test-unit test-rock test-all run package build-server-static
 

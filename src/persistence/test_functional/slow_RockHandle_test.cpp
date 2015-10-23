@@ -343,7 +343,7 @@ TEST(TestRockHandle, TestIterPrefixFromMember1) {
   handle.iterPrefixFromMember("x", "key1", 4,
                               [&keys, &values](const string &key,
                                                function<void(string &) > read,
-                                               function<void()> escape) {
+                                               function<void()>) {
                                 keys.push_back(key);
                                 string val;
                                 read(val);
@@ -372,7 +372,7 @@ TEST(TestRockHandle, TestIterPrefixFromMember2) {
   handle.iterPrefixFromMember("x", "key3", 4,
                               [&keys, &values](const string &key,
                                                function<void(string &) > read,
-                                               function<void()> escape) {
+                                               function<void()>) {
                                 keys.push_back(key);
                                 string val;
                                 read(val);
@@ -399,8 +399,8 @@ TEST(TestRockHandle, TestIterPrefixFromMemberEmpty) {
   bool iterated = false;
   handle.iterPrefixFromMember(
       "y", "key3", 4,
-      [&iterated](const string &key, function<void(string &) > read,
-                  function<void()> escape) { iterated = true; });
+      [&iterated](const string &, function<void(string &) >,
+                  function<void()>) { iterated = true; });
   EXPECT_FALSE(iterated);
 }
 
@@ -421,7 +421,7 @@ TEST(TestRockHandle, TestIterPrefixFromMemberTooMany) {
   handle.iterPrefixFromMember("x", "key7", 10,
                               [&keys, &values](const string &key,
                                                function<void(string &) > read,
-                                               function<void()> escape) {
+                                               function<void()>) {
                                 keys.push_back(key);
                                 string val;
                                 read(val);
@@ -449,7 +449,7 @@ TEST(TestRockHandle, TestIterPrefixFromMemberMissing) {
   handle.iterPrefixFromMember("x", "key3", 3,
                               [&keys, &values](const string &key,
                                                function<void(string &) > read,
-                                               function<void()> escape) {
+                                               function<void()>) {
                                 keys.push_back(key);
                                 string val;
                                 read(val);
@@ -489,4 +489,9 @@ TEST(TestRockHandle, TestEraseEverythingStillGood) {
   handle.put("x:key2", "val2");
   EXPECT_TRUE(handle.get("x:key2", val));
   EXPECT_EQ("val2", val);
+}
+
+int main(int argc, char* argv[]) {
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }

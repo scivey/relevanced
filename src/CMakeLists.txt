@@ -141,3 +141,60 @@ target_link_libraries(relevanced_static
     ${RELEVANCED_STATIC_LINK_LIBS}
 )
 
+set(UNIT_TEST_SOURCES
+  "stopwords/test_unit/test_StopwordFilter.cpp"
+  "centroid_update_worker/test_unit/test_CentroidUpdater.cpp"
+  "centroid_update_worker/test_unit/test_CentroidUpdateWorker.cpp"
+  "centroid_update_worker/test_unit/test_DocumentAccumulator.cpp"
+  "document_processing_worker/test_unit/test_DocumentProcessor.cpp"
+  "document_processing_worker/test_unit/test_DocumentProcessingWorker.cpp"
+  "similarity_score_worker/test_unit/test_SimilarityScoreWorker.cpp"
+  "persistence/test_unit/test_CentroidMetadataDb.cpp"
+  "persistence/test_unit/test_InMemoryRockHandle.cpp"
+  "persistence/test_unit/test_SyncPersistence.cpp"
+  "persistence/test_unit/test_Persistence.cpp"
+  "tokenizer/test_unit/test_Tokenizer.cpp"
+  "stemmer/test_unit/test_Utf8Stemmer.cpp"
+  "serialization/test_unit/test_DocumentSerialization.cpp"
+  "text_util/test_unit/test_WordAccumulator.cpp"
+  "testing/runTests.cpp"
+)
+
+add_executable(unit_test_runner ${UNIT_TEST_SOURCES})
+
+set(GTEST_LIBS
+  "${PROJECT_SOURCE_DIR}/external/gmock-1.7.0/src/gmock-all.o"
+  "${PROJECT_SOURCE_DIR}/external/gtest-1.7.0-min/gtest-all.o"
+)
+
+add_dependencies(unit_test_runner relevanced_core)
+target_link_libraries(unit_test_runner
+    relevanced_core
+    ${GTEST_LIBS}
+    ${RELEVANCED_NONSTATIC_LINK_LIBS}
+)
+
+set(SLOW_ROCK_TEST_SOURCES "persistence/test_functional/slow_RockHandle_test.cpp")
+add_executable(slow_rock_handle_test ${SLOW_ROCK_TEST_SOURCES})
+add_dependencies(slow_rock_handle_test relevanced_core)
+target_link_libraries(slow_rock_handle_test
+    relevanced_core
+    ${GTEST_LIBS}
+    ${RELEVANCED_NONSTATIC_LINK_LIBS}
+)
+
+
+set(FUNC_TEST_SOURCES
+    "document_processing_worker/test_functional/test_DocumentProcessingWorker.cpp"
+    "centroid_update_worker/test_functional/test_CentroidUpdateWorker.cpp"
+    "similarity_score_worker/test_functional/test_SimilarityScoreWorker.cpp"
+    "server/test_functional/test_RelevanceServer.cpp"
+    "testing/runTests.cpp"
+)
+add_executable(func_test_runner ${FUNC_TEST_SOURCES})
+add_dependencies(func_test_runner relevanced_core)
+target_link_libraries(func_test_runner
+    relevanced_core
+    ${GTEST_LIBS}
+    ${RELEVANCED_NONSTATIC_LINK_LIBS}
+)

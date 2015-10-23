@@ -8,7 +8,7 @@
 
 using namespace std;
 
-class MockRock : public persistence::RockHandleIf {
+class MockRock : public relevanced::persistence::RockHandleIf {
  public:
   MOCK_METHOD2(put, bool(string, rocksdb::Slice));
   MOCK_METHOD1(get, string(const string &));
@@ -16,17 +16,17 @@ class MockRock : public persistence::RockHandleIf {
   MOCK_METHOD1(exists, bool(const string &));
   MOCK_METHOD1(del, bool(const string &));
   MOCK_METHOD0(eraseEverything, bool());
-  bool iterRange(const std::string &start,
-                 const std::string &end,
+  bool iterRange(const std::string&,
+                 const std::string&,
                  std::function<void(const std::string &,
                                     std::function<void(std::string &) >,
-                                    std::function<void()>) > iterFn) {
+                                    std::function<void()>) >) {
     return false;
   }
-  bool iterPrefix(const std::string &prefix,
+  bool iterPrefix(const std::string&,
                   std::function<void(const std::string &,
                                      std::function<void(std::string &) >,
-                                     std::function<void()>) > iterFn) {
+                                     std::function<void()>) >) {
     return false;
   }
   bool iterPrefixFromOffset(
@@ -35,7 +35,7 @@ class MockRock : public persistence::RockHandleIf {
       size_t,
       std::function<void(const std::string &,
                          std::function<void(std::string &) >,
-                         std::function<void()>) > iterFn) {
+                         std::function<void()>) >) {
     return false;
   }
   bool iterPrefixFromMember(
@@ -44,12 +44,12 @@ class MockRock : public persistence::RockHandleIf {
       size_t,
       std::function<void(const std::string &,
                          std::function<void(std::string &) >,
-                         std::function<void()>) > iterFn) {
+                         std::function<void()>) > ) {
     return false;
   }
   bool iterAll(std::function<void(const std::string &,
                                   std::function<void(std::string &) >,
-                                  std::function<void()>) > iterFn) {
+                                  std::function<void()>) >) {
     return false;
   }
 };

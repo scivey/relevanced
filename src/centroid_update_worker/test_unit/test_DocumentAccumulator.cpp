@@ -24,7 +24,6 @@ TEST(TestDocumentAccumulator, Simple) {
   accumulator.addDocument(&doc2);
   auto magnitude = accumulator.getMagnitude();
   EXPECT_TRUE(magnitude > 1.0);
-  auto count = accumulator.getCount();
   EXPECT_EQ(2, accumulator.getCount());
   auto scores = accumulator.getScores();
   set<string> expectedWords {"foo", "bar", "cat"};

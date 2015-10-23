@@ -9,7 +9,7 @@
 #include <folly/Optional.h>
 #include <folly/futures/Try.h>
 #include <glog/logging.h>
-#include "TestHelpers.h"
+#include "testing/TestHelpers.h"
 #include "models/Document.h"
 #include "models/Centroid.h"
 
@@ -24,8 +24,8 @@
 #include "stopwords/StopwordFilter.h"
 #include "stemmer/StemmerIf.h"
 #include "tokenizer/Tokenizer.h"
-#include "MockSyncPersistence.h"
-#include "MockCentroidMetadataDb.h"
+#include "testing/MockSyncPersistence.h"
+#include "testing/MockCentroidMetadataDb.h"
 #include "util/util.h"
 #include "text_util/ScoredWord.h"
 

@@ -11,12 +11,12 @@
 #include <wangle/concurrent/CPUThreadPoolExecutor.h>
 #include <wangle/concurrent/FutureExecutor.h>
 
-#include "TestHelpers.h"
+#include "testing/TestHelpers.h"
 #include "gen-cpp2/RelevancedProtocol_types.h"
 #include "persistence/Persistence.h"
 #include "models/ProcessedDocument.h"
 #include "models/Centroid.h"
-#include "MockSyncPersistence.h"
+#include "testing/MockSyncPersistence.h"
 #include "util/util.h"
 using namespace std;
 using namespace wangle;

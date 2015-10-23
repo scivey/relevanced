@@ -13,7 +13,7 @@
 #include <wangle/concurrent/CPUThreadPoolExecutor.h>
 #include <wangle/concurrent/FutureExecutor.h>
 
-#include "TestHelpers.h"
+#include "testing/TestHelpers.h"
 #include "gen-cpp2/RelevancedProtocol_types.h"
 #include "persistence/Persistence.h"
 #include "persistence/SyncPersistence.h"
@@ -27,7 +27,7 @@
 #include "models/Centroid.h"
 #include "models/Document.h"
 
-#include "MockSyncPersistence.h"
+#include "testing/MockSyncPersistence.h"
 #include "util/util.h"
 #include "util/Clock.h"
 #include "util/Sha1Hasher.h"

@@ -99,4 +99,4 @@ configure_file(
 include_directories("${PROJECT_BINARY_DIR}/src")
 
 add_subdirectory(src)
-add_subdirectory(src/test)
+# add_subdirectory(src/test)

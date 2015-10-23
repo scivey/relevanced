@@ -13,7 +13,7 @@
 #include "models/Centroid.h"
 #include "persistence/SyncPersistence.h"
 #include "util/util.h"
-#include "TestHelpers.h"
+#include "testing/TestHelpers.h"
 using namespace std;
 using namespace folly;
 using namespace relevanced;

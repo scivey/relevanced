@@ -12,7 +12,7 @@
 #include <wangle/concurrent/FutureExecutor.h>
 
 #include "gen-cpp2/RelevancedProtocol_types.h"
-#include "TestHelpers.h"
+#include "testing/TestHelpers.h"
 #include "centroid_update_worker/CentroidUpdater.h"
 #include "centroid_update_worker/CentroidUpdateWorker.h"
 #include "centroid_update_worker/CentroidUpdaterFactory.h"
