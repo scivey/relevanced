@@ -8,7 +8,7 @@
 #include <wangle/concurrent/FutureExecutor.h>
 #include <folly/Optional.h>
 #include <folly/futures/Try.h>
-
+#include <glog/logging.h>
 #include "TestHelpers.h"
 #include "models/Document.h"
 #include "models/Centroid.h"
@@ -27,6 +27,8 @@
 #include "MockSyncPersistence.h"
 #include "MockCentroidMetadataDb.h"
 #include "util/util.h"
+#include "text_util/ScoredWord.h"
+
 
 using namespace std;
 using namespace wangle;
@@ -41,6 +43,7 @@ using relevanced::stopwords::StopwordFilterIf;
 using relevanced::stemmer::StemmerIf;
 using relevanced::tokenizer::TokenizerIf;
 using util::UniquePointer;
+using text_util::ScoredWord;
 using ::testing::Return;
 using ::testing::Invoke;
 using ::testing::_;
@@ -68,60 +71,23 @@ TEST(SimilarityScoreWorker, TestInitialization) {
   EXPECT_CALL(mockPersistence, listAllCentroids())
       .WillOnce(Return(centroidIds));
 
-  Centroid c1("centroid-1",
+  mockPersistence.addUniqueCentroid("centroid-1", new Centroid("centroid-1",
               map<string, double>{{"cat", 1.2}, {"dog", 9.5}, {"fish", 0.8}},
-              5.3);
-  Centroid c2("centroid-2",
+              5.3));
+  mockPersistence.addUniqueCentroid("centroid-2", new Centroid("centroid-2",
               map<string, double>{{"cat", 1.2}, {"dog", 9.5}, {"fish", 0.8}},
-              5.3);
-  Optional<shared_ptr<Centroid>> c1Opt(
-      shared_ptr<Centroid>(&c1, NonDeleter<Centroid>()));
-  Optional<shared_ptr<Centroid>> c2Opt(
-      shared_ptr<Centroid>(&c2, NonDeleter<Centroid>()));
-
-
-  EXPECT_CALL(mockPersistence, loadCentroidOption(_))
-      .WillOnce(Return(c1Opt))
-      .WillOnce(Return(c2Opt));
+              5.3));
 
   worker->initialize();
-
-  auto result1 = worker->getLoadedCentroid_("centroid-1");
+  auto result1 = worker->debugGetCentroid("centroid-1");
   EXPECT_TRUE(result1.hasValue());
   EXPECT_EQ("centroid-1", result1.value()->id);
 
-  auto result2 = worker->getLoadedCentroid_("centroid-2");
+  auto result2 = worker->debugGetCentroid("centroid-2");
   EXPECT_TRUE(result2.hasValue());
   EXPECT_EQ("centroid-2", result2.value()->id);
-}
 
-TEST(SimilarityScoreWorker, TestGetSetLoaded) {
-  MockSyncPersistence mockPersistence;
-  MockCentroidMetadataDb metadataDb;
-  auto worker = makeWorker(mockPersistence, metadataDb);
-  Centroid c1("centroid-1",
-              map<string, double>{{"cat", 1.2}, {"dog", 9.5}, {"fish", 0.8}},
-              5.3);
-  shared_ptr<Centroid> c1Ptr(&c1, NonDeleter<Centroid>());
-  worker->setLoadedCentroid_("centroid-1", c1Ptr);
-
-  auto res = worker->getLoadedCentroid_("centroid-1");
-  EXPECT_TRUE(res.hasValue());
-  EXPECT_EQ(c1Ptr, res.value());
-}
-
-TEST(SimilarityScoreWorker, TestGetLoadedCentroidMissing) {
-  MockSyncPersistence mockPersistence;
-  MockCentroidMetadataDb metadataDb;
-  auto worker = makeWorker(mockPersistence, metadataDb);
-  Centroid c1("irrelevant-centroid",
-              map<string, double>{{"cat", 1.2}, {"dog", 9.5}, {"fish", 0.8}},
-              5.3);
-  shared_ptr<Centroid> c1Ptr(&c1, NonDeleter<Centroid>());
-  worker->setLoadedCentroid_("irrelevant-centroid", c1Ptr);
-
-  auto res = worker->getLoadedCentroid_("centroid-id");
-  EXPECT_FALSE(res.hasValue());
+  EXPECT_FALSE(worker->debugGetCentroid("bad-centroid").hasValue());
 }
 
 TEST(SimilarityScoreWorker, TestReloadCentroid) {
@@ -129,29 +95,26 @@ TEST(SimilarityScoreWorker, TestReloadCentroid) {
   MockCentroidMetadataDb metadataDb;
   auto worker = makeWorker(mockPersistence, metadataDb);
 
-  Centroid c1Old("centroid-1",
+  mockPersistence.addUniqueCentroid("centroid-1", new Centroid ("centroid-1",
                  map<string, double>{{"cat", 1.2}, {"dog", 9.5}, {"fish", 0.8}},
-                 5.3);
-  Centroid c1New(
-      "centroid-1",
-      map<string, double>{{"cat", 503.1}, {"dog", 86.2}, {"fish", 1378.3}},
-      9873.9);
+                 5.3));
 
-  Optional<shared_ptr<Centroid>> c1NewOption(
-      shared_ptr<Centroid>(&c1New, NonDeleter<Centroid>()));
-  EXPECT_CALL(mockPersistence, loadCentroidOption("centroid-1"))
-      .WillOnce(Return(c1NewOption));
-
-  worker->setLoadedCentroid_(
-      "centroid-1", shared_ptr<Centroid>(&c1Old, NonDeleter<Centroid>()));
-  EXPECT_EQ(1.2, worker->getLoadedCentroid_("centroid-1")
-                     .value()
-                     ->wordVector.scores["cat"]);
+  auto nonexistent = worker->debugGetCentroid("centroid-1");
+  EXPECT_FALSE(nonexistent.hasValue());
 
   worker->reloadCentroid("centroid-1").get();
-  EXPECT_EQ(503.1, worker->getLoadedCentroid_("centroid-1")
-                       .value()
-                       ->wordVector.scores["cat"]);
+  auto existing = worker->debugGetCentroid("centroid-1");
+  EXPECT_TRUE(existing.hasValue());
+  EXPECT_EQ(5.3, existing.value()->wordVector.magnitude);
+
+  mockPersistence.addUniqueCentroid("centroid-1", new Centroid ("centroid-1",
+                 map<string, double>{{"cat", 1.2}, {"dog", 9.5}, {"fish", 0.8}},
+                 17.2));
+
+  worker->reloadCentroid("centroid-1").get();
+  auto reloaded = worker->debugGetCentroid("centroid-1");
+  EXPECT_TRUE(reloaded.hasValue());
+  EXPECT_EQ(17.2, reloaded.value()->wordVector.magnitude);
 }
 
 double mag3(double x, double y, double z) {
@@ -162,17 +125,17 @@ TEST(SimilarityScoreWorker, TestGetDocumentSimilarityHappy) {
   MockSyncPersistence mockPersistence;
   MockCentroidMetadataDb metadataDb;
   auto worker = makeWorker(mockPersistence, metadataDb);
-  ProcessedDocument document(
-      "doc-1",
-      map<string, double>{
-          {"dog", 5.8}, {"fox", 4.1}, {"sarah_jessica_parker", 15.1}},
-      mag3(5.8, 4.1, 15.1));
-  Centroid c1("centroid-1",
-              map<string, double>{{"cat", 1.2}, {"dog", 9.5}, {"fish", 0.8}},
-              mag3(1.2, 9.5, 0.8));
-  shared_ptr<Centroid> c1Ptr(&c1, NonDeleter<Centroid>());
-  worker->setLoadedCentroid_("centroid-1", c1Ptr);
+  vector<ScoredWord> words {
+    ScoredWord("dog", 3, 5.8),
+    ScoredWord("fox", 3, 4.1),
+    ScoredWord("sarah_jessica_parker", 20, 15.1)
+  };
+  ProcessedDocument document("doc-1", words, mag3(5.8, 4.1, 15.1));
 
+  mockPersistence.addUniqueCentroid("centroid-1", new Centroid ("centroid-1",
+              map<string, double>{{"cat", 1.2}, {"dog", 9.5}, {"fish", 0.8}},
+              mag3(1.2, 9.5, 0.8)));
+  worker->reloadCentroid("centroid-1").get();
   auto result = worker->getDocumentSimilarity("centroid-1", &document).get();
   EXPECT_FALSE(result.hasException());
   auto score = result.value();
@@ -184,30 +147,31 @@ TEST(SimilarityScoreWorker, TestGetDocumentSimilarityMissingCentroid) {
   MockSyncPersistence mockPersistence;
   MockCentroidMetadataDb metadataDb;
   auto worker = makeWorker(mockPersistence, metadataDb);
-  ProcessedDocument document(
-      "doc-1",
-      map<string, double>{
-          {"dog", 5.8}, {"fox", 4.1}, {"sarah_jessica_parker", 15.1}},
-      mag3(5.8, 4.1, 15.1));
-  Centroid c1("irrelevant-centroid",
+  vector<ScoredWord> words {
+    ScoredWord("dog", 3, 5.8),
+    ScoredWord("fox", 3, 4.1),
+    ScoredWord("sarah_jessica_parker", 20, 15.1)
+  };
+  mockPersistence.addUniqueCentroid("centroid-1", new Centroid ("centroid-1",
               map<string, double>{{"cat", 1.2}, {"dog", 9.5}, {"fish", 0.8}},
-              mag3(1.2, 9.5, 0.8));
-  shared_ptr<Centroid> c1Ptr(&c1, NonDeleter<Centroid>());
-  worker->setLoadedCentroid_("irrelevant-centroid-1", c1Ptr);
-  auto result = worker->getDocumentSimilarity("centroid-1", &document).get();
+              mag3(1.2, 9.5, 0.8)));
+  worker->reloadCentroid("centroid-1").get();
+
+  ProcessedDocument document("doc-1", words, mag3(5.8, 4.1, 15.1));
+  auto result = worker->getDocumentSimilarity("other-centroid", &document).get();
   EXPECT_TRUE(result.hasException<ECentroidDoesNotExist>());
 }
-
 
 TEST(SimilarityScoreWorker, TestGetDocumentSimilarityNoCentroidNoNoneAtAll) {
   MockSyncPersistence mockPersistence;
   MockCentroidMetadataDb metadataDb;
   auto worker = makeWorker(mockPersistence, metadataDb);
-  ProcessedDocument document(
-      "doc-1",
-      map<string, double>{
-          {"dog", 5.8}, {"fox", 4.1}, {"sarah_jessica_parker", 15.1}},
-      mag3(5.8, 4.1, 15.1));
+  vector<ScoredWord> words {
+    ScoredWord("dog", 3, 5.8),
+    ScoredWord("fox", 3, 4.1),
+    ScoredWord("sarah_jessica_parker", 20, 15.1)
+  };
+  ProcessedDocument document("doc-1", words, mag3(5.8, 4.1, 15.1));
   auto result = worker->getDocumentSimilarity("centroid-1", &document).get();
   EXPECT_TRUE(result.hasException<ECentroidDoesNotExist>());
 }

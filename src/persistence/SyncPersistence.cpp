@@ -2,7 +2,6 @@
 #include "persistence/SyncPersistence.h"
 
 
-#include <cassert>
 #include <memory>
 #include <string>
 #include <vector>
@@ -71,7 +70,7 @@ vector<string> SyncPersistence::listAllDocuments() {
                                     function<void(string &) >,
                                     function<void()>) {
                             auto offset = key.find(':');
-                            assert(offset != string::npos);
+                            DCHECK(offset != string::npos);
                             docIds.push_back(key.substr(offset + 1));
                           });
   return docIds;
@@ -87,7 +86,7 @@ vector<string> SyncPersistence::listDocumentRangeFromId(
                                               function<void(string &) >,
                                               function<void()>) {
                                       auto offset = key.find(':');
-                                      assert(offset != string::npos);
+                                      DCHECK(offset != string::npos);
                                       docIds.push_back(key.substr(offset + 1));
                                     });
   return docIds;
@@ -103,7 +102,7 @@ vector<string> SyncPersistence::listDocumentRangeFromOffset(size_t offset,
                                               function<void(string &) >,
                                               function<void()>) {
                                       auto offset = key.find(':');
-                                      assert(offset != string::npos);
+                                      DCHECK(offset != string::npos);
                                       docIds.push_back(key.substr(offset + 1));
                                     });
   return docIds;
@@ -174,7 +173,7 @@ Try<bool> SyncPersistence::deleteCentroid(const string &id) {
       [&associatedDocuments](
           const string &key, function<void(string &) >, function<void()>) {
         auto offset = key.find(':');
-        assert(offset != string::npos);
+        DCHECK(offset != string::npos);
         associatedDocuments.push_back(key.substr(offset + 1));
       });
   for (auto &docId : associatedDocuments) {
@@ -230,12 +229,12 @@ Optional<shared_ptr<Centroid>> SyncPersistence::loadCentroidOption(
   return result;
 }
 
-Optional<unique_ptr<Centroid>> SyncPersistence::loadCentroidUniqueOption(
+Optional<util::UniquePointer<Centroid>> SyncPersistence::loadCentroidUniqueOption(
     const string &id) {
-  Optional<unique_ptr<Centroid>> result;
+  Optional<util::UniquePointer<Centroid>> result;
   auto loadedRaw = loadCentroidRaw(id);
   if (loadedRaw.hasValue()) {
-    result.assign(std::move(unique_ptr<Centroid>(loadedRaw.value())));
+    result.assign(std::move(util::UniquePointer<Centroid>(loadedRaw.value())));
   }
   return result;
 }
@@ -249,7 +248,7 @@ vector<string> SyncPersistence::listAllCentroids() {
                                          function<void(string &) >,
                                          function<void()>) {
                             auto offset = key.find(':');
-                            assert(offset != string::npos);
+                            DCHECK(offset != string::npos);
                             centroidIds.push_back(key.substr(offset + 1));
                           });
   return centroidIds;
@@ -266,7 +265,7 @@ vector<string> SyncPersistence::listCentroidRangeFromOffset(size_t offset,
       [&centroidIds](
           const string &key, function<void(string &) >, function<void()>) {
         auto offset = key.find(':');
-        assert(offset != string::npos);
+        DCHECK(offset != string::npos);
         centroidIds.push_back(key.substr(offset + 1));
       });
   return centroidIds;
@@ -283,7 +282,7 @@ vector<string> SyncPersistence::listCentroidRangeFromId(
       [&centroidIds](
           const string &key, function<void(string &) >, function<void()>) {
         auto offset = key.find(':');
-        assert(offset != string::npos);
+        DCHECK(offset != string::npos);
         centroidIds.push_back(key.substr(offset + 1));
       });
   return centroidIds;
@@ -337,7 +336,7 @@ vector<string> SyncPersistence::listAllDocumentsForCentroidRaw(
                                          function<void(string &) >,
                                          function<void()>) {
                             auto offset = key.find(':');
-                            assert(offset != string::npos);
+                            DCHECK(offset != string::npos);
                             documentIds.push_back(key.substr(offset + 1));
                           });
   return documentIds;
@@ -374,7 +373,7 @@ vector<string> SyncPersistence::listCentroidDocumentRangeFromOffsetRaw(
       [&documentIds](
           const string &key, function<void(string &) >, function<void()>) {
         auto offset = key.find(':');
-        assert(offset != string::npos);
+        DCHECK(offset != string::npos);
         documentIds.push_back(key.substr(offset + 1));
       });
   return documentIds;
@@ -413,7 +412,7 @@ vector<string> SyncPersistence::listCentroidDocumentRangeFromDocumentIdRaw(
       [&documentIds](
           const string &key, function<void(string &) >, function<void()>) {
         auto offset = key.find(':');
-        assert(offset != string::npos);
+        DCHECK(offset != string::npos);
         documentIds.push_back(key.substr(offset + 1));
       });
   return documentIds;

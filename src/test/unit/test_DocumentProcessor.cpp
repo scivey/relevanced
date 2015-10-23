@@ -8,8 +8,8 @@
 #include "document_processing_worker/DocumentProcessor.h"
 #include "models/ProcessedDocument.h"
 #include "stopwords/StopwordFilter.h"
-#include "stemmer/StemmerIf.h"
-#include "tokenizer/Tokenizer.h"
+#include "stemmer/Utf8Stemmer.h"
+
 #include "util/Clock.h"
 #include "MockClock.h"
 
@@ -19,66 +19,43 @@ using namespace relevanced::models;
 using namespace relevanced::document_processing_worker;
 using namespace relevanced::util;
 using relevanced::stopwords::StopwordFilterIf;
+using relevanced::stemmer::Utf8Stemmer;
 using relevanced::stemmer::StemmerIf;
-using relevanced::tokenizer::TokenizerIf;
+
 using ::testing::Return;
 using ::testing::_;
 
-class MockTokenizer : public TokenizerIf {
- public:
-  MOCK_METHOD1(tokenize, vector<string>(const string &text));
-};
-
 class MockStopwordFilter : public StopwordFilterIf {
  public:
-  MOCK_METHOD1(isStopword, bool(const string &text));
+  bool isStopword(const string &text) {
+    return false;
+  }
 };
 
-class MockStemmer : public StemmerIf {
- public:
-  MOCK_METHOD1(stem, string(const string &text));
-  MOCK_METHOD1(stemInPlace, void(string &text));
+class NonStemmer: public StemmerIf {
+public:
+  size_t getStemPos(const char*, size_t length) {
+    return length;
+  }
 };
 
 TEST(DocumentProcessor, Simple) {
-  vector<string> tokens = {"this", "is", "some", "text"};
-  MockTokenizer tokenizer_;
-  shared_ptr<TokenizerIf> tokenizer(&tokenizer_, NonDeleter<TokenizerIf>());
-  EXPECT_CALL(tokenizer_, tokenize("this is some text"))
-      .WillOnce(Return(tokens));
-
-  MockStemmer stemmer_;
-  shared_ptr<StemmerIf> stemmer(&stemmer_, NonDeleter<StemmerIf>());
-  EXPECT_CALL(stemmer_, stemInPlace(tokens.at(0)));
-  EXPECT_CALL(stemmer_, stemInPlace(tokens.at(1)));
-  EXPECT_CALL(stemmer_, stemInPlace(tokens.at(2)));
-  EXPECT_CALL(stemmer_, stemInPlace(tokens.at(3)));
 
   MockStopwordFilter stopwordFilter_;
   shared_ptr<StopwordFilterIf> stopwordFilter(&stopwordFilter_,
                                               NonDeleter<StopwordFilterIf>());
-  EXPECT_CALL(stopwordFilter_, isStopword(tokens.at(0)))
-      .WillOnce(Return(false));
-  EXPECT_CALL(stopwordFilter_, isStopword(tokens.at(1))).WillOnce(Return(true));
-  EXPECT_CALL(stopwordFilter_, isStopword(tokens.at(2)))
-      .WillOnce(Return(false));
-  EXPECT_CALL(stopwordFilter_, isStopword(tokens.at(3)))
-      .WillOnce(Return(false));
 
   MockClock mClock;
   shared_ptr<ClockIf> clockPtr(&mClock, NonDeleter<ClockIf>());
 
   EXPECT_CALL(mClock, getEpochTime()).WillOnce(Return(1234));
 
-  DocumentProcessor processor(tokenizer, stemmer, stopwordFilter, clockPtr);
-  Document toProcess("doc-id", "this is some text");
+  DocumentProcessor processor(make_shared<NonStemmer>(), stopwordFilter, clockPtr);
+  Document toProcess("doc-id", "some text about fish fish text");
   auto result = processor.process(toProcess);
   EXPECT_EQ("doc-id", result.id);
-  EXPECT_EQ(3, result.wordVector.scores.size());
-  auto counts = &result.wordVector.scores;
-  EXPECT_TRUE(counts->find("this") != counts->end());
-  EXPECT_TRUE(counts->find("some") != counts->end());
-  EXPECT_TRUE(counts->find("text") != counts->end());
+  EXPECT_EQ(4, result.scoredWords.size());
   EXPECT_EQ(1234, result.created);
   EXPECT_EQ(1234, result.updated);
+
 }

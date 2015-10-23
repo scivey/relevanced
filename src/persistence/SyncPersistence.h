@@ -41,7 +41,7 @@ class SyncPersistenceIf {
       const std::string &id) = 0;
   virtual folly::Optional<std::shared_ptr<models::Centroid>> loadCentroidOption(
       const std::string &id) = 0;
-  virtual folly::Optional<std::unique_ptr<models::Centroid>> loadCentroidUniqueOption(
+  virtual folly::Optional<util::UniquePointer<models::Centroid>> loadCentroidUniqueOption(
       const std::string &id) = 0;
   virtual std::vector<std::string> listAllCentroids() = 0;
   virtual std::vector<std::string> listCentroidRangeFromOffset(
@@ -129,7 +129,7 @@ class SyncPersistence : public SyncPersistenceIf {
       const std::string &id) override;
   folly::Optional<std::shared_ptr<models::Centroid>> loadCentroidOption(
       const std::string &id) override;
-  folly::Optional<std::unique_ptr<models::Centroid>> loadCentroidUniqueOption(const std::string &id) override;
+  folly::Optional<util::UniquePointer<models::Centroid>> loadCentroidUniqueOption(const std::string &id) override;
   std::vector<std::string> listAllCentroids() override;
   std::vector<std::string> listCentroidRangeFromOffset(size_t offset,
                                                        size_t limit) override;

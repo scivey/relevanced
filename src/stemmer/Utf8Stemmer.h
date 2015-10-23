@@ -1,20 +1,18 @@
 #pragma once
 
-#include <string>
-#include <cstring>
-#include "libstemmer.h"
+#include "stemmer/StemmerIf.h"
 
 struct sb_stemmer;
 
 namespace relevanced {
-namespace text_util {
+namespace stemmer {
 
-class Utf8Stemmer {
+class Utf8Stemmer: public StemmerIf {
 protected:
   struct sb_stemmer *stemmer_;
 public:
   Utf8Stemmer();
-  size_t getStemPos(const char *toStem, size_t length);
+  size_t getStemPos(const char *toStem, size_t length) override;
   ~Utf8Stemmer();
 };
 

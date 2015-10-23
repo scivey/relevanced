@@ -53,7 +53,7 @@ class SimilarityScoreWorker : public SimilarityScoreWorkerIf {
   std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>>
       threadPool_;
 
-  std::unique_ptr<util::ConcurrentMap<std::string, models::Centroid>> centroids_;
+  std::shared_ptr<util::ConcurrentMap<std::string, models::Centroid>> centroids_;
 
  public:
   SimilarityScoreWorker(
@@ -70,6 +70,8 @@ class SimilarityScoreWorker : public SimilarityScoreWorkerIf {
       std::shared_ptr<models::ProcessedDocument> doc) override;
   folly::Future<folly::Try<double>> getCentroidSimilarity(
       std::string centroid1Id, std::string centroid2Id) override;
+  folly::Optional<util::ConcurrentMap<std::string, models::Centroid>::ReadPtr> debugGetCentroid(const std::string&);
+  ~SimilarityScoreWorker();
 };
 
 } // similarity_score_worker

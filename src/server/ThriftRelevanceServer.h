@@ -57,9 +57,6 @@ class ThriftRelevanceServer : public thrift_protocol::RelevancedSvIf {
   folly::Future<std::unique_ptr<thrift_protocol::DeleteDocumentResponse>>
   future_deleteDocument(std::unique_ptr<std::string> id) override;
 
-  // folly::Future<std::unique_ptr<thrift_protocol::GetDocumentResponse>>
-  // future_getDocument(std::unique_ptr<std::string> id) override;
-
   folly::Future<std::unique_ptr<thrift_protocol::CreateCentroidResponse>>
   future_createCentroid(std::unique_ptr<std::string> centroidId) override;
 

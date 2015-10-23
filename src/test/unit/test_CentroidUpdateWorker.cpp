@@ -14,8 +14,13 @@
 #include "gen-cpp2/RelevancedProtocol_types.h"
 #include "TestHelpers.h"
 #include "centroid_update_worker/CentroidUpdater.h"
-#include "centroid_update_worker/CentroidUpdaterFactory.h"
 #include "centroid_update_worker/CentroidUpdateWorker.h"
+#include "centroid_update_worker/CentroidUpdaterFactory.h"
+#include "centroid_update_worker/DocumentAccumulator.h"
+#include "centroid_update_worker/DocumentAccumulatorFactory.h"
+#include "persistence/SyncPersistence.h"
+#include "persistence/Persistence.h"
+
 #include "document_processing_worker/DocumentProcessingWorker.h"
 #include "models/ProcessedDocument.h"
 

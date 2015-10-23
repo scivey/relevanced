@@ -29,12 +29,12 @@ set(RELEVANCED_LINK_LIBRARIES
 
 set(UNIT_TEST_SOURCES
   "unit/test_CentroidUpdateWorker.cpp"
+  "unit/test_CentroidUpdater.cpp"
   "unit/test_CentroidMetadataDb.cpp"
   "unit/test_DocumentProcessingWorker.cpp"
   "unit/test_DocumentProcessor.cpp"
   "unit/test_DocumentSerialization.cpp"
   "unit/test_InMemoryRockHandle.cpp"
-  "unit/test_PorterStemmer.cpp"
   "unit/test_SimilarityScoreWorker.cpp"
   "unit/test_StopwordFilter.cpp"
   "unit/test_SyncPersistence.cpp"
@@ -74,6 +74,28 @@ add_dependencies(rock_handle_test relevanced_core)
 
 target_link_libraries(
   rock_handle_test
+  relevanced_core
+  ${GTEST_LIBS}
+  ${RELEVANCED_LINK_LIBRARIES}
+)
+
+
+set(FUNC_TEST_SOURCES
+  "functional/test_CentroidUpdateWorker.cpp"
+  "functional/test_DocumentProcessingWorker.cpp"
+  "functional/test_SimilarityScoreWorker.cpp"
+  "functional/test_RelevanceServer.cpp"
+  "functional/runTests.cpp"
+)
+
+add_executable(
+  func_test ${FUNC_TEST_SOURCES}
+)
+
+add_dependencies(func_test relevanced_core)
+
+target_link_libraries(
+  func_test
   relevanced_core
   ${GTEST_LIBS}
   ${RELEVANCED_LINK_LIBRARIES}

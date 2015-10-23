@@ -1,3 +1,4 @@
+
 #include <cassert>
 #include <vector>
 #include <memory>
@@ -71,13 +72,12 @@ void RockHandle::closeDb() {
 }
 
 void RockHandle::openDb() {
-  assert(db_ == nullptr);
-  assert(txnDb_.get() == nullptr);
+  CHECK(txnDb_.get() == nullptr);
   rocksdb::OptimisticTransactionDB *txnDbPtr = nullptr;
   auto status = rocksdb::OptimisticTransactionDB::Open(
       options_, dbPath_.c_str(), &txnDbPtr);
-  assert(status.ok());
-  assert(txnDbPtr != nullptr);
+  CHECK(status.ok());
+  CHECK(txnDbPtr != nullptr);
   txnDb_.reset(txnDbPtr);
   db_ = txnDb_->GetBaseDB();
 }
@@ -90,7 +90,7 @@ bool RockHandle::put(string key, rocksdb::Slice val) {
 string RockHandle::get(const string &key) {
   string val;
   auto status = db_->Get(readOptions_, key, &val);
-  assert(status.ok());
+  CHECK(status.ok());
   return val;
 }
 

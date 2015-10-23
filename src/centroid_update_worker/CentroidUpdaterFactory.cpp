@@ -13,13 +13,17 @@ namespace centroid_update_worker {
 CentroidUpdaterFactory::CentroidUpdaterFactory(
     shared_ptr<persistence::PersistenceIf> persistence,
     shared_ptr<persistence::CentroidMetadataDbIf> metadata,
+    shared_ptr<DocumentAccumulatorFactoryIf> accumulatorFactory,
     shared_ptr<util::ClockIf> clock)
-    : persistence_(persistence), centroidMetadataDb_(metadata), clock_(clock) {}
+    : persistence_(persistence),
+      centroidMetadataDb_(metadata),
+      accumulatorFactory_(accumulatorFactory),
+      clock_(clock) {}
 
 shared_ptr<CentroidUpdaterIf> CentroidUpdaterFactory::makeForCentroidId(
     const string &centroidId) {
   return shared_ptr<CentroidUpdaterIf>(new CentroidUpdater(
-      persistence_, centroidMetadataDb_, clock_, centroidId));
+      persistence_, centroidMetadataDb_, clock_, accumulatorFactory_, centroidId));
 }
 
 } // centroid_update_worker

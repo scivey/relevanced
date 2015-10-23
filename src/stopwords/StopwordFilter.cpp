@@ -31,9 +31,35 @@ bool isNumeric(const string &word) {
   return true;
 }
 
+bool isAsciiAlpha(char c) {
+  return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+}
+
+bool isAsciiNumeric(char c) {
+  return (c >= '0' && c <= '9');
+}
+
+bool isAsciiAlphaNumeric(char c) {
+  return isAsciiAlpha(c) || isAsciiNumeric(c);
+}
+
+bool isAsciiWhitespace(char c) {
+  return (c == ' ' || c == '\t' || c == '\r' || c == '\n');
+}
+
+bool isPunctuation(char c) {
+  return (c < '0' || (c < 'A' && c > '9') || (c > 'Z' && c < 'a') || c > 'z');
+}
+
 bool StopwordFilter::isStopword(const string &word) {
-  return (word.size() <= 2) || isEnglishStopword(word) || isPunctuation(word) ||
-         isNumeric(word);
+  if (word.size() <= 2) {
+    return true;
+  }
+  auto first = word.at(0);
+  if (isPunctuation(first) || isAsciiNumeric(first) || isAsciiWhitespace(first)) {
+    return true;
+  }
+  return isEnglishStopword(word);
 }
 
 } // stopwords

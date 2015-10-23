@@ -12,9 +12,7 @@ struct StringView {
   StringView(const char *base, size_t len): base(base), len(len){}
 };
 
-bool operator==(const StringView &sv1, const StringView &sv2) {
-  return strncmp(sv1.base, sv2.base, sv1.len - 1) == 0;
-}
+bool operator==(const StringView &sv1, const StringView &sv2);
 
 } // text_util
 } // relevanced

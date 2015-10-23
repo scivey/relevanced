@@ -29,7 +29,8 @@ using namespace wangle;
 CentroidUpdateWorker::CentroidUpdateWorker(
     shared_ptr<CentroidUpdaterFactoryIf> updaterFactory,
     shared_ptr<FutureExecutor<CPUThreadPoolExecutor>> threadPool)
-    : updaterFactory_(updaterFactory), threadPool_(threadPool) {}
+    : updaterFactory_(updaterFactory),
+      threadPool_(threadPool) {}
 
 void CentroidUpdateWorker::initialize() {
   chrono::milliseconds initialDelay(5000);

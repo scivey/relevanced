@@ -16,6 +16,8 @@
 #include <folly/Optional.h>
 
 #include "centroid_update_worker/CentroidUpdater.h"
+#include "centroid_update_worker/DocumentAccumulator.h"
+
 #include "models/Centroid.h"
 #include "models/ProcessedDocument.h"
 #include "models/WordVector.h"
@@ -40,10 +42,12 @@ CentroidUpdater::CentroidUpdater(
     shared_ptr<persistence::PersistenceIf> persistence,
     shared_ptr<persistence::CentroidMetadataDbIf> metadataDb,
     shared_ptr<util::ClockIf> clock,
+    shared_ptr<DocumentAccumulatorFactoryIf> accumulatorFactory,
     string centroidId)
     : persistence_(persistence),
       centroidMetadataDb_(metadataDb),
       clock_(clock),
+      accumulatorFactory_(accumulatorFactory),
       centroidId_(centroidId) {}
 
 Try<bool> CentroidUpdater::run() {
@@ -68,10 +72,9 @@ Try<bool> CentroidUpdater::run() {
         centroidId_);
     return Try<bool>(make_exception_wrapper<ECentroidDoesNotExist>());
   }
+  auto accumulator = accumulatorFactory_->get();
 
-  vector<string> idSet = firstIdSet.value();
-  map<string, double> centroidScores;
-  size_t docCount{0};
+  vector<string> idSet = std::move(firstIdSet.value());
   do {
     LOG(INFO) << format("looping: current id set batch size: {}", idSet.size());
 
@@ -105,16 +108,7 @@ Try<bool> CentroidUpdater::run() {
           persistence_->removeDocumentFromCentroid(centroidId_, docId);
           continue;
         }
-        LOG(INFO) << format("adding document: '{}'", idSet.at(i));
-        docCount++;
-        for (auto &elem : doc.value()->scoredWords) {
-          string key = elem.word;
-          if (centroidScores.find(key) == centroidScores.end()) {
-            centroidScores[key] = elem.score;
-          } else {
-            centroidScores[key] += elem.score;
-          }
-        }
+        accumulator->addDocument(doc.value().get());
       }
     }
 
@@ -130,16 +124,10 @@ Try<bool> CentroidUpdater::run() {
 
   } while (idSet.size() >= idListBatchSize);
 
-  double centroidMagnitude = 0.0;
-  for (auto &elem : centroidScores) {
-    centroidMagnitude += pow(elem.second, 2);
-  }
-  centroidMagnitude = sqrt(centroidMagnitude);
-
   auto centroid = make_shared<Centroid>(centroidId_);
-  centroid->wordVector.scores = centroidScores;
-  centroid->wordVector.magnitude = centroidMagnitude;
-  centroid->wordVector.documentWeight = docCount;
+  centroid->wordVector.magnitude = accumulator->getMagnitude();
+  centroid->wordVector.documentWeight = accumulator->getCount();
+  centroid->wordVector.scores = std::move(accumulator->getScores());
   LOG(INFO) << "persisting...";
   persistence_->saveCentroid(centroidId_, centroid).get();
   centroidMetadataDb_->setLastCalculatedTimestamp(centroidId_, startTimestamp);

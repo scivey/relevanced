@@ -39,6 +39,10 @@ struct UniquePointer {
 
   UniquePointer(const UniquePointer<T> &other) = delete;
 
+  T* release() {
+    return ptr.release();
+  }
+
   UniquePointer(std::unique_ptr<T, std::function<void(T *) >> &&otherPtr)
       : ptr(std::move(otherPtr)) {}
 

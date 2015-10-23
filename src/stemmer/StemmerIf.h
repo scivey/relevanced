@@ -6,8 +6,7 @@ namespace stemmer {
 
 class StemmerIf {
  public:
-  virtual std::string stem(const std::string &word) = 0;
-  virtual void stemInPlace(std::string &word) = 0;
+  virtual size_t getStemPos(const char *base, size_t length) = 0;
 };
 
 } // stemmer

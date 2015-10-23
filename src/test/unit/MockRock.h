@@ -15,18 +15,18 @@ class MockRock : public persistence::RockHandleIf {
   MOCK_METHOD2(get, bool(const string &, string &));
   MOCK_METHOD1(exists, bool(const string &));
   MOCK_METHOD1(del, bool(const string &));
-  MOCK_METHOD1(eraseEverything, void());
+  MOCK_METHOD0(eraseEverything, bool());
   bool iterRange(const std::string &start,
                  const std::string &end,
                  std::function<void(const std::string &,
                                     std::function<void(std::string &) >,
-                                    std::function<void()>) > iterFn) override {
+                                    std::function<void()>) > iterFn) {
     return false;
   }
   bool iterPrefix(const std::string &prefix,
                   std::function<void(const std::string &,
                                      std::function<void(std::string &) >,
-                                     std::function<void()>) > iterFn) override {
+                                     std::function<void()>) > iterFn) {
     return false;
   }
   bool iterPrefixFromOffset(
@@ -35,7 +35,7 @@ class MockRock : public persistence::RockHandleIf {
       size_t,
       std::function<void(const std::string &,
                          std::function<void(std::string &) >,
-                         std::function<void()>) > iterFn) override {
+                         std::function<void()>) > iterFn) {
     return false;
   }
   bool iterPrefixFromMember(
@@ -44,12 +44,12 @@ class MockRock : public persistence::RockHandleIf {
       size_t,
       std::function<void(const std::string &,
                          std::function<void(std::string &) >,
-                         std::function<void()>) > iterFn) override {
+                         std::function<void()>) > iterFn) {
     return false;
   }
   bool iterAll(std::function<void(const std::string &,
                                   std::function<void(std::string &) >,
-                                  std::function<void()>) > iterFn) override {
+                                  std::function<void()>) > iterFn) {
     return false;
   }
 };

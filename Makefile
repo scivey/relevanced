@@ -80,6 +80,14 @@ test-rock:
 	rm -rf build/bin/test_data && mkdir -p build/bin/test_data
 	cd build/bin && cmake ../../ && make rock_handle_test -j4 && ./src/test/rock_handle_test
 
+test-func:
+	mkdir -p build/bin
+	cd build/bin && make func_test -j4 && ./src/test/func_test
+
+test-func-refresh:
+	mkdir -p build/bin
+	cd build/bin && cmake ../../ && make func_test -j4 && ./src/test/func_test
+
 .PHONY: test-unit test-rock test-all run package build-server-static
 
 test-all: test-unit test-rock

@@ -6,12 +6,11 @@
 #include <thrift/lib/cpp2/async/AsyncProcessor.h>
 
 #include "stopwords/StopwordFilter.h"
-#include "tokenizer/Tokenizer.h"
 #include "stemmer/StemmerIf.h"
-#include "stemmer/PorterStemmer.h"
 #include "document_processing_worker/DocumentProcessor.h"
 #include "document_processing_worker/DocumentProcessingWorker.h"
 #include "centroid_update_worker/CentroidUpdaterFactory.h"
+#include "centroid_update_worker/DocumentAccumulatorFactory.h"
 #include "persistence/Persistence.h"
 #include "persistence/SyncPersistence.h"
 #include "persistence/RockHandle.h"
@@ -37,11 +36,8 @@ using namespace similarity_score_worker;
 using namespace centroid_update_worker;
 using namespace document_processing_worker;
 using relevanced::stemmer::StemmerIf;
-using relevanced::stemmer::PorterStemmer;
 using relevanced::stopwords::StopwordFilter;
 using relevanced::stopwords::StopwordFilterIf;
-using relevanced::tokenizer::TokenizerIf;
-using relevanced::tokenizer::Tokenizer;
 using wangle::CPUThreadPoolExecutor;
 using wangle::FutureExecutor;
 using util::UniquePointer;
@@ -97,30 +93,35 @@ class ServerBuilder {
 
   template <typename ProcessWorkerT,
             typename ProcessorT,
-            typename TokenizerT,
             typename StemmerT,
             typename StopwordFilterT,
             typename HasherT>
   void buildDocumentProcessor() {
     assert(clock_.get() != nullptr);
-    shared_ptr<TokenizerIf> tokenizer(new TokenizerT);
     shared_ptr<StemmerIf> stemmer(new StemmerT);
     shared_ptr<StopwordFilterIf> stopwordFilter(new StopwordFilterT);
     shared_ptr<DocumentProcessorIf> processor(
-        new ProcessorT(tokenizer, stemmer, stopwordFilter, clock_));
+        new ProcessorT(stemmer, stopwordFilter, clock_));
     auto threadPool = make_shared<FutureExecutor<CPUThreadPoolExecutor>>(
         options_->getDocumentProcessingThreadCount());
     shared_ptr<util::Sha1HasherIf> hasher(new HasherT);
     processor_.reset(new ProcessWorkerT(processor, hasher, threadPool));
   }
 
-  template <typename CentroidUpdateWorkerT, typename CentroidUpdaterFactoryT>
+  template <
+    typename CentroidUpdateWorkerT,
+    typename CentroidUpdaterFactoryT,
+    typename DocumentAccumulatorFactoryT
+  >
   void buildCentroidUpdateWorker() {
     assert(persistence_.get() != nullptr);
     assert(clock_.get() != nullptr);
 
+    shared_ptr<DocumentAccumulatorFactoryIf> accumulator(
+      new DocumentAccumulatorFactoryT
+    );
     shared_ptr<CentroidUpdaterFactoryIf> updaterFactory(
-        new CentroidUpdaterFactoryT(persistence_, centroidMetadataDb_, clock_));
+        new CentroidUpdaterFactoryT(persistence_, centroidMetadataDb_, accumulator, clock_));
     auto threadPool = make_shared<FutureExecutor<CPUThreadPoolExecutor>>(
         options_->getCentroidUpdateThreadCount());
     centroidUpdater_.reset(

@@ -2,6 +2,7 @@
 #include "simpleServerBuilders.h"
 #include "centroid_update_worker/CentroidUpdateWorker.h"
 #include "centroid_update_worker/CentroidUpdaterFactory.h"
+#include "centroid_update_worker/DocumentAccumulatorFactory.h"
 #include "document_processing_worker/DocumentProcessor.h"
 #include "document_processing_worker/DocumentProcessingWorker.h"
 #include "persistence/Persistence.h"
@@ -14,7 +15,7 @@
 #include "server/ThriftRelevanceServer.h"
 #include "server/ThriftServerWrapper.h"
 #include "similarity_score_worker/SimilarityScoreWorker.h"
-#include "stemmer/PorterStemmer.h"
+#include "stemmer/ThreadSafeUtf8Stemmer.h"
 #include "stemmer/StemmerIf.h"
 #include "stopwords/StopwordFilter.h"
 #include "tokenizer/Tokenizer.h"
@@ -30,7 +31,7 @@ using namespace relevanced::persistence;
 using namespace relevanced::similarity_score_worker;
 using namespace relevanced::server;
 using relevanced::stopwords::StopwordFilter;
-using relevanced::stemmer::PorterStemmer;
+using relevanced::stemmer::ThreadSafeUtf8Stemmer;
 using relevanced::tokenizer::Tokenizer;
 
 namespace relevanced {
@@ -43,10 +44,11 @@ shared_ptr<ThriftServerWrapper> buildNormalThriftServer(
   builder.buildPersistence<RockHandle, SyncPersistence, Persistence,
                            CentroidMetadataDb>();
   builder.buildDocumentProcessor<DocumentProcessingWorker, DocumentProcessor,
-                                 Tokenizer, PorterStemmer, StopwordFilter,
+                                 ThreadSafeUtf8Stemmer, StopwordFilter,
                                  util::Sha1Hasher>();
   builder.buildCentroidUpdateWorker<CentroidUpdateWorker,
-                                    CentroidUpdaterFactory>();
+                                    CentroidUpdaterFactory,
+                                    DocumentAccumulatorFactory>();
   builder.buildSimilarityWorker<SimilarityScoreWorker>();
   auto server = builder.buildThriftServer<RelevanceServer>();
   auto wrapper = std::make_shared<ThriftServerWrapper>(server);

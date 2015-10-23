@@ -85,6 +85,8 @@ set(RELEVANCED_BASE_SOURCES
     "centroid_update_worker/CentroidUpdater.cpp"
     "centroid_update_worker/CentroidUpdaterFactory.cpp"
     "centroid_update_worker/CentroidUpdateWorker.cpp"
+    "centroid_update_worker/DocumentAccumulator.cpp"
+    "centroid_update_worker/DocumentAccumulatorFactory.cpp"
     "document_processing_worker/DocumentProcessingWorker.cpp"
     "document_processing_worker/DocumentProcessor.cpp"
     "gen-cpp2/Relevanced.cpp"
@@ -106,17 +108,17 @@ set(RELEVANCED_BASE_SOURCES
     "server/RelevanceServerOptions.cpp"
     "server/simpleServerBuilders.cpp"
     "similarity_score_worker/SimilarityScoreWorker.cpp"
-    "stemmer/PorterStemmer.cpp"
     "stopwords/english_stopwords.cpp"
     "stopwords/StopwordFilter.cpp"
     "tokenizer/Tokenizer.cpp"
+    "tokenizer/DestructiveConllTokenIterator.cpp"
     "util/util.cpp"
     "release_metadata/release_metadata.cpp"
-    "text_util/ConllTokenIterator.cpp"
-    "text_util/DestructiveConllTokenIterator.cpp"
+    "stemmer/Utf8Stemmer.cpp"
     "text_util/ScoredWord.cpp"
-    "text_util/TextScorer.cpp"
-    "text_util/Utf8Stemmer.cpp"
+    "text_util/StringView.cpp"
+    "text_util/WordAccumulator.cpp"
+
 )
 
 add_library(relevanced_core ${RELEVANCED_BASE_SOURCES})

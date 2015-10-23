@@ -1,10 +1,10 @@
 #include <string>
 #include <cstring>
-#include "text_util/Utf8Stemmer.h"
+#include "stemmer/Utf8Stemmer.h"
 #include "libstemmer.h"
 
 namespace relevanced {
-namespace text_util {
+namespace stemmer {
 
 Utf8Stemmer::Utf8Stemmer() {
   stemmer_ = sb_stemmer_new("en", "UTF_8");

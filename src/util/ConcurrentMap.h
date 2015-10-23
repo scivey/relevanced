@@ -5,6 +5,8 @@
 #include <folly/ConcurrentSkipList.h>
 #include <folly/Optional.h>
 #include "util/MultiVersionPtr.h"
+#include "util/util.h"
+
 namespace relevanced {
 namespace util {
 
@@ -24,9 +26,9 @@ public:
     key_ = defaultKey;
   }
   ConcurrentMapItem(const TKey &key): key_(key){}
-  ConcurrentMapItem(const TKey &key, std::unique_ptr<TVal>&& val): key_(key) {
+  ConcurrentMapItem(const TKey &key, util::UniquePointer<TVal>&& val): key_(key) {
     hasValue_ = true;
-    std::unique_ptr<TVal> tempV = std::move(val);
+    util::UniquePointer<TVal> tempV = std::move(val);
     val_.reset(tempV.release());
   }
   TReadPtr getValuePtr() {
@@ -36,8 +38,8 @@ public:
   const TKey& getKey() {
     return key_;
   }
-  void setValue(std::unique_ptr<TVal> &&val) {
-    std::unique_ptr<TVal> tempV = std::move(val);
+  void setValue(util::UniquePointer<TVal> &&val) {
+    util::UniquePointer<TVal> tempV = std::move(val);
     val_.reset(tempV.release());
   }
   friend struct std::less<TItem>;
@@ -70,10 +72,11 @@ protected:
   std::shared_ptr<TSkipList> skipList_;
   size_t headSize_;
 public:
+  typedef typename MultiVersionPtr<TVal>::Proxy ReadPtr;
   ConcurrentMap(size_t headSize): headSize_(headSize) {
     skipList_ = TSkipList::createInstance(headSize_);
   }
-  void insertOrUpdate(const TKey &key, std::unique_ptr<TVal> &&val) {
+  void insertOrUpdate(const TKey &key, util::UniquePointer<TVal> &&val) {
     TItem toFind(key);
     typename TSkipList::Accessor accessor(skipList_);
     auto it = accessor.find(toFind);

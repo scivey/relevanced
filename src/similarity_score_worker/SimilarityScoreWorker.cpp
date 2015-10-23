@@ -1,4 +1,3 @@
-#include <cassert>
 #include <memory>
 #include <vector>
 
@@ -32,7 +31,7 @@ using models::WordVector;
 using models::ProcessedDocument;
 using models::Centroid;
 using util::ConcurrentMap;
-
+using util::UniquePointer;
 using thrift_protocol::ECentroidDoesNotExist;
 using namespace wangle;
 using namespace folly;
@@ -45,7 +44,7 @@ SimilarityScoreWorker::SimilarityScoreWorker(
     : persistence_(persistence),
       centroidMetadataDb_(centroidMetadataDb),
       threadPool_(threadPool) {
-        centroids_ = std::move(folly::make_unique<ConcurrentMap<string, Centroid>>(10));
+        centroids_ = std::make_shared<ConcurrentMap<string, Centroid>>(10);
       }
 
 // run synchronously on startup
@@ -65,7 +64,7 @@ void SimilarityScoreWorker::initialize() {
 
 Future<bool> SimilarityScoreWorker::reloadCentroid(string id) {
   return persistence_->loadCentroidUniqueOption(id)
-      .then([id, this](Optional<unique_ptr<Centroid>> centroid) {
+      .then([id, this](Optional<UniquePointer<Centroid>> centroid) {
         if (!centroid.hasValue()) {
           LOG(INFO) << format("tried to reload null centroid '{}'", id);
           return false;
@@ -107,6 +106,13 @@ Future<Try<double>> SimilarityScoreWorker::getCentroidSimilarity(
     return Try<double>(
         centroid1.value()->score(&centroid2.value().get()->wordVector));
   });
+}
+
+Optional<ConcurrentMap<string, Centroid>::ReadPtr> SimilarityScoreWorker::debugGetCentroid(const string &id) {
+  return centroids_->getOption(id);
+}
+
+SimilarityScoreWorker::~SimilarityScoreWorker(){
 }
 
 } // similarity_score_worker

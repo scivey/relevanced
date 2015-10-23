@@ -89,7 +89,7 @@ Future<Try<unique_ptr<map<string, double>>>>
 RelevanceServer::multiGetTextSimilarity(unique_ptr<vector<string>> centroidIds,
                                         unique_ptr<string> text) {
   auto doc = std::make_shared<Document>("no-id", *text);
-  shared_ptr<vector<string>> cIds(new vector<string>(*centroidIds));
+  auto cIds = std::make_shared<vector<string>>(*centroidIds);
   return processingWorker_->processNew(doc).then([this, cIds](
       shared_ptr<ProcessedDocument> processed) {
     vector<Future<Try<double>>> scores;

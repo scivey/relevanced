@@ -1,8 +1,8 @@
-#include "text_util/DestructiveConllTokenIterator.h"
+#include "tokenizer/DestructiveConllTokenIterator.h"
 #include <tuple>
 
 namespace relevanced {
-namespace text_util {
+namespace tokenizer {
 
 bool DestructiveConllTokenIterator::next(std::tuple<bool, size_t, size_t> &outTuple) {
   if (offset_ >= (length_ - 1)) {
@@ -87,5 +87,5 @@ bool DestructiveConllTokenIterator::next(std::tuple<bool, size_t, size_t> &outTu
   return true;
 }
 
-} // text_util
+} // tokenizer
 } // relevanced

@@ -100,6 +100,7 @@ Future<Try<bool>> Persistence::deleteCentroid(const string &id) {
 
 Future<Try<bool>> Persistence::saveCentroid(const string &id,
                                             shared_ptr<Centroid> centroid) {
+  LOG(INFO) << "saveCentroid";
   return threadPool_->addFuture([this, id, centroid]() {
     return syncHandle_->saveCentroid(id, centroid);
   });
@@ -116,7 +117,7 @@ Future<Optional<shared_ptr<Centroid>>> Persistence::loadCentroidOption(
       [this, id]() { return syncHandle_->loadCentroidOption(id); });
 }
 
-Future<Optional<unique_ptr<Centroid>>> Persistence::loadCentroidUniqueOption(
+Future<Optional<util::UniquePointer<Centroid>>> Persistence::loadCentroidUniqueOption(
     const string &id) {
   return threadPool_->addFuture(
       [this, id]() { return std::move(syncHandle_->loadCentroidUniqueOption(id)); });
