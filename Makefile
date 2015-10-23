@@ -92,6 +92,19 @@ test-func-refresh:
 	mkdir -p build/bin
 	cd build/bin && cmake ../../ && make func_test_runner -j4 && ./src/func_test_runner
 
+bench-refresh:
+	mkdir -p build/bin
+	cd build/bin && cmake ../../ && make bench_runner -j4 && ./src/bench_runner
+
+bench:
+	mkdir -p build/bin
+	cd build/bin && make bench_runner -j4 && ./src/bench_runner
+
+bench-callgrind: bench
+	mkdir -p tmp
+	valgrind --tool=callgrind --cacheuse=yes --callgrind-out-file=./tmp/callgrind_report ./build/bin/src/bench_runner
+	kcachegrind ./tmp/callgrind_report
+
 .PHONY: test-unit test-rock test-all run package build-server-static
 
 test-all: test-unit test-rock

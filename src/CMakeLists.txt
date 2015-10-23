@@ -202,3 +202,11 @@ target_link_libraries(func_test_runner
     ${GTEST_LIBS}
     ${RELEVANCED_NONSTATIC_LINK_LIBS}
 )
+
+add_executable(bench_runner "bench/runner.cpp")
+add_dependencies(bench_runner relevanced_core)
+target_link_libraries(bench_runner
+    relevanced_core
+    benchmark
+    ${RELEVANCED_NONSTATIC_LINK_LIBS}
+)
