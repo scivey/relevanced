@@ -42,6 +42,7 @@ set(UNIT_TEST_SOURCES
   "unit/test_Persistence.cpp"
   "unit/test_Tokenizer.cpp"
   "unit/test_WordAccumulator.cpp"
+  "unit/test_Utf8Stemmer.cpp"
   "unit/runTests.cpp"
 )
 
