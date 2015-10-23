@@ -2,6 +2,7 @@
 #include "gmock/gmock.h"
 
 #include <vector>
+#include <set>
 #include <string>
 #include <chrono>
 #include <memory>
@@ -84,11 +85,26 @@ struct ProcessingWorkerTestCtx {
   }
 };
 
-TEST(DocumentProcessingWorker, Simple) {
+TEST(DocumentProcessingWorker, TestSanity) {
+  ProcessingWorkerTestCtx ctx;
+  Document document("doc-id", "this is some document text fish words");
+  shared_ptr<Document> docPtr(&document, NonDeleter<Document>());
+  auto result = ctx.worker->processNew(docPtr).get();
+  EXPECT_EQ("doc-id", result->id);
+  set<string> words;
+  for (auto &scoredWord: result->scoredWords) {
+    words.insert(scoredWord.word);
+  }
+  EXPECT_TRUE(words.find("fish") != words.end());
+}
+
+TEST(DocumentProcessingWorker, TestWithWithoutHash) {
   ProcessingWorkerTestCtx ctx;
   Document document("doc-id", "this is some document text");
   shared_ptr<Document> docPtr(&document, NonDeleter<Document>());
   auto result = ctx.worker->processNew(docPtr).get();
-  EXPECT_EQ("doc-id", result->id);
-}
+  EXPECT_TRUE(result->sha1Hash.hasValue());
 
+  auto result2 = ctx.worker->processNewWithoutHash(docPtr).get();
+  EXPECT_FALSE(result2->sha1Hash.hasValue());
+}

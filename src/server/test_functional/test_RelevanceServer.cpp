@@ -60,6 +60,11 @@ using namespace relevanced::stopwords;
 using namespace relevanced::server;
 using namespace relevanced::tokenizer;
 using thrift_protocol::ECentroidDoesNotExist;
+using thrift_protocol::ECentroidAlreadyExists;
+using thrift_protocol::EDocumentDoesNotExist;
+using thrift_protocol::EDocumentAlreadyExists;
+
+
 
 
 using ::testing::Return;
@@ -173,6 +178,15 @@ TEST(RelevanceServer, TestCreateCentroid) {
   EXPECT_EQ("some-centroid", persisted.value()->id);
 }
 
+TEST(RelevanceServer, TestCreateCentroidAlreadyExists) {
+  RelevanceServerTestCtx ctx;
+  auto id = folly::make_unique<string>("some-centroid");
+  auto response1 = ctx.server->createCentroid(folly::make_unique<string>("some-centroid")).get();
+  EXPECT_FALSE(response1.hasException());
+  auto response2 = ctx.server->createCentroid(folly::make_unique<string>("some-centroid")).get();
+  EXPECT_TRUE(response2.hasException<ECentroidAlreadyExists>());
+}
+
 TEST(RelevanceServer, TestListAllCentroids) {
   RelevanceServerTestCtx ctx;
   vector<Future<Try<bool>>> creations;
@@ -243,4 +257,19 @@ TEST(RelevanceServer, TestDeleteDocument) {
     returnedIds.insert(id);
   }
   EXPECT_EQ(expectedIds, returnedIds);
+}
+
+TEST(RelevanceServer, TestDeleteDocumentMissing) {
+  RelevanceServerTestCtx ctx;
+  vector<Future<Try<unique_ptr<string>>>> creations;
+  for (size_t i = 0; i < 6; i++) {
+    auto id = sformat("some-doc-{}", i);
+    creations.push_back(ctx.server->createDocumentWithID(
+      folly::make_unique<string>(id),
+      folly::make_unique<string>("this is some text about things")
+    ));
+  }
+  collect(creations).get();
+  auto result = ctx.server->deleteDocument(folly::make_unique<string>("some-doc-8")).get();
+  EXPECT_TRUE(result.hasException<EDocumentDoesNotExist>());
 }

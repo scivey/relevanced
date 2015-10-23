@@ -18,6 +18,8 @@
 #include "stopwords/StopwordFilter.h"
 #include "tokenizer/Tokenizer.h"
 #include "util/util.h"
+#include "text_util/ScoredWord.h"
+
 #include "testing/TestHelpers.h"
 #include "testing/MockRock.h"
 
@@ -25,119 +27,125 @@ using namespace std;
 using namespace relevanced;
 using namespace relevanced::persistence;
 using namespace relevanced::models;
-
+using relevanced::text_util::ScoredWord;
 using util::UniquePointer;
 using ::testing::Return;
 using ::testing::_;
 
 
-// TEST(SyncPersistence, DoesDocumentExistTrue) {
-//   MockRock mockRock;
-//   UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
-//   string key{"documents:doc-id"};
-//   EXPECT_CALL(mockRock, exists(key)).WillOnce(Return(true));
-//   SyncPersistence dbHandle(std::move(rockHandle));
-//   EXPECT_TRUE(dbHandle.doesDocumentExist("doc-id"));
-// }
+TEST(SyncPersistence, DoesDocumentExistTrue) {
+  MockRock mockRock;
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
+  string key{"documents:doc-id"};
+  EXPECT_CALL(mockRock, exists(key)).WillOnce(Return(true));
+  SyncPersistence dbHandle(std::move(rockHandle));
+  EXPECT_TRUE(dbHandle.doesDocumentExist("doc-id"));
+}
 
-// TEST(SyncPersistence, DoesDocumentExistFalse) {
-//   MockRock mockRock;
-//   UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
-//   string key{"documents:doc-id"};
-//   EXPECT_CALL(mockRock, exists(key)).WillOnce(Return(false));
-//   SyncPersistence dbHandle(std::move(rockHandle));
-//   EXPECT_FALSE(dbHandle.doesDocumentExist("doc-id"));
-// }
+TEST(SyncPersistence, DoesDocumentExistFalse) {
+  MockRock mockRock;
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
+  string key{"documents:doc-id"};
+  EXPECT_CALL(mockRock, exists(key)).WillOnce(Return(false));
+  SyncPersistence dbHandle(std::move(rockHandle));
+  EXPECT_FALSE(dbHandle.doesDocumentExist("doc-id"));
+}
 
-// TEST(SyncPersistence, SaveDocument) {
-//   InMemoryRockHandle mockRock("/some-path");
-//   UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
-//   SyncPersistence dbHandle(std::move(rockHandle));
+TEST(SyncPersistence, DeleteDocumentExists) {
+  InMemoryRockHandle mockRock("/some-path");
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
+  SyncPersistence dbHandle(std::move(rockHandle));
+  mockRock.put("documents:doc-id", "something");
+  EXPECT_TRUE(mockRock.exists("documents:doc-id"));
+  auto res = dbHandle.deleteDocument("doc-id");
+  EXPECT_TRUE(res.hasValue());
+  EXPECT_EQ(true, res.value());
+  EXPECT_FALSE(mockRock.exists("documents:doc-id"));
+}
 
-//   double magnitude = 10.8;
-//   ProcessedDocument doc(
-//       "doc-id", map<string, double>{{"dog", 1.3}, {"cat", 2.6}}, magnitude);
-//   EXPECT_FALSE(mockRock.exists("documents:doc-id"));
-//   dbHandle.saveDocument(&doc);
-//   EXPECT_TRUE(mockRock.exists("documents:doc-id"));
-// }
+TEST(SyncPersistence, DeleteDocumentDoesNotExist) {
+  InMemoryRockHandle mockRock("/some-path");
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
+  SyncPersistence dbHandle(std::move(rockHandle));
+  EXPECT_FALSE(mockRock.exists("documents:doc-id"));
+  auto res = dbHandle.deleteDocument("doc-id");
+  EXPECT_TRUE(res.hasException());
+  EXPECT_FALSE(mockRock.exists("documents:doc-id"));
+}
 
-// TEST(SyncPersistence, DeleteDocumentExists) {
-//   InMemoryRockHandle mockRock("/some-path");
-//   UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
-//   SyncPersistence dbHandle(std::move(rockHandle));
-//   mockRock.put("documents:doc-id", "something");
-//   EXPECT_TRUE(mockRock.exists("documents:doc-id"));
-//   auto res = dbHandle.deleteDocument("doc-id");
-//   EXPECT_TRUE(res.hasValue());
-//   EXPECT_EQ(true, res.value());
-//   EXPECT_FALSE(mockRock.exists("documents:doc-id"));
-// }
+TEST(SyncPersistence, SaveDocument) {
+  InMemoryRockHandle mockRock("/some-path");
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
+  SyncPersistence dbHandle(std::move(rockHandle));
 
-// TEST(SyncPersistence, DeleteDocumentDoesNotExist) {
-//   InMemoryRockHandle mockRock("/some-path");
-//   UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
-//   SyncPersistence dbHandle(std::move(rockHandle));
-//   EXPECT_FALSE(mockRock.exists("documents:doc-id"));
-//   auto res = dbHandle.deleteDocument("doc-id");
-//   EXPECT_TRUE(res.hasException());
-//   EXPECT_FALSE(mockRock.exists("documents:doc-id"));
-// }
+  ProcessedDocument doc("doc-id",
+    vector<ScoredWord> { ScoredWord("dog", 3, 1.3), ScoredWord("cat", 3, 2.6) },
+    10.8
+  );
+  EXPECT_FALSE(mockRock.exists("documents:doc-id"));
+  dbHandle.saveDocument(&doc);
+  EXPECT_TRUE(mockRock.exists("documents:doc-id"));
+}
 
-// TEST(SyncPersistence, LoadDocumentOptionExists) {
-//   InMemoryRockHandle mockRock("/some-path");
-//   UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
-//   SyncPersistence dbHandle(std::move(rockHandle));
-//   ProcessedDocument doc(
-//       "doc-id", map<string, double>{{"fish", 1.82}, {"dog", 8.7}}, 5.6);
-//   string serialized;
-//   serialization::binarySerialize(serialized, doc);
-//   EXPECT_FALSE(mockRock.exists("documents:doc-id"));
-//   mockRock.put("documents:doc-id", serialized);
-//   EXPECT_TRUE(mockRock.exists("documents:doc-id"));
-//   auto result = dbHandle.loadDocumentOption("doc-id");
-//   EXPECT_TRUE(result.hasValue());
-//   auto docPtr = result.value();
-//   EXPECT_EQ("doc-id", docPtr->id);
-//   EXPECT_EQ(2, docPtr->wordVector.scores.size());
-// }
 
-// TEST(SyncPersistence, LoadDocumentOptionDoesNotExist) {
-//   InMemoryRockHandle mockRock("/some-path");
-//   UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
-//   SyncPersistence dbHandle(std::move(rockHandle));
+TEST(SyncPersistence, LoadDocumentOptionExists) {
+  InMemoryRockHandle mockRock("/some-path");
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
+  SyncPersistence dbHandle(std::move(rockHandle));
+  ProcessedDocument doc("doc-id",
+    vector<ScoredWord> { ScoredWord("dog", 3, 1.3), ScoredWord("cat", 3, 2.6) },
+    5.8
+  );
+  string serialized;
+  serialization::binarySerialize(serialized, doc);
+  EXPECT_FALSE(mockRock.exists("documents:doc-id"));
+  mockRock.put("documents:doc-id", serialized);
+  EXPECT_TRUE(mockRock.exists("documents:doc-id"));
+  auto result = dbHandle.loadDocumentOption("doc-id");
+  EXPECT_TRUE(result.hasValue());
+  auto docPtr = result.value();
+  EXPECT_EQ("doc-id", docPtr->id);
+  EXPECT_EQ(2, docPtr->scoredWords.size());
+}
 
-//   EXPECT_FALSE(mockRock.exists("documents:doc-id"));
-//   auto result = dbHandle.loadDocumentOption("doc-id");
-//   EXPECT_FALSE(result.hasValue());
-// }
+TEST(SyncPersistence, LoadDocumentOptionDoesNotExist) {
+  InMemoryRockHandle mockRock("/some-path");
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
+  SyncPersistence dbHandle(std::move(rockHandle));
 
-// TEST(SyncPersistence, LoadDocumentExists) {
-//   InMemoryRockHandle mockRock("/some-path");
-//   UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
-//   SyncPersistence dbHandle(std::move(rockHandle));
-//   ProcessedDocument doc(
-//       "doc-id", map<string, double>{{"fish", 1.82}, {"dog", 8.7}}, 5.6);
-//   string serialized;
-//   serialization::binarySerialize(serialized, doc);
-//   EXPECT_FALSE(mockRock.exists("documents:doc-id"));
-//   mockRock.put("documents:doc-id", serialized);
-//   EXPECT_TRUE(mockRock.exists("documents:doc-id"));
-//   auto result = dbHandle.loadDocumentOption("doc-id");
-//   EXPECT_TRUE(result.hasValue());
-//   auto docPtr = result.value();
-//   EXPECT_EQ("doc-id", docPtr->id);
-//   EXPECT_EQ(2, docPtr->wordVector.scores.size());
-// }
+  EXPECT_FALSE(mockRock.exists("documents:doc-id"));
+  auto result = dbHandle.loadDocumentOption("doc-id");
+  EXPECT_FALSE(result.hasValue());
+}
 
-// TEST(SyncPersistence, LoadDocumentDoesNotExist) {
-//   InMemoryRockHandle mockRock("/some-path");
-//   UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
-//   SyncPersistence dbHandle(std::move(rockHandle));
-//   EXPECT_FALSE(mockRock.exists("documents:doc-id"));
-//   auto res = dbHandle.loadDocument("doc-id");
-//   EXPECT_TRUE(res.hasException());
-// }
+TEST(SyncPersistence, LoadDocumentExists) {
+  InMemoryRockHandle mockRock("/some-path");
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
+  SyncPersistence dbHandle(std::move(rockHandle));
+  ProcessedDocument doc("doc-id",
+    vector<ScoredWord> { ScoredWord("dog", 3, 1.3), ScoredWord("cat", 3, 2.6) },
+    5.8
+  );
+  string serialized;
+  serialization::binarySerialize(serialized, doc);
+  EXPECT_FALSE(mockRock.exists("documents:doc-id"));
+  mockRock.put("documents:doc-id", serialized);
+  EXPECT_TRUE(mockRock.exists("documents:doc-id"));
+  auto result = dbHandle.loadDocumentOption("doc-id");
+  EXPECT_TRUE(result.hasValue());
+  auto docPtr = result.value();
+  EXPECT_EQ("doc-id", docPtr->id);
+  EXPECT_EQ(2, docPtr->scoredWords.size());
+}
+
+TEST(SyncPersistence, LoadDocumentDoesNotExist) {
+  InMemoryRockHandle mockRock("/some-path");
+  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
+  SyncPersistence dbHandle(std::move(rockHandle));
+  EXPECT_FALSE(mockRock.exists("documents:doc-id"));
+  auto res = dbHandle.loadDocument("doc-id");
+  EXPECT_TRUE(res.hasException());
+}
 
 TEST(SyncPersistence, DoesCentroidExistTrue) {
   InMemoryRockHandle mockRock("/some-path");
