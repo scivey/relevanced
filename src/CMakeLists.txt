@@ -149,6 +149,7 @@ set(UNIT_TEST_SOURCES
   "document_processing_worker/test_unit/test_DocumentProcessor.cpp"
   "document_processing_worker/test_unit/test_DocumentProcessingWorker.cpp"
   "similarity_score_worker/test_unit/test_SimilarityScoreWorker.cpp"
+  "models/test_unit/test_WordVector.cpp"
   "persistence/test_unit/test_CentroidMetadataDb.cpp"
   "persistence/test_unit/test_InMemoryRockHandle.cpp"
   "persistence/test_unit/test_SyncPersistence.cpp"
@@ -156,7 +157,10 @@ set(UNIT_TEST_SOURCES
   "tokenizer/test_unit/test_Tokenizer.cpp"
   "stemmer/test_unit/test_Utf8Stemmer.cpp"
   "serialization/test_unit/test_DocumentSerialization.cpp"
+  "util/test_unit/test_ConcurrentMap.cpp"
   "text_util/test_unit/test_WordAccumulator.cpp"
+  "text_util/test_unit/test_StringView.cpp"
+  "text_util/test_unit/test_ScoredWord.cpp"
   "testing/runTests.cpp"
 )
 

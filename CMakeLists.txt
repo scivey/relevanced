@@ -12,33 +12,6 @@ macro(LOG MESSAGE)
   message("-- ${MESSAGE}")
 endmacro(LOG)
 
-# If no explicit compiler override and clang++ exists, prefer clang.
-# find_file(CLANGCXX_3_5_EXISTS, "clang++-3.5")
-# find_file(CLANGXX_EXISTS "clang++")
-# if(DEFINED ENV{CC})
-#   set(CMAKE_C_COMPILER "$ENV{CC}")
-#   LOG("Overriding C compiler from clang to $ENV{CC}")
-# elseif(CLANGCXX_3_5_EXISTS)
-#   LOG(${CMAKE_CXX_COMPILER})
-#   set(CMAKE_C_COMPILER "clang-3.5")
-# elseif(CLANGXX_EXISTS)
-#   set(CMAKE_C_COMPILER "clang")
-# endif()
-# if(DEFINED ENV{CXX})
-#   set(CMAKE_CXX_COMPILER "$ENV{CXX}")
-#   LOG("Overriding CXX compiler from clang++ to $ENV{CXX}")
-# elseif(CLANGCXX_3_5_EXISTS)
-#   set(USING_CLANG true)
-#   set(CMAKE_CXX_COMPILER "clang++-3.5")
-# elseif(CLANGXX_EXISTS)
-#   set(USING_CLANG true)
-#   set(CMAKE_CXX_COMPILER "clang++")
-# endif()
-
-# set(CMAKE_CXX_COMPILER "clang++-3.5")
-# set(CMAKE_C_COMPILER "clang")
-
-
 LOG(${CMAKE_CXX_COMPILER})
 
 include("${CMAKE_SOURCE_DIR}/CMakeLibs")
@@ -99,4 +72,3 @@ configure_file(
 include_directories("${PROJECT_BINARY_DIR}/src")
 
 add_subdirectory(src)
-# add_subdirectory(src/test)

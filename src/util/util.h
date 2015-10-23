@@ -112,6 +112,15 @@ std::vector<T> vecOfSet(const std::set<T> &t) {
   return output;
 }
 
+template <typename T>
+std::set<T> setOfVec(const std::vector<T> &t) {
+  std::set<T> output;
+  for (auto &elem : t) {
+    output.insert(elem);
+  }
+  return output;
+}
+
 std::string getUuid();
 
 bool isOnlyAscii(const std::string &text);
