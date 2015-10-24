@@ -192,6 +192,7 @@ def build_relevanced_for_revision(git_tag):
         run('git remote update')
         run('git checkout master && git pull')
         run('git checkout %s' % git_tag, warn_only=True)
+        run('make deps')
         run('make thrift')
         run('CXX=clang++-3.6 make build-server-static')
         run('CXX=clang++-3.6 make deb-package-local')

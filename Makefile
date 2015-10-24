@@ -155,3 +155,7 @@ publish-clients: publish-node publish-python publish-ruby publish-jvm
 
 format-all:
 	find src  \( -name "*.h" -o -name "*.cpp" -o -name "*.mm" \) -exec clang-format -i {} +
+
+deps:
+	cd external/libstemmer && make libstemmer.o -j4
+

@@ -125,7 +125,7 @@ add_library(relevanced_core ${RELEVANCED_BASE_SOURCES})
 target_link_libraries(relevanced_core ${RELEVANCED_NONSTATIC_LINK_LIBS})
 
 add_executable(relevanced "relevanced_server.cpp")
-add_dependencies(relevanced relevanced_core)
+add_dependencies(relevanced relevanced_core stemmer)
 target_link_libraries(relevanced
     relevanced_core
     ${RELEVANCED_NONSTATIC_LINK_LIBS}
@@ -135,7 +135,7 @@ add_library(relevanced_core_static ${RELEVANCED_BASE_SOURCES})
 target_link_libraries(relevanced_core_static ${RELEVANCED_STATIC_LINK_LIBS})
 
 add_executable(relevanced_static "relevanced_server.cpp")
-add_dependencies(relevanced_static relevanced_core_static)
+add_dependencies(relevanced_static relevanced_core_static stemmer)
 target_link_libraries(relevanced_static
     relevanced_core_static
     ${RELEVANCED_STATIC_LINK_LIBS}
