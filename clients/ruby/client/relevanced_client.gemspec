@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
     s.name        = 'relevanced_client'
-    s.version     = '0.9.2'
-    s.date        = '2015-10-11'
+    s.version     = '0.9.3'
+    s.date        = '2015-10-24'
     s.summary     = "relevanced client"
     s.description = "Ruby client for relevanced-server"
     s.authors     = ["Scott Ivey"]
