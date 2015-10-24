@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include <map>
+#include <unordered_map>
 #include <atomic>
 #include "models/WordVector.h"
 
@@ -15,7 +15,7 @@ class Centroid {
   Centroid() {}
   Centroid(std::string id) : id(id) {}
   Centroid(std::string id, WordVector wordVec) : id(id), wordVector(wordVec) {}
-  Centroid(std::string id, std::map<std::string, double> scores, double mag)
+  Centroid(std::string id, std::unordered_map<std::string, double> scores, double mag)
       : id(id), wordVector(scores, mag) {}
 
   template <typename T>

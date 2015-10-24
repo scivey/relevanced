@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
 #include <memory>
+#include <unordered_map>
+
 
 #include <folly/dynamic.h>
 #include <folly/json.h>
@@ -16,13 +18,13 @@ namespace models {
 
 class WordVector {
  public:
-  std::map<std::string, double> scores;
+  std::unordered_map<std::string, double> scores;
   double magnitude{0.0};
   double documentWeight{1.0};
   WordVector();
-  WordVector(std::map<std::string, double>, double magnitude);
-  WordVector(std::map<std::string, double>, double magnitude, double docWeight);
-  double score(const std::map<std::string, double> &otherScores,
+  WordVector(std::unordered_map<std::string, double>, double magnitude);
+  WordVector(std::unordered_map<std::string, double>, double magnitude, double docWeight);
+  double score(const std::unordered_map<std::string, double> &otherScores,
                double otherMagnitude);
   double score(WordVector *other);
   double score(ProcessedDocument *other);

@@ -4,6 +4,7 @@
 #include <vector>
 #include <set>
 #include <string>
+#include <unordered_map>
 #include <chrono>
 #include <memory>
 
@@ -156,14 +157,14 @@ public:
 
 class SpyAccumulator: public DocumentAccumulatorIf {
 public:
-  map<string, double> scores;
+  unordered_map<string, double> scores;
   set<string> seenDocumentIds;
   double magnitude {0.0};
   size_t count = 0;
   void addDocument(ProcessedDocument *doc) override {
     seenDocumentIds.insert(doc->id);
   }
-  std::map<string, double>&& getScores() override {
+  std::unordered_map<string, double>&& getScores() override {
     return std::move(scores);
   }
   size_t getCount() override {
@@ -256,7 +257,7 @@ TEST(CentroidUpdater, AccumulatorDetails) {
   EXPECT_CALL(mclock, getEpochTime())
     .WillOnce(Return(5555));
 
-  map<string, double> scores {
+  unordered_map<string, double> scores {
     {"foo", 4.3},
     {"bar", 1.2}
   };

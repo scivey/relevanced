@@ -1,10 +1,14 @@
 namespace cpp2 relevanced.thrift_protocol
 namespace java org.relevanced.client.gen_thrift_protocol
 
+cpp_include "unordered_map"
+
+typedef map<string, double> (cpp.template = "std::unordered_map") stringToDoubleMap
+
 struct WordVectorDTO {
     1: required double magnitude;
     2: required double documentWeight;
-    3: required map<string, double> scores;
+    3: required stringToDoubleMap scores;
 }
 
 struct ScoredWordDTO {

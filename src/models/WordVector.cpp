@@ -16,15 +16,15 @@ using namespace folly;
 
 WordVector::WordVector() {}
 
-WordVector::WordVector(map<string, double> scores, double magnitude)
+WordVector::WordVector(unordered_map<string, double> scores, double magnitude)
     : scores(scores), magnitude(magnitude) {}
 
-WordVector::WordVector(map<string, double> scores,
+WordVector::WordVector(unordered_map<string, double> scores,
                        double magnitude,
                        double docWeight)
     : scores(scores), magnitude(magnitude), documentWeight(docWeight) {}
 
-double WordVector::score(const map<string, double> &otherScores,
+double WordVector::score(const unordered_map<string, double> &otherScores,
                          double otherMagnitude) {
   double dotProd = 0.0;
   for (auto &elem : otherScores) {

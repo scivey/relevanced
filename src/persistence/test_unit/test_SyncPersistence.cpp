@@ -4,6 +4,8 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <unordered_map>
+
 
 #include <rocksdb/db.h>
 #include <rocksdb/slice.h>
@@ -258,7 +260,7 @@ TEST(SyncPersistence, SaveCentroid) {
   UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   Centroid centroid(
-      "centroid-id", map<string, double>{{"moose", 1.7}, {"blarg", 2.21}}, 5.8);
+      "centroid-id", unordered_map<string, double>{{"moose", 1.7}, {"blarg", 2.21}}, 5.8);
   EXPECT_FALSE(mockRock.exists("centroids:centroid-id"));
   auto res = dbHandle.saveCentroid("centroid-id", &centroid);
   EXPECT_FALSE(res.hasException());
@@ -284,7 +286,7 @@ TEST(SyncPersistence, LoadCentroidExists) {
   UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   Centroid toSerialize(
-      "centroid-id", map<string, double>{{"moose", 1.7}, {"blarg", 2.21}}, 5.8);
+      "centroid-id", unordered_map<string, double>{{"moose", 1.7}, {"blarg", 2.21}}, 5.8);
   string data;
   serialization::binarySerialize(data, toSerialize);
   mockRock.put("centroids:centroid-id", data);
@@ -302,7 +304,7 @@ TEST(SyncPersistence, LoadCentroidOptionExists) {
   UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   SyncPersistence dbHandle(std::move(rockHandle));
   Centroid toSerialize(
-      "centroid-id", map<string, double>{{"moose", 1.7}, {"blarg", 2.21}}, 5.8);
+      "centroid-id", unordered_map<string, double>{{"moose", 1.7}, {"blarg", 2.21}}, 5.8);
   string data;
   serialization::binarySerialize(data, toSerialize);
   mockRock.put("centroids:centroid-id", data);

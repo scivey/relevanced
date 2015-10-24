@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <unordered_map>
 #include <cmath>
 #include <wangle/concurrent/CPUThreadPoolExecutor.h>
 #include <wangle/concurrent/FutureExecutor.h>
@@ -72,10 +73,10 @@ TEST(SimilarityScoreWorker, TestInitialization) {
       .WillOnce(Return(centroidIds));
 
   mockPersistence.addUniqueCentroid("centroid-1", new Centroid("centroid-1",
-              map<string, double>{{"cat", 1.2}, {"dog", 9.5}, {"fish", 0.8}},
+              unordered_map<string, double>{{"cat", 1.2}, {"dog", 9.5}, {"fish", 0.8}},
               5.3));
   mockPersistence.addUniqueCentroid("centroid-2", new Centroid("centroid-2",
-              map<string, double>{{"cat", 1.2}, {"dog", 9.5}, {"fish", 0.8}},
+              unordered_map<string, double>{{"cat", 1.2}, {"dog", 9.5}, {"fish", 0.8}},
               5.3));
 
   worker->initialize();
@@ -96,7 +97,7 @@ TEST(SimilarityScoreWorker, TestReloadCentroid) {
   auto worker = makeWorker(mockPersistence, metadataDb);
 
   mockPersistence.addUniqueCentroid("centroid-1", new Centroid ("centroid-1",
-                 map<string, double>{{"cat", 1.2}, {"dog", 9.5}, {"fish", 0.8}},
+                 unordered_map<string, double>{{"cat", 1.2}, {"dog", 9.5}, {"fish", 0.8}},
                  5.3));
 
   auto nonexistent = worker->debugGetCentroid("centroid-1");
@@ -108,7 +109,7 @@ TEST(SimilarityScoreWorker, TestReloadCentroid) {
   EXPECT_EQ(5.3, existing.value()->wordVector.magnitude);
 
   mockPersistence.addUniqueCentroid("centroid-1", new Centroid ("centroid-1",
-                 map<string, double>{{"cat", 1.2}, {"dog", 9.5}, {"fish", 0.8}},
+                 unordered_map<string, double>{{"cat", 1.2}, {"dog", 9.5}, {"fish", 0.8}},
                  17.2));
 
   worker->reloadCentroid("centroid-1").get();
@@ -133,7 +134,7 @@ TEST(SimilarityScoreWorker, TestGetDocumentSimilarityHappy) {
   ProcessedDocument document("doc-1", words, mag3(5.8, 4.1, 15.1));
 
   mockPersistence.addUniqueCentroid("centroid-1", new Centroid ("centroid-1",
-              map<string, double>{{"cat", 1.2}, {"dog", 9.5}, {"fish", 0.8}},
+              unordered_map<string, double>{{"cat", 1.2}, {"dog", 9.5}, {"fish", 0.8}},
               mag3(1.2, 9.5, 0.8)));
   worker->reloadCentroid("centroid-1").get();
   auto result = worker->getDocumentSimilarity("centroid-1", &document).get();
@@ -153,7 +154,7 @@ TEST(SimilarityScoreWorker, TestGetDocumentSimilarityMissingCentroid) {
     ScoredWord("sarah_jessica_parker", 20, 15.1)
   };
   mockPersistence.addUniqueCentroid("centroid-1", new Centroid ("centroid-1",
-              map<string, double>{{"cat", 1.2}, {"dog", 9.5}, {"fish", 0.8}},
+              unordered_map<string, double>{{"cat", 1.2}, {"dog", 9.5}, {"fish", 0.8}},
               mag3(1.2, 9.5, 0.8)));
   worker->reloadCentroid("centroid-1").get();
 

@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <chrono>
+#include <unordered_map>
 #include <memory>
 
 #include <glog/logging.h>
@@ -134,7 +135,7 @@ TEST(RelevanceServer, TestInitialize) {
   bool initialize = false;
   RelevanceServerTestCtx ctx(initialize);
   auto centroid = std::make_shared<Centroid>(
-    "some-id", map<string, double> {{"cats", 0.5}, {"dogs", 0.5}}, 15.3
+    "some-id", unordered_map<string, double> {{"cats", 0.5}, {"dogs", 0.5}}, 15.3
   );
   ctx.persistence->saveCentroid("some-id", centroid).get();
   ctx.server->initialize();

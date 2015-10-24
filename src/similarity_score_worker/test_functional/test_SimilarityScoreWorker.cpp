@@ -5,6 +5,8 @@
 #include <string>
 #include <chrono>
 #include <memory>
+#include <unordered_map>
+
 
 #include <glog/logging.h>
 #include <folly/ExceptionWrapper.h>
@@ -88,7 +90,7 @@ TEST(SimilarityScoreWorker, SimpleReload) {
   SimilarityWorkerTestCtx ctx;
   auto sharedCentroid = std::make_shared<Centroid>(
     "centroid-id",
-    map<string, double>{ {"cat", 5.3}, {"dog", 4.8 } },
+    unordered_map<string, double>{ {"cat", 5.3}, {"dog", 4.8 } },
     17.5
   );
   auto nothing = ctx.worker->debugGetCentroid("centroid-id");
@@ -104,7 +106,7 @@ TEST(SimilarityScoreWorker, ScoreExisting) {
   SimilarityWorkerTestCtx ctx;
   auto sharedCentroid = std::make_shared<Centroid>(
     "centroid-id",
-    map<string, double>{ {"cat", 5.3}, {"fish", 4.8 } },
+    unordered_map<string, double>{ {"cat", 5.3}, {"fish", 4.8 } },
     17.5
   );
   ctx.persistence->saveCentroid("centroid-id", sharedCentroid).get();

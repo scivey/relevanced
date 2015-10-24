@@ -157,6 +157,7 @@ set(UNIT_TEST_SOURCES
   "tokenizer/test_unit/test_Tokenizer.cpp"
   "stemmer/test_unit/test_Utf8Stemmer.cpp"
   "serialization/test_unit/test_DocumentSerialization.cpp"
+  "serialization/test_unit/test_CentroidSerialization.cpp"
   "util/test_unit/test_ConcurrentMap.cpp"
   "text_util/test_unit/test_WordAccumulator.cpp"
   "text_util/test_unit/test_StringView.cpp"

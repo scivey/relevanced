@@ -1,5 +1,5 @@
 #include <string>
-#include <map>
+#include <unordered_map>
 #include <vector>
 #include <cmath>
 #include "models/ProcessedDocument.h"
@@ -24,7 +24,7 @@ void DocumentAccumulator::addDocument(ProcessedDocument* document) {
   }
 }
 
-std::map<std::string, double>&& DocumentAccumulator::getScores() {
+std::unordered_map<std::string, double>&& DocumentAccumulator::getScores() {
   return std::move(scores_);
 }
 

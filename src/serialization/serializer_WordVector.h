@@ -1,5 +1,5 @@
 #include <string>
-#include <map>
+#include <unordered_map>
 
 #include <folly/dynamic.h>
 #include <folly/Conv.h>
@@ -30,7 +30,7 @@ template <>
 struct DynamicConverter<WordVector> {
   static WordVector convert(const folly::dynamic &dyn) {
     auto scores =
-        folly::convertTo<std::map<std::string, double>>(dyn["scores"]);
+        folly::convertTo<std::unordered_map<std::string, double>>(dyn["scores"]);
     auto magnitude = folly::convertTo<double>(dyn["magnitude"]);
     auto weight = folly::convertTo<double>(dyn["documentWeight"]);
     return WordVector(std::move(scores), magnitude, weight);
