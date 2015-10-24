@@ -1,6 +1,6 @@
 {
   "name": "relevanced-client",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "description": "client for relevanced-server",
   "main": "index.js",
   "homepage": "http://www.relevanced.org",
