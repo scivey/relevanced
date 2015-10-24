@@ -211,3 +211,42 @@ target_link_libraries(bench_runner
     benchmark
     ${RELEVANCED_NONSTATIC_LINK_LIBS}
 )
+
+add_executable(
+    memcheck_libstemmer
+    ${PROJECT_SOURCE_DIR}/src/mem_checks/memcheck_libstemmer.cpp
+)
+
+target_link_libraries(memcheck_libstemmer
+    ${LIBSTEMMER}
+)
+
+
+add_executable(
+    memcheck_DocumentProcessor
+    ${PROJECT_SOURCE_DIR}/src/mem_checks/memcheck_DocumentProcessor.cpp
+)
+
+add_dependencies(memcheck_DocumentProcessor relevanced_core)
+
+target_link_libraries(memcheck_DocumentProcessor
+    ${LIBSTEMMER}
+    relevanced_core
+    ${RELEVANCED_NONSTATIC_LINK_LIBS}
+)
+
+
+add_executable(
+    memcheck_Persistence
+    ${PROJECT_SOURCE_DIR}/src/mem_checks/memcheck_Persistence.cpp
+)
+
+add_dependencies(memcheck_Persistence relevanced_core)
+
+target_link_libraries(memcheck_Persistence
+    ${LIBSTEMMER}
+    relevanced_core
+    ${RELEVANCED_NONSTATIC_LINK_LIBS}
+)
+
+
