@@ -68,8 +68,9 @@ class RockHandle : public RockHandleIf {
   rocksdb::ReadOptions readOptions_;
   rocksdb::WriteOptions writeOptions_;
   const std::string dbPath_;
-  std::unique_ptr<rocksdb::OptimisticTransactionDB> txnDb_;
-  rocksdb::DB *db_;
+  // std::unique_ptr<rocksdb::OptimisticTransactionDB> txnDb_;
+  std::unique_ptr<rocksdb::DB> db_;
+  // rocksdb::DB *db_;
   void openDb();
   void closeDb();
  public:

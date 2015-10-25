@@ -10,6 +10,7 @@
 #include <rocksdb/slice.h>
 #include <rocksdb/options.h>
 #include <rocksdb/table.h>
+#include <rocksdb/cache.h>
 #include <rocksdb/slice_transform.h>
 #include <rocksdb/filter_policy.h>
 #include <rocksdb/utilities/optimistic_transaction.h>
@@ -51,35 +52,40 @@ class ColonPrefixTransform : public rocksdb::SliceTransform {
 };
 
 RockHandle::RockHandle(string dbPath) : dbPath_(dbPath) {
-  options_.IncreaseParallelism();
-  options_.OptimizeLevelStyleCompaction();
+  options_.env->SetBackgroundThreads(4);
   options_.create_if_missing = true;
-  options_.prefix_extractor.reset(new ColonPrefixTransform());
-  options_.memtable_prefix_bloom_bits = 100000000;
-  options_.memtable_prefix_bloom_probes = 6;
+  options_.write_buffer_size = 1024 * 1024 * 32;
+  options_.max_write_buffer_number = 5;
+  options_.min_write_buffer_number_to_merge = 2;
+  options_.max_bytes_for_level_base = 1024 * 1024 * 64;
+  options_.max_bytes_for_level_multiplier = 8;
+  options_.target_file_size_base = options_.max_bytes_for_level_base / 10;
+  options_.num_levels = 5;
   struct BlockBasedTableOptions table_options;
-  table_options.filter_policy.reset(NewBloomFilterPolicy(10, true));
+  size_t cacheCapacity = 1024 * 1024 * 64;
+  size_t cacheShardBits = 4;
+  table_options.cache_index_and_filter_blocks = true;
+  table_options.block_cache = rocksdb::NewLRUCache(cacheCapacity, cacheShardBits);
+  table_options.block_size = 1024 * 8;
   options_.table_factory.reset(NewBlockBasedTableFactory(table_options));
   openDb();
 }
 
 void RockHandle::closeDb() {
-  if (txnDb_.get() != nullptr) {
-    rocksdb::OptimisticTransactionDB *txnDb = txnDb_.release();
-    delete txnDb;
-    db_ = nullptr;
+  auto db = db_.release();
+  if (db != nullptr) {
+    delete db;
   }
 }
 
 void RockHandle::openDb() {
-  CHECK(txnDb_.get() == nullptr);
-  rocksdb::OptimisticTransactionDB *txnDbPtr = nullptr;
-  auto status = rocksdb::OptimisticTransactionDB::Open(
-      options_, dbPath_.c_str(), &txnDbPtr);
+  CHECK(db_.get() == nullptr);
+  rocksdb::DB *dbPtr = nullptr;
+  auto status = rocksdb::DB::Open(
+      options_, dbPath_.c_str(), &dbPtr);
   CHECK(status.ok());
-  CHECK(txnDbPtr != nullptr);
-  txnDb_.reset(txnDbPtr);
-  db_ = txnDb_->GetBaseDB();
+  CHECK(dbPtr != nullptr);
+  db_.reset(dbPtr);
 }
 
 bool RockHandle::put(string key, rocksdb::Slice val) {

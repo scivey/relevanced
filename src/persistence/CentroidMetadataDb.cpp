@@ -8,6 +8,7 @@
 #include <folly/futures/helpers.h>
 #include <folly/futures/Try.h>
 #include <folly/Conv.h>
+#include "gen-cpp2/RelevancedProtocol_types.h"
 
 
 using namespace std;
@@ -15,6 +16,8 @@ using namespace folly;
 
 namespace relevanced {
 namespace persistence {
+
+using thrift_protocol::ECentroidDoesNotExist;
 
 CentroidMetadataDb::CentroidMetadataDb(shared_ptr<PersistenceIf> persistence)
     : persistence_(persistence) {}
@@ -62,20 +65,34 @@ Future<Try<bool>> CentroidMetadataDb::isCentroidUpToDate(
   vector<Future<Optional<uint64_t>>> timestamps;
   timestamps.push_back(getLastCalculatedTimestamp(centroidId));
   timestamps.push_back(getLastDocumentChangeTimestamp(centroidId));
+  string id = centroidId;
   return collect(timestamps)
-      .then([](vector<Optional<uint64_t>> stamps) {
+      .then([this, id](vector<Optional<uint64_t>> stamps) {
         auto lastCalculated = stamps.at(0);
         auto lastChanged = stamps.at(1);
-        if (!lastChanged.hasValue()) {
-          return Try<bool>(true);
+        if (!lastChanged.hasValue() && !lastCalculated.hasValue()) {
+          return persistence_->doesCentroidExist(id).then([](bool exists) {
+            if (exists) {
+              return Try<bool>(true);
+            }
+            return Try<bool>(make_exception_wrapper<ECentroidDoesNotExist>());
+          });
+        } else {
+          if (!lastChanged.hasValue()) {
+            Try<bool> result(true);
+            return makeFuture(result);
+          }
+          if (!lastCalculated.hasValue()) {
+            Try<bool> result(false);
+            return makeFuture(result);
+          }
+          if (lastChanged.value() > lastCalculated.value()) {
+            Try<bool> result(false);
+            return makeFuture(result);
+          }
+          Try<bool> result(true);
+          return makeFuture(result);
         }
-        if (!lastCalculated.hasValue()) {
-          return Try<bool>(false);
-        }
-        if (lastChanged.value() > lastCalculated.value()) {
-          return Try<bool>(false);
-        }
-        return Try<bool>(true);
       });
 }
 

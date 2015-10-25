@@ -241,7 +241,7 @@ Future<Try<bool>> RelevanceServer::joinCentroid(unique_ptr<string> centroidId) {
       return makeFuture(result);
     }
     if (isUpToDate.value()) {
-      Try<bool> result(true);
+      Try<bool> result(false);
       return makeFuture(result);
     }
     return centroidUpdateWorker_->joinUpdate(cId).then([this, cId](Try<string> result) {
