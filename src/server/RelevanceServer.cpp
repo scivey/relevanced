@@ -86,35 +86,58 @@ Future<Try<double>> RelevanceServer::getCentroidSimilarity(
 }
 
 Future<Try<unique_ptr<map<string, double>>>>
+RelevanceServer::internalMultiGetDocumentSimilarity(shared_ptr<vector<string>> centroidIds,
+                                        shared_ptr<ProcessedDocument> doc) {
+  vector<Future<Try<double>>> scores;
+  for (size_t i = 0; i < centroidIds->size(); i++) {
+    scores.push_back(
+      scoreWorker_->getDocumentSimilarity(centroidIds->at(i), doc)
+    );
+  }
+  return collect(scores).then([this, centroidIds](Try<vector<Try<double>>> scores) {
+    if (scores.hasException()) {
+      return Try<unique_ptr<map<string, double>>>(scores.exception());
+    }
+    auto scoreVals = scores.value();
+    auto response = folly::make_unique<map<string, double>>();
+    for (size_t i = 0; i < centroidIds->size(); i++) {
+      auto currentScoreVal = scoreVals.at(i);
+      if (currentScoreVal.hasException()) {
+        return Try<unique_ptr<map<string, double>>>(
+          currentScoreVal.exception()
+        );
+      }
+      response->insert(make_pair(centroidIds->at(i), currentScoreVal.value()));
+    }
+    return Try<unique_ptr<map<string, double>>>(std::move(response));
+  });
+}
+
+
+Future<Try<unique_ptr<map<string, double>>>>
 RelevanceServer::multiGetTextSimilarity(unique_ptr<vector<string>> centroidIds,
                                         unique_ptr<string> text) {
   auto doc = std::make_shared<Document>("no-id", *text);
   auto cIds = std::make_shared<vector<string>>(*centroidIds);
   return processingWorker_->processNew(doc).then([this, cIds](
       shared_ptr<ProcessedDocument> processed) {
-    vector<Future<Try<double>>> scores;
-    for (size_t i = 0; i < cIds->size(); i++) {
-      scores.push_back(
-          scoreWorker_->getDocumentSimilarity(cIds->at(i), processed));
-    }
-    return collect(scores).then([this, cIds](Try<vector<Try<double>>> scores) {
-      if (scores.hasException()) {
-        return Try<unique_ptr<map<string, double>>>(scores.exception());
-      }
-      auto scoreVals = scores.value();
-      auto response = folly::make_unique<map<string, double>>();
-      for (size_t i = 0; i < cIds->size(); i++) {
-        auto currentScoreVal = scoreVals.at(i);
-        if (currentScoreVal.hasException()) {
-          return Try<unique_ptr<map<string, double>>>(
-              currentScoreVal.exception());
-        }
-        response->insert(make_pair(cIds->at(i), currentScoreVal.value()));
-      }
-      return Try<unique_ptr<map<string, double>>>(std::move(response));
-    });
+    return internalMultiGetDocumentSimilarity(cIds, processed);
   });
 }
+
+Future<Try<unique_ptr<map<string, double>>>>
+RelevanceServer::multiGetDocumentSimilarity(unique_ptr<vector<string>> centroidIds,
+                                        unique_ptr<string> docId) {
+  auto cIds = std::make_shared<vector<string>>(*centroidIds);
+  return persistence_->loadDocument(*docId).then([this, cIds](Try<shared_ptr<ProcessedDocument>> doc)  {
+    if (doc.hasException()) {
+      return makeFuture<Try<unique_ptr<map<string, double>>>>(doc.exception());
+    }
+    shared_ptr<ProcessedDocument> docVal = doc.value();
+    return this->internalMultiGetDocumentSimilarity(cIds, docVal);
+  });
+}
+
 
 Future<Try<double>> RelevanceServer::getTextSimilarity(
     unique_ptr<string> centroidId, unique_ptr<string> text) {

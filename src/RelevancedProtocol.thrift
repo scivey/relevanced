@@ -141,6 +141,7 @@ service Relevanced {
     void ping(),
     map<string, string> getServerMetadata(),
     double getDocumentSimilarity(1: string centroidId, 2: string docId) throws (1: ECentroidDoesNotExist centroidErr, 2: EDocumentDoesNotExist docErr),
+    MultiSimilarityResponse multiGetDocumentSimilarity(1: list<string> centroidIds, 2: string documentId) throws (1: ECentroidDoesNotExist centroidErr, 2: EDocumentDoesNotExist docErr),
     MultiSimilarityResponse multiGetTextSimilarity(1: list<string> centroidIds, 2: string text) throws (1: ECentroidDoesNotExist err),
     double getTextSimilarity(1: string centroidId, 2: string text) throws (1: ECentroidDoesNotExist err),
     double getCentroidSimilarity(1: string centroid1Id, 2: string centroid2Id) throws (1: ECentroidDoesNotExist err),

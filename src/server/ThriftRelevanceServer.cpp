@@ -76,6 +76,21 @@ ThriftRelevanceServer::future_multiGetTextSimilarity(
       });
 }
 
+Future<unique_ptr<MultiSimilarityResponse>>
+ThriftRelevanceServer::future_multiGetDocumentSimilarity(
+    unique_ptr<vector<string>> centroidIds, unique_ptr<string> docId) {
+  return server_->multiGetDocumentSimilarity(std::move(centroidIds),
+                                         std::move(docId))
+      .then([this](Try<unique_ptr<map<string, double>>> result) {
+        result.throwIfFailed();
+        auto response = folly::make_unique<MultiSimilarityResponse>();
+        map<string, double> scores = *result.value();
+        response->scores = std::move(scores);
+        return std::move(response);
+      });
+}
+
+
 Future<unique_ptr<CreateDocumentResponse>>
 ThriftRelevanceServer::future_createDocument(unique_ptr<string> text) {
   return server_->createDocument(std::move(text))

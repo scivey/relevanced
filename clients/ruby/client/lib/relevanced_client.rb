@@ -37,6 +37,12 @@ module RelevancedClient
             )
         end
 
+        def multi_get_document_similarity(centroid_id_list, document_id)
+            @thrift_client.multiGetDocumentSimilarity(
+                centroid_id_list, document_id
+            )
+        end
+
         def get_text_similarity(centroid_id, text)
             @thrift_client.getTextSimilarity(centroid_id, text)
         end

@@ -26,6 +26,10 @@ class RelevanceServerIf {
       folly::Try<std::unique_ptr<std::map<std::string, double>>>>
   multiGetTextSimilarity(std::unique_ptr<std::vector<std::string>> centroidIds,
                          std::unique_ptr<std::string> text) = 0;
+  virtual folly::Future<
+      folly::Try<std::unique_ptr<std::map<std::string, double>>>>
+  multiGetDocumentSimilarity(std::unique_ptr<std::vector<std::string>> centroidIds,
+                         std::unique_ptr<std::string> docId) = 0;
   virtual folly::Future<folly::Try<double>> getTextSimilarity(
       std::unique_ptr<std::string> centroidId,
       std::unique_ptr<std::string> text) = 0;
@@ -105,6 +109,10 @@ class RelevanceServer : public RelevanceServerIf {
   folly::Future<folly::Try<std::unique_ptr<std::string>>>
   internalCreateDocumentWithID(std::string id, std::string text);
 
+  folly::Future<
+      folly::Try<std::unique_ptr<std::map<std::string, double>>>>
+  internalMultiGetDocumentSimilarity(std::shared_ptr<std::vector<std::string>> centroidIds,
+                         std::shared_ptr<models::ProcessedDocument>);
  public:
   RelevanceServer(
       std::shared_ptr<persistence::PersistenceIf> persistenceSv,
@@ -126,6 +134,10 @@ class RelevanceServer : public RelevanceServerIf {
   folly::Future<folly::Try<std::unique_ptr<std::map<std::string, double>>>>
   multiGetTextSimilarity(std::unique_ptr<std::vector<std::string>> centroidIds,
                          std::unique_ptr<std::string> text) override;
+  folly::Future<
+      folly::Try<std::unique_ptr<std::map<std::string, double>>>>
+  multiGetDocumentSimilarity(std::unique_ptr<std::vector<std::string>> centroidIds,
+                         std::unique_ptr<std::string> docId) override;
   folly::Future<folly::Try<double>> getTextSimilarity(
       std::unique_ptr<std::string> centroidId,
       std::unique_ptr<std::string> text) override;

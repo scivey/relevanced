@@ -256,6 +256,40 @@ class Client(object):
             centroid_ids, text.encode('utf-8')
         )
 
+    def multi_get_document_similarity(self, centroid_ids, document_id):
+        """
+        Calculate the cosine similarity of document with id
+        `document_id` against multiple centroids in parallel.
+
+        The document must already exist on the server.
+
+        Returns a `MultiSimilarityResponse`.  The `scores`
+        property of this response object is a dict mapping
+        each centroid ID to its corresponding cosine similarity
+        against `text`.
+
+        If the document does not exist, raises
+        `EDocumentDoesNotExist`.
+
+        If any of the centroids do not exist, raises
+        `ECentroidDoesNotExist`.
+
+        Example:
+            response = client.multi_get_document_similarity(
+                ['centroid1', 'centroid2'],
+                'some-document-id'
+            )
+            pprint(response.scores)
+            # {"centroid1": 0.08731412, "centroid2": 0.3921579}
+        """
+
+        if isinstance(centroid_ids, basestring):
+            centroid_ids = [centroid_ids]
+
+        return self.thrift_client.multiGetDocumentSimilarity(
+            centroid_ids, text.encode('utf-8')
+        )
+
     def get_document_similarity(self, centroid_id, document_id):
         """
         Return cosine similarity of document with ID `document_id`

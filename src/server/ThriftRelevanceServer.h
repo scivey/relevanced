@@ -36,8 +36,13 @@ class ThriftRelevanceServer : public thrift_protocol::RelevancedSvIf {
 
   folly::Future<std::unique_ptr<thrift_protocol::MultiSimilarityResponse>>
   future_multiGetTextSimilarity(
-      std::unique_ptr<std::vector<std::string>> centroidId,
+      std::unique_ptr<std::vector<std::string>> centroidIds,
       std::unique_ptr<std::string> text) override;
+
+  folly::Future<std::unique_ptr<thrift_protocol::MultiSimilarityResponse>>
+  future_multiGetDocumentSimilarity(
+      std::unique_ptr<std::vector<std::string>> centroidIds,
+      std::unique_ptr<std::string> docId) override;
 
   folly::Future<double> future_getTextSimilarity(
       std::unique_ptr<std::string> centroidId,
