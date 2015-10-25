@@ -8,15 +8,14 @@
 #include <memory>
 
 #include <glog/logging.h>
+
 #include <folly/ExceptionWrapper.h>
 #include <folly/Memory.h>
-
 #include <folly/futures/Try.h>
 #include <folly/futures/Future.h>
 #include <folly/futures/helpers.h>
-
-
 #include <folly/Optional.h>
+
 #include <wangle/concurrent/CPUThreadPoolExecutor.h>
 #include <wangle/concurrent/FutureExecutor.h>
 
@@ -168,6 +167,19 @@ TEST(RelevanceServer, TestCreateDocumentWithID) {
   EXPECT_EQ("doc-id", persisted.value()->id);
 }
 
+TEST(RelevanceServer, TestCreateDocumentWithIDAlreadyExists) {
+  RelevanceServerTestCtx ctx;
+  auto text = folly::make_unique<string>("some text about cats and dogs and fish and so forth");
+  auto id = folly::make_unique<string>("doc-id");
+  auto response1 = ctx.server->createDocumentWithID(std::move(id), std::move(text)).get();
+  EXPECT_FALSE(response1.hasException());
+  auto response2 = ctx.server->createDocumentWithID(
+    folly::make_unique<string>("doc-id"),
+    folly::make_unique<string>("some text")
+  ).get();
+  EXPECT_TRUE(response2.hasException<EDocumentAlreadyExists>());
+}
+
 TEST(RelevanceServer, TestCreateCentroid) {
   RelevanceServerTestCtx ctx;
   auto id = folly::make_unique<string>("some-centroid");
@@ -208,6 +220,50 @@ TEST(RelevanceServer, TestListAllCentroids) {
   EXPECT_EQ(expectedIds, returnedIds);
 }
 
+TEST(RelevanceServer, TestListCentroidRange) {
+  RelevanceServerTestCtx ctx;
+  vector<Future<Try<bool>>> creations;
+  for (size_t i = 0; i < 10; i++) {
+    auto id = sformat("some-centroid-{}", i);
+    creations.push_back(ctx.server->createCentroid(
+      folly::make_unique<string>(id)
+    ));
+  }
+  collect(creations).get();
+  auto centroids = ctx.server->listCentroidRange(3, 4).get();
+  set<string> returnedIds;
+  for (auto &id: *centroids) {
+    returnedIds.insert(id);
+  }
+  set<string> expectedIds {
+    "some-centroid-3", "some-centroid-4", "some-centroid-5", "some-centroid-6"
+  };
+  EXPECT_EQ(expectedIds, returnedIds);
+}
+
+TEST(RelevanceServer, TestListCentroidRangeFromID) {
+  RelevanceServerTestCtx ctx;
+  vector<Future<Try<bool>>> creations;
+  for (size_t i = 0; i < 10; i++) {
+    auto id = sformat("some-centroid-{}", i);
+    creations.push_back(ctx.server->createCentroid(
+      folly::make_unique<string>(id)
+    ));
+  }
+  collect(creations).get();
+  auto centroids = ctx.server->listCentroidRangeFromID(
+    folly::make_unique<string>("some-centroid-5"), 3
+  ).get();
+  set<string> returnedIds;
+  for (auto &id: *centroids) {
+    returnedIds.insert(id);
+  }
+  set<string> expectedIds {
+    "some-centroid-5", "some-centroid-6", "some-centroid-7"
+  };
+  EXPECT_EQ(expectedIds, returnedIds);
+}
+
 TEST(RelevanceServer, TestListAllDocuments) {
   RelevanceServerTestCtx ctx;
   vector<Future<Try<unique_ptr<string>>>> creations;
@@ -233,6 +289,52 @@ TEST(RelevanceServer, TestListAllDocuments) {
   for (auto &id: *documents) {
     returnedIds.insert(id);
   }
+  EXPECT_EQ(expectedIds, returnedIds);
+}
+
+TEST(RelevanceServer, TestListDocumentRange) {
+  RelevanceServerTestCtx ctx;
+  vector<Future<Try<unique_ptr<string>>>> creations;
+  for (size_t i = 0; i < 10; i++) {
+    auto id = sformat("some-doc-{}", i);
+    creations.push_back(ctx.server->createDocumentWithID(
+      folly::make_unique<string>(id),
+      folly::make_unique<string>("this is some text about things")
+    ));
+  }
+  collect(creations).get();
+  auto documents = ctx.server->listDocumentRange(3, 4).get();
+  set<string> returnedIds;
+  for (auto &id: *documents) {
+    returnedIds.insert(id);
+  }
+  set<string> expectedIds {
+    "some-doc-3", "some-doc-4", "some-doc-5", "some-doc-6"
+  };
+  EXPECT_EQ(expectedIds, returnedIds);
+}
+
+TEST(RelevanceServer, TestListDocumentRangeFromID) {
+  RelevanceServerTestCtx ctx;
+  vector<Future<Try<unique_ptr<string>>>> creations;
+  for (size_t i = 0; i < 10; i++) {
+    auto id = sformat("some-doc-{}", i);
+    creations.push_back(ctx.server->createDocumentWithID(
+      folly::make_unique<string>(id),
+      folly::make_unique<string>("this is some text about things")
+    ));
+  }
+  collect(creations).get();
+  auto documents = ctx.server->listDocumentRangeFromID(
+    folly::make_unique<string>("some-doc-4"), 3
+  ).get();
+  set<string> returnedIds;
+  for (auto &id: *documents) {
+    returnedIds.insert(id);
+  }
+  set<string> expectedIds {
+    "some-doc-4", "some-doc-5", "some-doc-6"
+  };
   EXPECT_EQ(expectedIds, returnedIds);
 }
 

@@ -16,6 +16,7 @@ class MockRock : public relevanced::persistence::RockHandleIf {
   MOCK_METHOD1(exists, bool(const string &));
   MOCK_METHOD1(del, bool(const string &));
   MOCK_METHOD0(eraseEverything, bool());
+  MOCK_METHOD0(getStatsDump, string());
   bool iterRange(const std::string&,
                  const std::string&,
                  std::function<void(const std::string &,

@@ -50,6 +50,7 @@ class InMemoryRockHandle : public RockHandleIf {
                          std::function<void()>) > iterFn) override;
 
   bool eraseEverything() override;
+  std::string getStatsDump() override;
 };
 
 } // persistence

@@ -30,6 +30,7 @@ using namespace relevanced::models;
 using namespace relevanced::util;
 using ::testing::Return;
 using ::testing::_;
+using thrift_protocol::ECentroidDoesNotExist;
 
 shared_ptr<CentroidMetadataDb> makeMetadataDb(
     MockSyncPersistence &syncPersistence) {
@@ -160,8 +161,10 @@ TEST(TestCentroidMetadataDb, TestIsCentroidUpToDateMissingLastCalculated) {
   EXPECT_FALSE(result.value());
 }
 
-TEST(TestCentroidMetadataDb, TestIsCentroidUpToDateMissingBoth) {
+TEST(TestCentroidMetadataDb, TestIsCentroidUpToDateMissingBothButExists) {
   MockSyncPersistence syncDb;
+  EXPECT_CALL(syncDb, doesCentroidExist("centroid-id"))
+    .WillOnce(Return(true));
   auto metaDb = makeMetadataDb(syncDb);
   Optional<string> lastDocumentChange;
   Optional<string> lastCalculated;
@@ -174,6 +177,20 @@ TEST(TestCentroidMetadataDb, TestIsCentroidUpToDateMissingBoth) {
   EXPECT_TRUE(result.value());
 }
 
+TEST(TestCentroidMetadataDb, TestIsCentroidUpToDateMissingBothDoesNotExist) {
+  MockSyncPersistence syncDb;
+  EXPECT_CALL(syncDb, doesCentroidExist("centroid-id"))
+    .WillOnce(Return(false));
+  auto metaDb = makeMetadataDb(syncDb);
+  Optional<string> lastDocumentChange;
+  Optional<string> lastCalculated;
+  EXPECT_CALL(syncDb, getCentroidMetadata("centroid-id", "lastDocumentChange"))
+      .WillOnce(Return(lastDocumentChange));
+  EXPECT_CALL(syncDb, getCentroidMetadata("centroid-id", "lastCalculated"))
+      .WillOnce(Return(lastCalculated));
+  auto result = metaDb->isCentroidUpToDate("centroid-id").get();
+  EXPECT_TRUE(result.hasException<ECentroidDoesNotExist>());
+}
 TEST(TestCentroidMetadataDb, TestSetCreatedTimestamp) {
   MockSyncPersistence syncDb;
   auto metaDb = makeMetadataDb(syncDb);

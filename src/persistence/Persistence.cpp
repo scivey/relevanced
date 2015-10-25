@@ -46,6 +46,11 @@ Future<Try<bool>> Persistence::saveDocument(shared_ptr<ProcessedDocument> doc) {
       [this, doc]() { return syncHandle_->saveDocument(doc); });
 }
 
+Future<Try<bool>> Persistence::saveNewDocument(shared_ptr<ProcessedDocument> doc) {
+  return threadPool_->addFuture(
+      [this, doc]() { return syncHandle_->saveNewDocument(doc); });
+}
+
 Future<Try<bool>> Persistence::deleteDocument(const string &id) {
   return threadPool_->addFuture(
       [this, id]() { return syncHandle_->deleteDocument(id); });

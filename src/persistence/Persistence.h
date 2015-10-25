@@ -22,6 +22,8 @@ class PersistenceIf {
   virtual folly::Future<bool> doesDocumentExist(const std::string &id) = 0;
   virtual folly::Future<folly::Try<bool>> saveDocument(
       std::shared_ptr<models::ProcessedDocument> doc) = 0;
+  virtual folly::Future<folly::Try<bool>> saveNewDocument(
+      std::shared_ptr<models::ProcessedDocument> doc) = 0;
   virtual folly::Future<folly::Try<bool>> deleteDocument(
       const std::string &id) = 0;
   virtual folly::Future<std::vector<std::string>> listAllDocuments() = 0;
@@ -108,6 +110,9 @@ class Persistence : public PersistenceIf {
   folly::Future<bool> doesDocumentExist(const std::string &id) override;
   folly::Future<folly::Try<bool>> saveDocument(
       std::shared_ptr<models::ProcessedDocument> doc) override;
+  folly::Future<folly::Try<bool>> saveNewDocument(
+      std::shared_ptr<models::ProcessedDocument> doc) override;
+
   folly::Future<folly::Try<bool>> deleteDocument(
       const std::string &id) override;
   folly::Future<std::vector<std::string>> listAllDocuments() override;

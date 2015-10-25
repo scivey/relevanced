@@ -157,15 +157,12 @@ Future<Try<unique_ptr<string>>> RelevanceServer::createDocument(
 Future<Try<unique_ptr<string>>> RelevanceServer::internalCreateDocumentWithID(
     string id, string text) {
   auto doc = std::make_shared<Document>(id, text);
-  LOG(INFO) << "creating document: " << id.substr(0, 15) << "  |   "
-            << text.substr(0, 20);
   return processingWorker_->processNew(doc)
       .then([this, id](shared_ptr<ProcessedDocument> processed) {
-        return persistence_->saveDocument(processed)
+        return persistence_->saveNewDocument(processed)
             .then([this, id](Try<bool> result) {
               if (result.hasException()) {
-                return Try<unique_ptr<string>>(
-                    make_exception_wrapper<EDocumentAlreadyExists>());
+                return Try<unique_ptr<string>>(result.exception());
               }
               return Try<unique_ptr<string>>(folly::make_unique<string>(id));
             });
@@ -211,10 +208,8 @@ Future<Try<bool>> RelevanceServer::deleteCentroid(
 
 Future<Try<unique_ptr<vector<string>>>>
 RelevanceServer::listAllDocumentsForCentroid(unique_ptr<string> centroidId) {
-  auto id = *centroidId;
-  LOG(INFO) << "listing documents for: " << id;
-  return persistence_->listAllDocumentsForCentroid(id)
-      .then([id](Try<vector<string>> docIds) {
+  return persistence_->listAllDocumentsForCentroid(*centroidId)
+      .then([](Try<vector<string>> docIds) {
         if (docIds.hasException()) {
           return Try<unique_ptr<vector<string>>>(docIds.exception());
         }

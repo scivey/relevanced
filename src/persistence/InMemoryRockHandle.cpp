@@ -175,6 +175,9 @@ bool InMemoryRockHandle::iterPrefixFromMember(
 }
 
 bool InMemoryRockHandle::eraseEverything(){ return false; }
+string InMemoryRockHandle::getStatsDump() {
+  return "InMemoryRockHandle doesn't return any stats, sorry!";
+}
 
 } // persistence
 } // relevanced

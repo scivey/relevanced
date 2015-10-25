@@ -58,7 +58,7 @@ class RockHandleIf {
                                           std::function<void(std::string &) >,
                                           std::function<void()>) > iterFn) = 0;
   virtual bool eraseEverything() = 0;
-
+  virtual std::string getStatsDump() = 0;
   virtual ~RockHandleIf() = default;
 };
 
@@ -108,6 +108,7 @@ class RockHandle : public RockHandleIf {
                                   std::function<void()>) > iterFn) override;
 
   bool eraseEverything() override;
+  std::string getStatsDump() override;
 };
 
 

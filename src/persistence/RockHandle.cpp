@@ -221,5 +221,11 @@ bool RockHandle::eraseEverything(){
   return status.ok();
 }
 
+string RockHandle::getStatsDump() {
+  string stats;
+  db_->GetProperty("rocksdb.stats", &stats);
+  return stats;
+}
+
 } // persistence
 } // relevanced

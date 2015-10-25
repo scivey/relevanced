@@ -21,6 +21,8 @@ class SyncPersistenceIf {
   virtual bool doesDocumentExist(const std::string &id) = 0;
   virtual folly::Try<bool> saveDocument(
       std::shared_ptr<models::ProcessedDocument> doc) = 0;
+  virtual folly::Try<bool> saveNewDocument(
+      std::shared_ptr<models::ProcessedDocument> doc) = 0;
   virtual folly::Try<bool> deleteDocument(const std::string &id) = 0;
   virtual std::vector<std::string> listAllDocuments() = 0;
   virtual std::vector<std::string> listDocumentRangeFromId(
@@ -105,6 +107,9 @@ class SyncPersistence : public SyncPersistenceIf {
  public:
   SyncPersistence(util::UniquePointer<RockHandleIf> rockHandle);
   bool doesDocumentExist(const std::string &id) override;
+  folly::Try<bool> saveNewDocument(models::ProcessedDocument *doc);
+  folly::Try<bool> saveNewDocument(
+      std::shared_ptr<models::ProcessedDocument> doc) override;
   folly::Try<bool> saveDocument(models::ProcessedDocument *doc);
   folly::Try<bool> saveDocument(
       std::shared_ptr<models::ProcessedDocument> doc) override;

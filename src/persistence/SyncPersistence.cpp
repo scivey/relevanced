@@ -42,6 +42,21 @@ bool SyncPersistence::doesDocumentExist(const string &id) {
   return rockHandle_->exists(key);
 }
 
+Try<bool> SyncPersistence::saveNewDocument(ProcessedDocument *doc) {
+  if (doesDocumentExist(doc->id)) {
+    return Try<bool>(make_exception_wrapper<EDocumentAlreadyExists>());
+  }
+  auto key = sformat("documents:{}", doc->id);
+  string data;
+  serialization::binarySerialize(data, *doc);
+  rockHandle_->put(key, data);
+  return Try<bool>(true);
+}
+
+Try<bool> SyncPersistence::saveNewDocument(shared_ptr<ProcessedDocument> doc) {
+  return saveNewDocument(doc.get());
+}
+
 Try<bool> SyncPersistence::saveDocument(ProcessedDocument *doc) {
   string data;
   serialization::binarySerialize(data, *doc);
@@ -149,10 +164,8 @@ bool SyncPersistence::doesCentroidExist(const string &id) {
 }
 
 Try<bool> SyncPersistence::createNewCentroid(const string &id) {
-  LOG(INFO) << format("createNewCentroid: {}", id);
   auto key = sformat("centroids:{}", id);
   if (rockHandle_->exists(key)) {
-    LOG(INFO) << format("centroid '{}' already exists", id);
     return Try<bool>(make_exception_wrapper<ECentroidAlreadyExists>());
   }
   Centroid centroid(id);
