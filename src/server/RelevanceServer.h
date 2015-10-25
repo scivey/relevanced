@@ -64,6 +64,30 @@ class RelevanceServerIf {
   virtual folly::Future<std::unique_ptr<std::vector<std::string>>>
   listAllDocuments() = 0;
 
+  virtual folly::Future<std::unique_ptr<std::vector<std::string>>> listCentroidRange(
+    size_t offset, size_t count
+  ) = 0;
+
+  virtual folly::Future<std::unique_ptr<std::vector<std::string>>> listCentroidRangeFromID(
+    std::unique_ptr<std::string> centroidId, size_t count
+  ) = 0;
+
+  virtual folly::Future<std::unique_ptr<std::vector<std::string>>> listDocumentRange(
+    size_t offset, size_t count
+  ) = 0;
+
+  virtual folly::Future<std::unique_ptr<std::vector<std::string>>> listDocumentRangeFromID(
+    std::unique_ptr<std::string> docId, size_t count
+  ) = 0;
+
+  virtual folly::Future<folly::Try<std::unique_ptr<std::vector<std::string>>>> listCentroidDocumentRange(
+    std::unique_ptr<std::string> centroidId, size_t offset, size_t count
+  ) = 0;
+
+  virtual folly::Future<folly::Try<std::unique_ptr<std::vector<std::string>>>> listCentroidDocumentRangeFromID(
+    std::unique_ptr<std::string> centroidId, std::unique_ptr<std::string> docId, size_t count
+  ) = 0;
+
   virtual folly::Future<folly::Unit> debugEraseAllData() = 0;
 
   virtual folly::Future<folly::Try<std::shared_ptr<models::Centroid>>>
@@ -171,6 +195,30 @@ class RelevanceServer : public RelevanceServerIf {
       override;
   folly::Future<std::unique_ptr<std::vector<std::string>>> listAllDocuments()
       override;
+
+  folly::Future<std::unique_ptr<std::vector<std::string>>> listCentroidRange(
+    size_t offset, size_t count
+  ) override;
+
+  folly::Future<std::unique_ptr<std::vector<std::string>>> listCentroidRangeFromID(
+    std::unique_ptr<std::string> centroidId, size_t count
+  ) override;
+
+  folly::Future<std::unique_ptr<std::vector<std::string>>> listDocumentRange(
+    size_t offset, size_t count
+  ) override;
+
+  folly::Future<std::unique_ptr<std::vector<std::string>>> listDocumentRangeFromID(
+    std::unique_ptr<std::string> docId, size_t count
+  ) override;
+
+  folly::Future<folly::Try<std::unique_ptr<std::vector<std::string>>>> listCentroidDocumentRange(
+    std::unique_ptr<std::string> centroidId, size_t offset, size_t count
+  ) override;
+
+  folly::Future<folly::Try<std::unique_ptr<std::vector<std::string>>>> listCentroidDocumentRangeFromID(
+    std::unique_ptr<std::string> centroidId, std::unique_ptr<std::string> docId, size_t count
+  ) override;
 
   folly::Future<folly::Unit> debugEraseAllData() override;
 

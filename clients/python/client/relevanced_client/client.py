@@ -29,6 +29,32 @@ class Client(object):
         """
         return self.thrift_client.listAllCentroids()
 
+    def list_centroid_range(self, offset, count):
+        """
+        Returns up to `count` ids of centroids existing
+        on the server, skipping the first `offset` ordered
+        ids.
+
+        Returns a `ListCentroidsResponse`.  The `centroids`
+        property of this response object contains an array
+        of IDs.
+        """
+        return self.thrift_client.listCentroidRange(offset, count)
+
+    def list_centroid_range_from_id(self, centroid_id, count):
+        """
+        Returns up to `count` ids of centroids existing
+        on the server, starting from `centroid_id`.
+        If `centroid_id` does not exist, the returned list
+        will start at the next largest centroid id after
+        `centroid_id`.
+
+        Returns a `ListCentroidsResponse`.  The `centroids`
+        property of this response object contains an array
+        of IDs.
+        """
+        return self.thrift_client.listCentroidRangeFromID(centroid_id, count)
+
     def create_centroid(self, id):
         """
         Create a new centroid on the server.
@@ -51,6 +77,31 @@ class Client(object):
         of IDs.
         """
         return self.thrift_client.listAllDocuments()
+
+    def list_document_range(self, offset, count):
+        """
+        Returns up to `count` ids of documents existing on
+        the server, skipping the first `offset` ids.
+
+        Returns a `ListDocumentsResponse`.  The `documents`
+        property of this response object contains an array
+        of IDs.
+        """
+        return self.thrift_client.listDocumentRange(offset, count)
+
+    def list_document_range_from_id(self, document_id, count):
+        """
+        Returns up to `count` ids of documents existing on
+        the server, starting from `document_id`.
+        If `document_id` does not exist, the returned list
+        will start at the next largest document id after
+        `document_id`.
+
+        Returns a `ListDocumentsResponse`.  The `documents`
+        property of this response object contains an array
+        of IDs.
+        """
+        return self.thrift_client.listDocumentRangeFromID(document_id, count)
 
     def add_document_to_centroid(self, centroid_id, document_id):
         """
@@ -198,6 +249,46 @@ class Client(object):
         an error condition.)
         """
         return self.thrift_client.listAllDocumentsForCentroid(centroid_id)
+
+    def list_centroid_document_range(self, centroid_id, offset, count):
+        """
+        Lists up to `count` IDs of documents associated
+        with the centroid `centroid_id`, skipping the
+        first `offset` documents.
+
+        Returns a `ListCentroidDocumentsResponse`.  The
+        `documents` property of this response object
+        contains the IDs.
+
+        If no centroid exists with the given ID, raises
+        `ECentroidDoesNotExist`.
+        """
+        return self.thrift_client.listCentroidDocumentRange(
+            centroid_id, offset, count
+        )
+
+    def list_centroid_document_range_from_id(self, centroid_id, document_id, count):
+        """
+        Lists up to `count` IDs of documents associated
+        with the centroid `centroid_id`, starting from
+        `document_id`.
+
+        If `document_id` does not exist or is not
+        associated with `centroid_id`, the returned list
+        will start at the next largest document id after
+        `document_id`.
+
+        Returns a `ListCentroidDocumentsResponse`.  The
+        `documents` property of this response object
+        contains the IDs.
+
+        If no centroid exists with the given ID, raises
+        `ECentroidDoesNotExist`.
+        """
+        return self.thrift_client.listCentroidDocumentRangeFromID(
+            centroid_id, document_id, count
+        )
+
 
     def get_centroid_similarity(self, centroid_1_id, centroid_2_id):
         """

@@ -224,6 +224,32 @@ RelevanceServer::listAllDocumentsForCentroid(unique_ptr<string> centroidId) {
       });
 }
 
+Future<Try<unique_ptr<vector<string>>>>
+RelevanceServer::listCentroidDocumentRange(unique_ptr<string> centroidId, size_t offset, size_t count) {
+  return persistence_->listCentroidDocumentRangeFromOffset(*centroidId, offset, count)
+      .then([](Try<vector<string>> docIds) {
+        if (docIds.hasException()) {
+          return Try<unique_ptr<vector<string>>>(docIds.exception());
+        }
+        return Try<unique_ptr<vector<string>>>(
+          folly::make_unique<vector<string>>(std::move(docIds.value()))
+        );
+      });
+}
+
+Future<Try<unique_ptr<vector<string>>>>
+RelevanceServer::listCentroidDocumentRangeFromID(unique_ptr<string> centroidId, unique_ptr<string> documentId, size_t count) {
+  return persistence_->listCentroidDocumentRangeFromDocumentId(*centroidId, *documentId, count)
+      .then([](Try<vector<string>> docIds) {
+        if (docIds.hasException()) {
+          return Try<unique_ptr<vector<string>>>(docIds.exception());
+        }
+        return Try<unique_ptr<vector<string>>>(
+          folly::make_unique<vector<string>>(std::move(docIds.value()))
+        );
+      });
+}
+
 Future<Try<bool>> RelevanceServer::addDocumentToCentroid(
     unique_ptr<string> centroidId, unique_ptr<string> docId) {
   auto cId = *centroidId;
@@ -287,9 +313,33 @@ Future<unique_ptr<vector<string>>> RelevanceServer::listAllCentroids() {
   });
 }
 
+Future<unique_ptr<vector<string>>> RelevanceServer::listCentroidRange(size_t offset, size_t count) {
+  return persistence_->listCentroidRangeFromOffset(offset, count).then([](vector<string> centroidIds) {
+    return std::move(folly::make_unique<vector<string>>(std::move(centroidIds)));
+  });
+}
+
+Future<unique_ptr<vector<string>>> RelevanceServer::listCentroidRangeFromID(unique_ptr<string> centroidId, size_t count) {
+  return persistence_->listCentroidRangeFromId(*centroidId, count).then([](vector<string> centroidIds) {
+    return std::move(folly::make_unique<vector<string>>(std::move(centroidIds)));
+  });
+}
+
 Future<unique_ptr<vector<string>>> RelevanceServer::listAllDocuments() {
   return persistence_->listAllDocuments().then([](vector<string> docIds) {
     return std::move(folly::make_unique<vector<string>>(docIds));
+  });
+}
+
+Future<unique_ptr<vector<string>>> RelevanceServer::listDocumentRange(size_t offset, size_t count) {
+  return persistence_->listDocumentRangeFromOffset(offset, count).then([](vector<string> docIds) {
+    return std::move(folly::make_unique<vector<string>>(std::move(docIds)));
+  });
+}
+
+Future<unique_ptr<vector<string>>> RelevanceServer::listDocumentRangeFromID(unique_ptr<string> docId, size_t count) {
+  return persistence_->listDocumentRangeFromId(*docId, count).then([](vector<string> docIds) {
+    return std::move(folly::make_unique<vector<string>>(std::move(docIds)));
   });
 }
 

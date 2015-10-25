@@ -79,6 +79,14 @@ module RelevancedClient
             @thrift_client.listAllDocumentsForCentroid(centroid_id)
         end
 
+        def list_centroid_document_range(centroid_id, offset, count)
+            @thrift_client.listCentroidDocumentRange(centroid_id, offset, count)
+        end
+
+        def list_centroid_document_range_from_id(centroid_id, document_id, count)
+            @thrift_client.listCentroidDocumentRangeFromID(centroid_id, document_id, count)
+        end
+
         def add_document_to_centroid(centroid_id, document_id)
             @thrift_client.addDocumentToCentroid(
                 centroid_id, document_id
@@ -99,9 +107,24 @@ module RelevancedClient
             @thrift_client.listAllCentroids()
         end
 
+        def list_centroid_range(offset, count)
+            @thrift_client.listCentroidRange(offset, count)
+        end
+
+        def list_centroid_range_from_id(centroid_id, count)
+            @thrift_client.listCentroidRangeFromID(centroid_id, count)
+        end
+
         def list_all_documents()
             @thrift_client.listAllDocuments()
         end
 
+        def list_document_range(offset, count)
+            @thrift_client.listDocumentRange(offset, count)
+        end
+
+        def list_document_range_from_id(document_id, count)
+            @thrift_client.listDocumentRangeFromID(document_id, count)
+        end
     end
 end

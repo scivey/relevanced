@@ -166,6 +166,35 @@ ThriftRelevanceServer::future_listAllDocumentsForCentroid(
       });
 }
 
+Future<unique_ptr<ListCentroidDocumentsResponse>>
+ThriftRelevanceServer::future_listCentroidDocumentRange(
+    unique_ptr<string> centroidId, int64_t iOffset, int64_t iCount) {
+  size_t offset = iOffset;
+  size_t count = iCount;
+  return server_->listCentroidDocumentRange(std::move(centroidId), offset, count)
+      .then([](Try<unique_ptr<vector<string>>> result) {
+        result.throwIfFailed();
+        auto response = folly::make_unique<ListCentroidDocumentsResponse>();
+        vector<string> docIds = *result.value();
+        response->documents = std::move(docIds);
+        return std::move(response);
+      });
+}
+
+Future<unique_ptr<ListCentroidDocumentsResponse>>
+ThriftRelevanceServer::future_listCentroidDocumentRangeFromID(
+    unique_ptr<string> centroidId, unique_ptr<string> docId, int64_t iCount) {
+  size_t count = iCount;
+  return server_->listCentroidDocumentRangeFromID(std::move(centroidId), std::move(docId), count)
+      .then([](Try<unique_ptr<vector<string>>> result) {
+        result.throwIfFailed();
+        auto response = folly::make_unique<ListCentroidDocumentsResponse>();
+        vector<string> docIds = *result.value();
+        response->documents = std::move(docIds);
+        return std::move(response);
+      });
+}
+
 Future<unique_ptr<AddDocumentToCentroidResponse>>
 ThriftRelevanceServer::future_addDocumentToCentroid(
     unique_ptr<string> centroidId, unique_ptr<string> docId) {
@@ -221,6 +250,29 @@ ThriftRelevanceServer::future_listAllCentroids() {
       });
 }
 
+Future<unique_ptr<ListCentroidsResponse>>
+ThriftRelevanceServer::future_listCentroidRange(int64_t iOffset, int64_t iCount) {
+  size_t offset = iOffset;
+  size_t count = iCount;
+  return server_->listCentroidRange(offset, count).then(
+      [](unique_ptr<vector<string>> result) {
+        auto response = folly::make_unique<ListCentroidsResponse>();
+        response->centroids = *result;
+        return std::move(response);
+      });
+}
+
+Future<unique_ptr<ListCentroidsResponse>>
+ThriftRelevanceServer::future_listCentroidRangeFromID(unique_ptr<string> centroidId, int64_t iCount) {
+  size_t count = iCount;
+  return server_->listCentroidRangeFromID(std::move(centroidId), count).then(
+      [](unique_ptr<vector<string>> result) {
+        auto response = folly::make_unique<ListCentroidsResponse>();
+        response->centroids = *result;
+        return std::move(response);
+      });
+}
+
 Future<unique_ptr<ListDocumentsResponse>>
 ThriftRelevanceServer::future_listAllDocuments() {
   return server_->listAllDocuments().then(
@@ -230,6 +282,30 @@ ThriftRelevanceServer::future_listAllDocuments() {
         return std::move(response);
       });
 }
+
+Future<unique_ptr<ListDocumentsResponse>>
+ThriftRelevanceServer::future_listDocumentRange(int64_t iOffset, int64_t iCount) {
+  size_t offset = iOffset;
+  size_t count = iCount;
+  return server_->listDocumentRange(offset, count).then(
+      [](unique_ptr<vector<string>> result) {
+        auto response = folly::make_unique<ListDocumentsResponse>();
+        response->documents = *result;
+        return std::move(response);
+      });
+}
+
+Future<unique_ptr<ListDocumentsResponse>>
+ThriftRelevanceServer::future_listDocumentRangeFromID(unique_ptr<string> docId, int64_t iCount) {
+  size_t count = iCount;
+  return server_->listDocumentRangeFromID(std::move(docId), count).then(
+      [](unique_ptr<vector<string>> result) {
+        auto response = folly::make_unique<ListDocumentsResponse>();
+        response->documents = *result;
+        return std::move(response);
+      });
+}
+
 
 Future<unique_ptr<map<string, string>>>
 ThriftRelevanceServer::future_getServerMetadata() {

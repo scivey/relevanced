@@ -72,6 +72,12 @@ class ThriftRelevanceServer : public thrift_protocol::RelevancedSvIf {
   future_listAllDocumentsForCentroid(
       std::unique_ptr<std::string> centroidId) override;
 
+  folly::Future<std::unique_ptr<thrift_protocol::ListCentroidDocumentsResponse>>
+  future_listCentroidDocumentRange(std::unique_ptr<std::string> centroidId, int64_t offset, int64_t count) override;
+  folly::Future<std::unique_ptr<thrift_protocol::ListCentroidDocumentsResponse>>
+  future_listCentroidDocumentRangeFromID(std::unique_ptr<std::string> centroidId, std::unique_ptr<std::string> docId, int64_t count) override;
+
+
   folly::Future<std::unique_ptr<thrift_protocol::AddDocumentToCentroidResponse>>
   future_addDocumentToCentroid(std::unique_ptr<std::string> centroidId,
                                std::unique_ptr<std::string> docId) override;
@@ -87,8 +93,19 @@ class ThriftRelevanceServer : public thrift_protocol::RelevancedSvIf {
 
   folly::Future<std::unique_ptr<thrift_protocol::ListCentroidsResponse>>
   future_listAllCentroids() override;
+  folly::Future<std::unique_ptr<thrift_protocol::ListCentroidsResponse>>
+  future_listCentroidRange(int64_t offset, int64_t count) override;
+  folly::Future<std::unique_ptr<thrift_protocol::ListCentroidsResponse>>
+  future_listCentroidRangeFromID(std::unique_ptr<std::string> startId, int64_t count) override;
+
+
   folly::Future<std::unique_ptr<thrift_protocol::ListDocumentsResponse>>
   future_listAllDocuments() override;
+  folly::Future<std::unique_ptr<thrift_protocol::ListDocumentsResponse>>
+  future_listDocumentRange(int64_t offset, int64_t count) override;
+  folly::Future<std::unique_ptr<thrift_protocol::ListDocumentsResponse>>
+  future_listDocumentRangeFromID(std::unique_ptr<std::string> startId, int64_t count) override;
+
 
   folly::Future<folly::Unit> future_debugEraseAllData() override;
 
