@@ -241,7 +241,8 @@ Future<Try<bool>> RelevanceServer::joinCentroid(unique_ptr<string> centroidId) {
       return makeFuture(result);
     }
     if (isUpToDate.value()) {
-      Try<bool> result(false);
+      bool recomputed = false;
+      Try<bool> result(recomputed);
       return makeFuture(result);
     }
     return centroidUpdateWorker_->joinUpdate(cId).then([this, cId](Try<string> result) {
@@ -250,7 +251,8 @@ Future<Try<bool>> RelevanceServer::joinCentroid(unique_ptr<string> centroidId) {
         return makeFuture(toReturn);
       }
       return scoreWorker_->reloadCentroid(cId).then([](){
-        return Try<bool>(true);
+        bool recomputed = true;
+        return Try<bool>(recomputed);
       });
     });
   });
