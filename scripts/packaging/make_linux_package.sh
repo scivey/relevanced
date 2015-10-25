@@ -100,9 +100,9 @@ function main() {
   mkdir -p $INSTALL_PREFIX/$RELEVANCED_VAR_DIR/data
   mkdir -p $INSTALL_PREFIX/$RELEVANCED_LOG_DIR
   mkdir -p $INSTALL_PREFIX/$RELEVANCED_ETC_DIR
-  cp $SCRIPT_DIR/relevanced.json $INSTALL_PREFIX/$RELEVANCED_ETC_DIR/relevanced.json
 
   mkdir -p `dirname $INSTALL_PREFIX$INITD_DST`
+  cp $SCRIPT_DIR/relevanced.json $INSTALL_PREFIX/$RELEVANCED_ETC_DIR/relevanced.json
   cp $INITD_SRC $INSTALL_PREFIX$INITD_DST
 
   chmod g-w $INSTALL_PREFIX$INITD_DST
@@ -127,6 +127,7 @@ function main() {
     -a $PACKAGE_ARCH                      \
     $PACKAGE_DEPENDENCIES                 \
     -p $OUTPUT_PKG_PATH                   \
+    --config-files etc/relevanced/relevanced.json \
     --url http://www.relevanced.org       \
     -m scott.ivey@gmail.com               \
     --license MIT                         \
