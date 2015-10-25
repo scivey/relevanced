@@ -348,8 +348,6 @@ ThriftRelevanceServer::future_debugGetFullProcessedDocument(unique_ptr<string> d
       string k = elem.word;
       response->wordVector.scores[k] = elem.score;
     }
-    // response->wordVector.documentWeight = document->wordVector.documentWeight;
-    // response->wordVector.scores = document->wordVector.scores;
     return std::move(response);
   });
 }
