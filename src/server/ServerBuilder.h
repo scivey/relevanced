@@ -74,10 +74,11 @@ class ServerBuilder {
             typename PersistenceT,
             typename CentroidMetadataT>
   void buildPersistence() {
+    assert(clock_.get() != nullptr);
     string rockDir = options_->getDataDir() + "/rock";
     UniquePointer<RockHandleIf> rockHandle(new RockHandleT(rockDir));
     UniquePointer<SyncPersistenceIf> syncPersistence(
-        new SyncPersistenceT(std::move(rockHandle)));
+        new SyncPersistenceT(clock_, std::move(rockHandle)));
     persistence_.reset(
         new PersistenceT(std::move(syncPersistence),
                          make_shared<FutureExecutor<CPUThreadPoolExecutor>>(

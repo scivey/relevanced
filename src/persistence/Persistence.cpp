@@ -25,40 +25,48 @@ using namespace folly;
 
 namespace relevanced {
 namespace persistence {
-
+using wangle::FutureExecutor;
+using wangle::CPUThreadPoolExecutor;
 using models::WordVector;
 using models::ProcessedDocument;
 using models::Centroid;
+using util::UniquePointer;
 
 Persistence::Persistence(
-    util::UniquePointer<SyncPersistenceIf> syncHandle,
-    shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>>
-        threadPool)
-    : syncHandle_(std::move(syncHandle)), threadPool_(threadPool) {}
+  UniquePointer<SyncPersistenceIf> syncHandle,
+  shared_ptr<FutureExecutor<CPUThreadPoolExecutor>> threadPool
+) : syncHandle_(std::move(syncHandle)), threadPool_(threadPool) {}
 
 Future<bool> Persistence::doesDocumentExist(const string &id) {
-  return threadPool_->addFuture(
-      [this, id]() { return syncHandle_->doesDocumentExist(id); });
+  return threadPool_->addFuture([this, id]() {
+    return syncHandle_->doesDocumentExist(id);
+  });
 }
 
-Future<Try<bool>> Persistence::saveDocument(shared_ptr<ProcessedDocument> doc) {
-  return threadPool_->addFuture(
-      [this, doc]() { return syncHandle_->saveDocument(doc); });
+Future<Try<bool>> Persistence::saveDocument(
+    shared_ptr<ProcessedDocument> doc) {
+  return threadPool_->addFuture([this, doc]() {
+    return syncHandle_->saveDocument(doc);
+  });
 }
 
-Future<Try<bool>> Persistence::saveNewDocument(shared_ptr<ProcessedDocument> doc) {
-  return threadPool_->addFuture(
-      [this, doc]() { return syncHandle_->saveNewDocument(doc); });
+Future<Try<bool>> Persistence::saveNewDocument(
+    shared_ptr<ProcessedDocument> doc) {
+  return threadPool_->addFuture([this, doc]() {
+    return syncHandle_->saveNewDocument(doc);
+  });
 }
 
 Future<Try<bool>> Persistence::deleteDocument(const string &id) {
-  return threadPool_->addFuture(
-      [this, id]() { return syncHandle_->deleteDocument(id); });
+  return threadPool_->addFuture([this, id]() {
+    return syncHandle_->deleteDocument(id);
+  });
 }
 
 Future<vector<string>> Persistence::listAllDocuments() {
-  return threadPool_->addFuture(
-      [this]() { return syncHandle_->listAllDocuments(); });
+  return threadPool_->addFuture([this]() {
+    return syncHandle_->listAllDocuments();
+  });
 }
 
 Future<vector<string>> Persistence::listDocumentRangeFromId(
@@ -68,8 +76,8 @@ Future<vector<string>> Persistence::listDocumentRangeFromId(
   });
 }
 
-Future<vector<string>> Persistence::listDocumentRangeFromOffset(size_t offset,
-                                                                size_t count) {
+Future<vector<string>> Persistence::listDocumentRangeFromOffset(
+    size_t offset, size_t count) {
   return threadPool_->addFuture([this, offset, count]() {
     return syncHandle_->listDocumentRangeFromOffset(offset, count);
   });
@@ -77,62 +85,72 @@ Future<vector<string>> Persistence::listDocumentRangeFromOffset(size_t offset,
 
 Future<Try<shared_ptr<ProcessedDocument>>> Persistence::loadDocument(
     const string &id) {
-  return threadPool_->addFuture(
-      [this, id]() { return syncHandle_->loadDocument(id); });
+  return threadPool_->addFuture([this, id]() {
+    return syncHandle_->loadDocument(id);
+  });
 }
 
 Future<Optional<shared_ptr<ProcessedDocument>>> Persistence::loadDocumentOption(
     const string &id) {
-  return threadPool_->addFuture(
-      [this, id]() { return syncHandle_->loadDocumentOption(id); });
+  return threadPool_->addFuture([this, id]() {
+    return syncHandle_->loadDocumentOption(id);
+  });
 }
 
 Future<bool> Persistence::doesCentroidExist(const string &id) {
-  return threadPool_->addFuture(
-      [this, id]() { return syncHandle_->doesCentroidExist(id); });
+  return threadPool_->addFuture([this, id]() {
+    return syncHandle_->doesCentroidExist(id);
+  });
 }
 
 Future<Try<bool>> Persistence::createNewCentroid(const string &id) {
-  return threadPool_->addFuture(
-      [this, id]() { return syncHandle_->createNewCentroid(id); });
+  return threadPool_->addFuture([this, id]() {
+    return syncHandle_->createNewCentroid(id);
+  });
 }
 
 Future<Try<bool>> Persistence::deleteCentroid(const string &id) {
-  return threadPool_->addFuture(
-      [this, id]() { return syncHandle_->deleteCentroid(id); });
+  return threadPool_->addFuture([this, id]() {
+    return syncHandle_->deleteCentroid(id);
+  });
 }
 
 Future<Try<bool>> Persistence::saveCentroid(const string &id,
-                                            shared_ptr<Centroid> centroid) {
+    shared_ptr<Centroid> centroid) {
   return threadPool_->addFuture([this, id, centroid]() {
     return syncHandle_->saveCentroid(id, centroid);
   });
 }
 
-Future<Try<shared_ptr<Centroid>>> Persistence::loadCentroid(const string &id) {
-  return threadPool_->addFuture(
-      [this, id]() { return syncHandle_->loadCentroid(id); });
+Future<Try<shared_ptr<Centroid>>> Persistence::loadCentroid(
+    const string &id) {
+  return threadPool_->addFuture([this, id]() {
+    return syncHandle_->loadCentroid(id);
+  });
 }
 
 Future<Optional<shared_ptr<Centroid>>> Persistence::loadCentroidOption(
     const string &id) {
-  return threadPool_->addFuture(
-      [this, id]() { return syncHandle_->loadCentroidOption(id); });
+  return threadPool_->addFuture([this, id]() {
+    return syncHandle_->loadCentroidOption(id);
+  });
 }
 
 Future<Optional<util::UniquePointer<Centroid>>> Persistence::loadCentroidUniqueOption(
     const string &id) {
-  return threadPool_->addFuture(
-      [this, id]() { return std::move(syncHandle_->loadCentroidUniqueOption(id)); });
+  return threadPool_->addFuture([this, id]() {
+    return std::move(syncHandle_->loadCentroidUniqueOption(id));
+  });
 }
 
 Future<vector<string>> Persistence::listAllCentroids() {
-  return threadPool_->addFuture(
-      [this]() { return syncHandle_->listAllCentroids(); });
+  return threadPool_->addFuture([this]() {
+    return syncHandle_->listAllCentroids();
+  });
 }
 
-Future<vector<string>> Persistence::listCentroidRangeFromOffset(size_t offset,
-                                                                size_t limit) {
+Future<vector<string>> Persistence::listCentroidRangeFromOffset(
+    size_t offset, size_t limit) {
   return threadPool_->addFuture([this, offset, limit]() {
     return syncHandle_->listCentroidRangeFromOffset(offset, limit);
   });
@@ -145,8 +163,8 @@ Future<vector<string>> Persistence::listCentroidRangeFromId(
   });
 }
 
-Future<Try<bool>> Persistence::addDocumentToCentroid(const string &centroidId,
-                                                     const string &docId) {
+Future<Try<bool>> Persistence::addDocumentToCentroid(
+    const string &centroidId, const string &docId) {
   return threadPool_->addFuture([this, centroidId, docId]() {
     return syncHandle_->addDocumentToCentroid(centroidId, docId);
   });
@@ -184,27 +202,28 @@ Future<Try<vector<string>>> Persistence::listCentroidDocumentRangeFromOffset(
     const string &centroidId, size_t offset, size_t limit) {
   return threadPool_->addFuture([this, centroidId, offset, limit]() {
     return syncHandle_->listCentroidDocumentRangeFromOffset(
-        centroidId, offset, limit);
+      centroidId, offset, limit
+    );
   });
 }
 
 Future<Optional<vector<string>>>
-Persistence::listCentroidDocumentRangeFromOffsetOption(const string &centroidId,
-                                                       size_t offset,
-                                                       size_t limit) {
+Persistence::listCentroidDocumentRangeFromOffsetOption(
+    const string &centroidId, size_t offset, size_t limit) {
   return threadPool_->addFuture([this, centroidId, offset, limit]() {
     return syncHandle_->listCentroidDocumentRangeFromOffsetOption(
-        centroidId, offset, limit);
+      centroidId, offset, limit
+    );
   });
 }
 
 Future<Try<vector<string>>>
-Persistence::listCentroidDocumentRangeFromDocumentId(const string &centroidId,
-                                                     const string &documentId,
-                                                     size_t limit) {
+Persistence::listCentroidDocumentRangeFromDocumentId(
+    const string &centroidId, const string &documentId, size_t limit) {
   return threadPool_->addFuture([this, centroidId, documentId, limit]() {
     return syncHandle_->listCentroidDocumentRangeFromDocumentId(
-        centroidId, documentId, limit);
+      centroidId, documentId, limit
+    );
   });
 }
 
@@ -213,22 +232,22 @@ Persistence::listCentroidDocumentRangeFromDocumentIdOption(
     const string &centroidId, const string &documentId, size_t limit) {
   return threadPool_->addFuture([this, centroidId, documentId, limit]() {
     return syncHandle_->listCentroidDocumentRangeFromDocumentIdOption(
-        centroidId, documentId, limit);
+      centroidId, documentId, limit
+    );
   });
 }
 
 Future<Optional<string>> Persistence::getCentroidMetadata(
-    const string &centroidId, const string &metadataName) {
-  return threadPool_->addFuture([this, centroidId, metadataName]() {
-    return syncHandle_->getCentroidMetadata(centroidId, metadataName);
+    const string &id, const string &metaName) {
+  return threadPool_->addFuture([this, id, metaName]() {
+    return syncHandle_->getCentroidMetadata(id, metaName);
   });
 }
 
-Future<Try<bool>> Persistence::setCentroidMetadata(const string &centroidId,
-                                                   const string &metadataName,
-                                                   string value) {
-  return threadPool_->addFuture([this, centroidId, metadataName, value]() {
-    return syncHandle_->setCentroidMetadata(centroidId, metadataName, value);
+Future<Try<bool>> Persistence::setCentroidMetadata(
+    const string &id, const string &metaName, string value) {
+  return threadPool_->addFuture([this, id, metaName, value]() {
+    return syncHandle_->setCentroidMetadata(id, metaName, value);
   });
 }
 
