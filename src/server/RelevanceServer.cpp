@@ -195,14 +195,12 @@ Future<Try<unique_ptr<string>>> RelevanceServer::getDocument(
 Future<Try<bool>> RelevanceServer::createCentroid(
     unique_ptr<string> centroidId) {
   auto id = *centroidId;
-  LOG(INFO) << format("creating centroid '{}'", id);
   return persistence_->createNewCentroid(id);
 }
 
 Future<Try<bool>> RelevanceServer::deleteCentroid(
     unique_ptr<string> centroidId) {
   auto cId = *centroidId;
-  LOG(INFO) << format("deleting centroid '{}'", cId);
   return persistence_->deleteCentroid(cId);
 }
 
@@ -249,7 +247,6 @@ Future<Try<bool>> RelevanceServer::addDocumentToCentroid(
     unique_ptr<string> centroidId, unique_ptr<string> docId) {
   auto cId = *centroidId;
   auto dId = *docId;
-  LOG(INFO) << format("adding document '{}' to centroid '{}'", dId, cId);
   return persistence_->addDocumentToCentroid(cId, dId)
       .then([this, cId](Try<bool> result) {
         if (!result.hasException()) {

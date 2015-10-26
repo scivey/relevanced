@@ -35,6 +35,8 @@ class CentroidUpdateWorkerIf {
       const std::string &centroidId) = 0;
   virtual folly::Future<folly::Try<bool>> update(
       const std::string &centroidId, std::chrono::milliseconds updateDelay) = 0;
+  virtual void stop() = 0;
+  virtual void join() = 0;
   virtual ~CentroidUpdateWorkerIf() = default;
 };
 
@@ -52,12 +54,16 @@ class CentroidUpdateWorker : public CentroidUpdateWorkerIf {
       perCentroidUpdateCallbacks_;
   folly::Synchronized<std::set<std::string>> updatingSet_;
   std::atomic<bool> stopping_{false};
+  std::atomic<size_t> numInProgress_ {0};
+  void incrInProgress();
+  void decrInProgress();
 
  public:
   CentroidUpdateWorker(
       std::shared_ptr<CentroidUpdaterFactoryIf> updaterFactory,
       std::shared_ptr<wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>>);
-  void stop();
+  void stop() override;
+  void join() override;
   void initialize() override;
   void echoUpdated(const std::string &) override;
   folly::Future<folly::Try<std::string>> joinUpdate(
@@ -72,6 +78,10 @@ class CentroidUpdateWorker : public CentroidUpdateWorkerIf {
   folly::Future<folly::Try<bool>> update(
       const std::string &centroidId,
       std::chrono::milliseconds updateDelay) override;
+
+  std::shared_ptr<util::Debouncer<std::string>> debug_getUpdateQueue();
+
+  ~CentroidUpdateWorker();
 };
 
 } // centroid_update_worker

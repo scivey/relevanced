@@ -64,10 +64,12 @@ TEST(CentroidUpdateWorker, SimpleSuccess) {
       .WillOnce(Return(updaterPtr));
 
   CentroidUpdateWorker worker(factoryPtr, threadPool);
-
+  worker.initialize();
+  worker.debug_getUpdateQueue()->debug_setVeryShortTimeouts();
   auto result = worker.update("centroid-id").get();
   EXPECT_FALSE(result.hasException());
   EXPECT_TRUE(result.value());
+  worker.join();
 }
 
 TEST(CentroidUpdateWorker, SimpleFailure) {
@@ -89,8 +91,11 @@ TEST(CentroidUpdateWorker, SimpleFailure) {
       .WillOnce(Return(updaterPtr));
 
   CentroidUpdateWorker worker(factoryPtr, threadPool);
+  worker.initialize();
+  worker.debug_getUpdateQueue()->debug_setVeryShortTimeouts();
 
   chrono::milliseconds updateDelay(0);
   auto result = worker.update("centroid-id", updateDelay).get();
   EXPECT_TRUE(result.hasException());
+  worker.join();
 }

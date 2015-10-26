@@ -40,12 +40,30 @@ void CentroidUpdateWorker::initialize() {
       [this](string centroidId) { update(centroidId); });
 }
 
+void CentroidUpdateWorker::incrInProgress() {
+  numInProgress_.fetch_add(1);
+}
+
+void CentroidUpdateWorker::decrInProgress() {
+  makeFuture()
+    .delayed(chrono::milliseconds(10))
+    .then([this](){
+      numInProgress_.fetch_sub(1);
+    });
+}
+
 void CentroidUpdateWorker::stop() {
-  stopping_ = true;
-  updateQueue_->stop();
+  if (!stopping_) {
+    stopping_ = true;
+    updateQueue_->stop();
+  }
 }
 
 Future<Try<bool>> CentroidUpdateWorker::update(const string &centroidId) {
+  if (stopping_) {
+    Try<bool> response {false};
+    return makeFuture(response);
+  }
   return update(centroidId, chrono::milliseconds(50));
 }
 
@@ -59,12 +77,22 @@ Future<Try<bool>> CentroidUpdateWorker::update(
         updatingSet_.insert(centroidId);
       }
     }
-    if (!shouldUpdate) {
+    if (!shouldUpdate || stopping_) {
       auto result = Try<bool>(false);
       return makeFuture(result);
     }
+    incrInProgress();
     auto updater = updaterFactory_->makeForCentroidId(centroidId);
     auto result = updater->run();
+    if (stopping_) {
+      decrInProgress();
+      if (result.hasException()) {
+        return makeFuture<Try<bool>>(result.exception());
+      } else {
+        Try<bool> response(true);
+        return makeFuture(response);
+      }
+    }
     return makeFuture(centroidId)
         .delayed(updateDelay)
         .then([this, result](string centroidId) {
@@ -72,6 +100,7 @@ Future<Try<bool>> CentroidUpdateWorker::update(
           if (!result.hasException()) {
             this->echoUpdated(centroidId);
           }
+          decrInProgress();
           return result;
         });
   });
@@ -94,6 +123,9 @@ void CentroidUpdateWorker::echoUpdated(const string &centroidId) {
     }
   }
   for (auto &cb : forCentroidCbs) {
+    if (stopping_) {
+      break;
+    }
     cb(Try<string>(centroidId));
   }
 }
@@ -126,7 +158,33 @@ folly::Future<Try<string>> CentroidUpdateWorker::joinUpdate(const string &id) {
 
 void CentroidUpdateWorker::triggerUpdate(const string &centroidId) {
   string toWrite = centroidId;
-  updateQueue_->write(toWrite);
+  if (!stopping_) {
+    updateQueue_->write(toWrite);
+  }
+}
+
+// this is a pretty naive approach,
+// but this object is only created/destroyed
+// repeatedly in the tests.
+void CentroidUpdateWorker::join() {
+  stop();
+  updateQueue_->join();
+  for (;;) {
+    auto inProgress = numInProgress_.load();
+    if (inProgress == 0) {
+      break;
+    }
+    this_thread::sleep_for(chrono::milliseconds(10));
+  }
+}
+
+CentroidUpdateWorker::~CentroidUpdateWorker() {}
+
+shared_ptr<Debouncer<string>> CentroidUpdateWorker::debug_getUpdateQueue() {
+  if (updateQueue_.get() == nullptr) {
+    LOG(INFO) << "CentroidUpdateWorker has not been initialized!";
+  }
+  return updateQueue_;
 }
 
 } // centroid_update_worker

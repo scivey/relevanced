@@ -49,17 +49,15 @@ SimilarityScoreWorker::SimilarityScoreWorker(
 
 // run synchronously on startup
 void SimilarityScoreWorker::initialize() {
-  LOG(INFO) << "SimilarityScoreWorker initializing...";
   auto centroidIds = persistence_->listAllCentroids().get();
   for (auto &id : centroidIds) {
     auto centroid = persistence_->loadCentroidUniqueOption(id).get();
     if (centroid.hasValue()) {
       centroids_->insertOrUpdate(id, std::move(centroid.value()));
     } else {
-      LOG(INFO) << format("centroid '{}' doesn't seem to exist...", id);
+      LOG(INFO) << format("SimilarityScoreWorker initialization: centroid '{}' doesn't seem to exist...", id);
     }
   }
-  LOG(INFO) << "SimilarityScoreWorker initialized.";
 }
 
 Future<bool> SimilarityScoreWorker::reloadCentroid(string id) {
@@ -70,7 +68,6 @@ Future<bool> SimilarityScoreWorker::reloadCentroid(string id) {
           return false;
         }
         centroids_->insertOrUpdate(id, std::move(centroid.value()));
-        LOG(INFO) << format("inserted reloaded centroid '{}'", id);
         return true;
       });
 }
@@ -85,7 +82,6 @@ Future<Try<double>> SimilarityScoreWorker::getDocumentSimilarity(
       return Try<double>(make_exception_wrapper<ECentroidDoesNotExist>());
     }
     auto result = centroid.value()->score(doc);
-    LOG(INFO) << format("relevance vs centroid '{}' : {}", centroidId, result);
     return Try<double>(result);
   });
 }

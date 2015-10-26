@@ -197,9 +197,7 @@ Try<bool> SyncPersistence::deleteCentroid(const string &id) {
 }
 
 Try<bool> SyncPersistence::saveCentroid(const string &id, Centroid *centroid) {
-  LOG(INFO) << format("serializing centroid '{}'", id);
   auto key = sformat("centroids:{}", id);
-  LOG(INFO) << format("persisting serialized centroid '{}'", id);
   string data;
   serialization::binarySerialize(data, *centroid);
   rockHandle_->put(key, data);

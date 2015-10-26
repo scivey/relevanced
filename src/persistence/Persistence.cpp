@@ -93,7 +93,6 @@ Future<bool> Persistence::doesCentroidExist(const string &id) {
 }
 
 Future<Try<bool>> Persistence::createNewCentroid(const string &id) {
-  LOG(INFO) << format("createNewCentroid: {}", id);
   return threadPool_->addFuture(
       [this, id]() { return syncHandle_->createNewCentroid(id); });
 }
@@ -105,7 +104,6 @@ Future<Try<bool>> Persistence::deleteCentroid(const string &id) {
 
 Future<Try<bool>> Persistence::saveCentroid(const string &id,
                                             shared_ptr<Centroid> centroid) {
-  LOG(INFO) << "saveCentroid";
   return threadPool_->addFuture([this, id, centroid]() {
     return syncHandle_->saveCentroid(id, centroid);
   });
