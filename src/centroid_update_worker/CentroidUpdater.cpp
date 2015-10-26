@@ -50,7 +50,6 @@ CentroidUpdater::CentroidUpdater(
       centroidId_(centroidId) {}
 
 Try<bool> CentroidUpdater::run() {
-  LOG(INFO) << "CentroidUpdater::run";
   if (!persistence_->doesCentroidExist(centroidId_).get()) {
     LOG(INFO) << format("centroid '{}' does not exist!", centroidId_);
     return Try<bool>(make_exception_wrapper<ECentroidDoesNotExist>());
@@ -61,7 +60,6 @@ Try<bool> CentroidUpdater::run() {
   const size_t documentBatchSize = 20;
 
 
-  LOG(INFO) << "listing iniitial document ids...";
   auto firstIdSet = persistence_->listCentroidDocumentRangeFromOffsetOption(
                                       centroidId_, 0, idListBatchSize).get();
   if (!firstIdSet.hasValue()) {
@@ -75,8 +73,6 @@ Try<bool> CentroidUpdater::run() {
 
   vector<string> idSet = std::move(firstIdSet.value());
   do {
-    LOG(INFO) << format("looping: current id set batch size: {}", idSet.size());
-
     // start the next set of IDs loading here so they'll be done
     // at the end of the current loop.
     auto nextIdSetFuture =
@@ -94,7 +90,6 @@ Try<bool> CentroidUpdater::run() {
             persistence_->loadDocumentOption(idSet.at(i)));
       }
 
-      LOG(INFO) << "loading document batch...";
       auto loadedDocuments = collect(documentFutures).get();
 
       // add non-falsy documents to the centroid
@@ -127,10 +122,8 @@ Try<bool> CentroidUpdater::run() {
   centroid->wordVector.magnitude = accumulator->getMagnitude();
   centroid->wordVector.documentWeight = accumulator->getCount();
   centroid->wordVector.scores = std::move(accumulator->getScores());
-  LOG(INFO) << "persisting...";
   persistence_->saveCentroid(centroidId_, centroid).get();
   centroidMetadataDb_->setLastCalculatedTimestamp(centroidId_, startTimestamp);
-  LOG(INFO) << "persisted..";
   return Try<bool>(true);
 }
 

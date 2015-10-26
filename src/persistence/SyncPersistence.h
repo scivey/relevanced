@@ -104,6 +104,13 @@ class SyncPersistence : public SyncPersistenceIf {
   std::vector<std::string> listCentroidDocumentRangeFromDocumentIdRaw(
       const std::string &, const std::string &, size_t);
 
+  static std::string getCentroidsPrefix();
+  static std::string getDocumentsPrefix();
+  static std::string getCentroidKey(const std::string&);
+  static std::string getDocumentKey(const std::string&);
+  static std::string getCentroidDocumentPrefix(const std::string&);
+  static std::string getCentroidDocumentKey(const std::string&, const std::string&);
+  static std::string getCentroidMetadataKey(const std::string&, const std::string&);
  public:
   SyncPersistence(util::UniquePointer<RockHandleIf> rockHandle);
   bool doesDocumentExist(const std::string &id) override;

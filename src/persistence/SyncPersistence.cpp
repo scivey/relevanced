@@ -37,8 +37,36 @@ using namespace thrift_protocol;
 SyncPersistence::SyncPersistence(util::UniquePointer<RockHandleIf> rockHandle)
     : rockHandle_(std::move(rockHandle)) {}
 
+string SyncPersistence::getCentroidsPrefix() {
+  return "centroids";
+}
+
+string SyncPersistence::getDocumentsPrefix() {
+  return "documents";
+}
+
+string SyncPersistence::getCentroidKey(const string &id) {
+  return sformat("{}:{}", SyncPersistence::getCentroidsPrefix(), id);
+}
+
+string SyncPersistence::getDocumentKey(const string &id) {
+  return sformat("{}:{}", SyncPersistence::getDocumentsPrefix(), id);
+}
+
+string SyncPersistence::getCentroidDocumentPrefix(const string &id) {
+  return sformat("{}__documents", id);
+}
+
+string SyncPersistence::getCentroidDocumentKey(const string &centroidId, const string &docId) {
+  return sformat("{}__documents:{}", centroidId, docId);
+}
+
+string SyncPersistence::getCentroidMetadataKey(const string &id, const string &metaName) {
+  return sformat("{}__centroid_metadata:{}", id, metaName);
+}
+
 bool SyncPersistence::doesDocumentExist(const string &id) {
-  auto key = sformat("documents:{}", id);
+  auto key = SyncPersistence::getDocumentKey(id);
   return rockHandle_->exists(key);
 }
 
@@ -46,7 +74,7 @@ Try<bool> SyncPersistence::saveNewDocument(ProcessedDocument *doc) {
   if (doesDocumentExist(doc->id)) {
     return Try<bool>(make_exception_wrapper<EDocumentAlreadyExists>());
   }
-  auto key = sformat("documents:{}", doc->id);
+  auto key = SyncPersistence::getDocumentKey(doc->id);
   string data;
   serialization::binarySerialize(data, *doc);
   rockHandle_->put(key, data);
@@ -60,7 +88,7 @@ Try<bool> SyncPersistence::saveNewDocument(shared_ptr<ProcessedDocument> doc) {
 Try<bool> SyncPersistence::saveDocument(ProcessedDocument *doc) {
   string data;
   serialization::binarySerialize(data, *doc);
-  auto key = sformat("documents:{}", doc->id);
+  auto key = SyncPersistence::getDocumentKey(doc->id);
   rockHandle_->put(key, data);
   return Try<bool>(true);
 }
@@ -70,7 +98,7 @@ Try<bool> SyncPersistence::saveDocument(shared_ptr<ProcessedDocument> doc) {
 }
 
 Try<bool> SyncPersistence::deleteDocument(const string &id) {
-  auto key = sformat("documents:{}", id);
+  auto key = SyncPersistence::getDocumentKey(id);
   if (!rockHandle_->exists(key)) {
     return Try<bool>(make_exception_wrapper<EDocumentDoesNotExist>());
   }
@@ -80,7 +108,7 @@ Try<bool> SyncPersistence::deleteDocument(const string &id) {
 
 vector<string> SyncPersistence::listAllDocuments() {
   vector<string> docIds;
-  rockHandle_->iterPrefix("documents",
+  rockHandle_->iterPrefix(SyncPersistence::getDocumentsPrefix(),
                           [&docIds](const string &key,
                                     function<void(string &) >,
                                     function<void()>) {
@@ -94,7 +122,7 @@ vector<string> SyncPersistence::listAllDocuments() {
 vector<string> SyncPersistence::listDocumentRangeFromId(
     const string &startingDocumentId, size_t numToGet) {
   vector<string> docIds;
-  rockHandle_->iterPrefixFromMember("documents",
+  rockHandle_->iterPrefixFromMember(SyncPersistence::getDocumentsPrefix(),
                                     startingDocumentId,
                                     numToGet,
                                     [&docIds](const string &key,
@@ -110,7 +138,7 @@ vector<string> SyncPersistence::listDocumentRangeFromId(
 vector<string> SyncPersistence::listDocumentRangeFromOffset(size_t offset,
                                                             size_t numToGet) {
   vector<string> docIds;
-  rockHandle_->iterPrefixFromOffset("documents",
+  rockHandle_->iterPrefixFromOffset(SyncPersistence::getDocumentsPrefix(),
                                     offset,
                                     numToGet,
                                     [&docIds](const string &key,
@@ -126,7 +154,7 @@ vector<string> SyncPersistence::listDocumentRangeFromOffset(size_t offset,
 Optional<ProcessedDocument *> SyncPersistence::loadDocumentRaw(
     const string &docId) {
   Optional<ProcessedDocument *> result;
-  auto key = sformat("documents:{}", docId);
+  auto key = SyncPersistence::getDocumentKey(docId);
   string serialized;
   if (!rockHandle_->get(key, serialized)) {
     return result;
@@ -159,12 +187,12 @@ Optional<shared_ptr<ProcessedDocument>> SyncPersistence::loadDocumentOption(
 }
 
 bool SyncPersistence::doesCentroidExist(const string &id) {
-  auto key = sformat("centroids:{}", id);
+  auto key = SyncPersistence::getCentroidKey(id);
   return (rockHandle_->exists(key));
 }
 
 Try<bool> SyncPersistence::createNewCentroid(const string &id) {
-  auto key = sformat("centroids:{}", id);
+  auto key = SyncPersistence::getCentroidKey(id);
   if (rockHandle_->exists(key)) {
     return Try<bool>(make_exception_wrapper<ECentroidAlreadyExists>());
   }
@@ -174,15 +202,14 @@ Try<bool> SyncPersistence::createNewCentroid(const string &id) {
 }
 
 Try<bool> SyncPersistence::deleteCentroid(const string &id) {
-  auto mainKey = sformat("centroids:{}", id);
+  auto mainKey = SyncPersistence::getCentroidKey(id);
   if (!rockHandle_->exists(mainKey)) {
     return Try<bool>(make_exception_wrapper<ECentroidDoesNotExist>());
   }
   rockHandle_->del(mainKey);
   vector<string> associatedDocuments;
-  auto docPrefix = sformat("{}__documents", id);
   rockHandle_->iterPrefix(
-      docPrefix,
+      SyncPersistence::getCentroidDocumentPrefix(id),
       [&associatedDocuments](
           const string &key, function<void(string &) >, function<void()>) {
         auto offset = key.find(':');
@@ -190,14 +217,14 @@ Try<bool> SyncPersistence::deleteCentroid(const string &id) {
         associatedDocuments.push_back(key.substr(offset + 1));
       });
   for (auto &docId : associatedDocuments) {
-    auto key = sformat("{}__documents:{}", id, docId);
+    auto key = SyncPersistence::getCentroidDocumentKey(id, docId);
     rockHandle_->del(key);
   }
   return Try<bool>(true);
 }
 
 Try<bool> SyncPersistence::saveCentroid(const string &id, Centroid *centroid) {
-  auto key = sformat("centroids:{}", id);
+  auto key = SyncPersistence::getCentroidKey(id);
   string data;
   serialization::binarySerialize(data, *centroid);
   rockHandle_->put(key, data);
@@ -212,7 +239,7 @@ Try<bool> SyncPersistence::saveCentroid(const string &id,
 Optional<Centroid *> SyncPersistence::loadCentroidRaw(const string &id) {
   Optional<Centroid *> result;
   string serialized;
-  auto key = sformat("centroids:{}", id);
+  auto key = SyncPersistence::getCentroidKey(id);
   if (rockHandle_->get(key, serialized)) {
     auto centroidRes = new Centroid;
     serialization::binaryDeserialize(serialized, centroidRes);
@@ -252,9 +279,8 @@ Optional<util::UniquePointer<Centroid>> SyncPersistence::loadCentroidUniqueOptio
 
 
 vector<string> SyncPersistence::listAllCentroids() {
-  string prefix = "centroids";
   vector<string> centroidIds;
-  rockHandle_->iterPrefix(prefix,
+  rockHandle_->iterPrefix(SyncPersistence::getCentroidsPrefix(),
                           [&centroidIds](const string &key,
                                          function<void(string &) >,
                                          function<void()>) {
@@ -267,10 +293,9 @@ vector<string> SyncPersistence::listAllCentroids() {
 
 vector<string> SyncPersistence::listCentroidRangeFromOffset(size_t offset,
                                                             size_t limit) {
-  string prefix = "centroids";
   vector<string> centroidIds;
   rockHandle_->iterPrefixFromOffset(
-      prefix,
+      SyncPersistence::getCentroidsPrefix(),
       offset,
       limit,
       [&centroidIds](
@@ -284,10 +309,9 @@ vector<string> SyncPersistence::listCentroidRangeFromOffset(size_t offset,
 
 vector<string> SyncPersistence::listCentroidRangeFromId(
     const string &startingCentroidId, size_t limit) {
-  string prefix = "centroids";
   vector<string> centroidIds;
   rockHandle_->iterPrefixFromMember(
-      prefix,
+      SyncPersistence::getCentroidsPrefix(),
       startingCentroidId,
       limit,
       [&centroidIds](
@@ -307,7 +331,10 @@ Try<bool> SyncPersistence::addDocumentToCentroid(const string &centroidId,
   if (!doesDocumentExist(documentId)) {
     return Try<bool>(make_exception_wrapper<EDocumentDoesNotExist>());
   }
-  auto key = sformat("{}__documents:{}", centroidId, documentId);
+  auto key = SyncPersistence::getCentroidDocumentKey(centroidId, documentId);
+  if (rockHandle_->exists(key)) {
+    return Try<bool>(make_exception_wrapper<EDocumentAlreadyInCentroid>());
+  }
   string val = "1";
   rockHandle_->put(key, val);
   return Try<bool>(true);
@@ -321,14 +348,16 @@ Try<bool> SyncPersistence::removeDocumentFromCentroid(
   if (!doesDocumentExist(documentId)) {
     return Try<bool>(make_exception_wrapper<EDocumentDoesNotExist>());
   }
-  auto key = sformat("{}__documents:{}", centroidId, documentId);
-  rockHandle_->del(key);
+  auto key = SyncPersistence::getCentroidDocumentKey(centroidId, documentId);
+  if (!rockHandle_->del(key)) {
+    return Try<bool>(make_exception_wrapper<EDocumentNotInCentroid>());
+  }
   return Try<bool>(true);
 }
 
 Try<bool> SyncPersistence::doesCentroidHaveDocument(const string &centroidId,
                                                     const string &documentId) {
-  auto key = sformat("{}__documents:{}", centroidId, documentId);
+  auto key = SyncPersistence::getCentroidDocumentKey(centroidId, documentId);
   if (rockHandle_->exists(key)) {
     return Try<bool>(true);
   }
@@ -341,8 +370,7 @@ Try<bool> SyncPersistence::doesCentroidHaveDocument(const string &centroidId,
 vector<string> SyncPersistence::listAllDocumentsForCentroidRaw(
     const string &centroidId) {
   vector<string> documentIds;
-  auto prefix = sformat("{}__documents", centroidId);
-  rockHandle_->iterPrefix(prefix,
+  rockHandle_->iterPrefix(SyncPersistence::getCentroidDocumentPrefix(centroidId),
                           [&documentIds](const string &key,
                                          function<void(string &) >,
                                          function<void()>) {
@@ -376,9 +404,8 @@ Optional<vector<string>> SyncPersistence::listAllDocumentsForCentroidOption(
 vector<string> SyncPersistence::listCentroidDocumentRangeFromOffsetRaw(
     const string &centroidId, size_t offset, size_t limit) {
   vector<string> documentIds;
-  auto prefix = sformat("{}__documents", centroidId);
   rockHandle_->iterPrefixFromOffset(
-      prefix,
+      SyncPersistence::getCentroidDocumentPrefix(centroidId),
       offset,
       limit,
       [&documentIds](
@@ -415,9 +442,8 @@ Try<vector<string>> SyncPersistence::listCentroidDocumentRangeFromOffset(
 vector<string> SyncPersistence::listCentroidDocumentRangeFromDocumentIdRaw(
     const string &centroidId, const string &startingDocumentId, size_t limit) {
   vector<string> documentIds;
-  auto prefix = sformat("{}__documents", centroidId);
   rockHandle_->iterPrefixFromMember(
-      prefix,
+      SyncPersistence::getCentroidDocumentPrefix(centroidId),
       startingDocumentId,
       limit,
       [&documentIds](
@@ -456,7 +482,7 @@ Try<vector<string>> SyncPersistence::listCentroidDocumentRangeFromDocumentId(
 
 Optional<string> SyncPersistence::getCentroidMetadata(
     const string &centroidId, const string &metadataName) {
-  auto key = sformat("{}__centroid_metadata:{}", centroidId, metadataName);
+  auto key = SyncPersistence::getCentroidMetadataKey(centroidId, metadataName);
   Optional<string> result;
   string keyVal;
   if (rockHandle_->get(key, keyVal)) {
@@ -468,7 +494,7 @@ Optional<string> SyncPersistence::getCentroidMetadata(
 Try<bool> SyncPersistence::setCentroidMetadata(const string &centroidId,
                                                const string &metadataName,
                                                string value) {
-  auto key = sformat("{}__centroid_metadata:{}", centroidId, metadataName);
+  auto key = SyncPersistence::getCentroidMetadataKey(centroidId, metadataName);
   rockHandle_->put(key, value);
   return Try<bool>(true);
 }

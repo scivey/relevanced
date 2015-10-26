@@ -59,11 +59,7 @@ using namespace relevanced::stemmer;
 using namespace relevanced::stopwords;
 using namespace relevanced::server;
 using namespace relevanced::tokenizer;
-using thrift_protocol::ECentroidDoesNotExist;
-using thrift_protocol::ECentroidAlreadyExists;
-using thrift_protocol::EDocumentDoesNotExist;
-using thrift_protocol::EDocumentAlreadyExists;
-
+using namespace relevanced::thrift_protocol;
 
 
 
@@ -126,6 +122,7 @@ struct RelevanceServerTestCtx {
     ));
     if (initialize) {
       server->initialize();
+      updateWorker->debug_getUpdateQueue()->debug_setVeryShortTimeouts();
     }
   }
   ~RelevanceServerTestCtx() {
@@ -167,6 +164,28 @@ TEST(RelevanceServer, TestAddDocumentToCentroidHappy) {
   EXPECT_TRUE(joinResponse.value());
 }
 
+TEST(RelevanceServer, TestAddDocumentToCentroidAlreadyInCentroid) {
+  RelevanceServerTestCtx ctx;
+  auto centroid = std::make_shared<Centroid>(
+    "centroid-id", unordered_map<string, double> {{"cats", 0.5}, {"dogs", 0.5}}, 15.3
+  );
+  ctx.persistence->saveCentroid("centroid-id", centroid).get();
+  ctx.server->createDocumentWithID(
+    folly::make_unique<string>("doc-id"),
+    folly::make_unique<string>("some text about dogs")
+  ).get();
+  auto response1 = ctx.server->addDocumentToCentroid(
+    folly::make_unique<string>("centroid-id"),
+    folly::make_unique<string>("doc-id")
+  ).get();
+  EXPECT_FALSE(response1.hasException());
+  auto response2 = ctx.server->addDocumentToCentroid(
+    folly::make_unique<string>("centroid-id"),
+    folly::make_unique<string>("doc-id")
+  ).get();
+  EXPECT_TRUE(response2.hasException<EDocumentAlreadyInCentroid>());
+}
+
 TEST(RelevanceServer, TestAddDocumentToCentroidMissingDocument) {
   RelevanceServerTestCtx ctx;
   auto centroid = std::make_shared<Centroid>(
@@ -201,22 +220,108 @@ TEST(RelevanceServer, TestAddDocumentToCentroidMissingCentroid) {
   EXPECT_TRUE(response.hasException<ECentroidDoesNotExist>());
 }
 
-// TEST(RelevanceServer, TestAddDocumentToCentroidMissingBoth) {
-//   RelevanceServerTestCtx ctx;
-//   auto centroid = std::make_shared<Centroid>(
-//     "centroid-id", unordered_map<string, double> {{"cats", 0.5}, {"dogs", 0.5}}, 15.3
-//   );
-//   ctx.persistence->saveCentroid("centroid-id", centroid).get();
-//   ctx.server->createDocumentWithID(
-//     folly::make_unique<string>("doc-id"),
-//     folly::make_unique<string>("some text about dogs")
-//   ).get();
-//   auto response = ctx.server->addDocumentToCentroid(
-//     folly::make_unique<string>("missing-centroid-id"),
-//     folly::make_unique<string>("missing-doc-id")
-//   ).get();
-//   EXPECT_TRUE(response.hasException<ECentroidDoesNotExist>());
-// }
+TEST(RelevanceServer, TestAddDocumentToCentroidMissingBoth) {
+  RelevanceServerTestCtx ctx;
+  auto centroid = std::make_shared<Centroid>(
+    "centroid-id", unordered_map<string, double> {{"cats", 0.5}, {"dogs", 0.5}}, 15.3
+  );
+  ctx.persistence->saveCentroid("centroid-id", centroid).get();
+  ctx.server->createDocumentWithID(
+    folly::make_unique<string>("doc-id"),
+    folly::make_unique<string>("some text about dogs")
+  ).get();
+  auto response = ctx.server->addDocumentToCentroid(
+    folly::make_unique<string>("missing-centroid-id"),
+    folly::make_unique<string>("missing-doc-id")
+  ).get();
+  EXPECT_TRUE(response.hasException<ECentroidDoesNotExist>());
+}
+
+TEST(RelevanceServer, TestRemoveDocumentFromCentroidHappy) {
+  RelevanceServerTestCtx ctx;
+  auto centroid = std::make_shared<Centroid>(
+    "centroid-id", unordered_map<string, double> {{"cats", 0.5}, {"dogs", 0.5}}, 15.3
+  );
+  ctx.persistence->saveCentroid("centroid-id", centroid).get();
+  ctx.server->createDocumentWithID(
+    folly::make_unique<string>("doc-id"),
+    folly::make_unique<string>("some text about dogs")
+  ).get();
+  auto response1 = ctx.server->addDocumentToCentroid(
+    folly::make_unique<string>("centroid-id"),
+    folly::make_unique<string>("doc-id")
+  ).get();
+  EXPECT_FALSE(response1.hasException());
+  auto response2 = ctx.server->removeDocumentFromCentroid(
+    folly::make_unique<string>("centroid-id"),
+    folly::make_unique<string>("doc-id")
+  ).get();
+  EXPECT_FALSE(response2.hasException());
+}
+
+TEST(RelevanceServer, TestRemoveDocumentFromCentroidDocumentNotInCentroid) {
+  RelevanceServerTestCtx ctx;
+  auto centroid = std::make_shared<Centroid>(
+    "centroid-id", unordered_map<string, double> {{"cats", 0.5}, {"dogs", 0.5}}, 15.3
+  );
+  ctx.persistence->saveCentroid("centroid-id", centroid).get();
+  ctx.server->createDocumentWithID(
+    folly::make_unique<string>("doc-id"),
+    folly::make_unique<string>("some text about dogs")
+  ).get();
+  auto response = ctx.server->removeDocumentFromCentroid(
+    folly::make_unique<string>("centroid-id"),
+    folly::make_unique<string>("doc-id")
+  ).get();
+  EXPECT_TRUE(response.hasException<EDocumentNotInCentroid>());
+}
+
+TEST(RelevanceServer, TestRemoveDocumentFromCentroidMissingDocument) {
+  RelevanceServerTestCtx ctx;
+  auto centroid = std::make_shared<Centroid>(
+    "centroid-id", unordered_map<string, double> {{"cats", 0.5}, {"dogs", 0.5}}, 15.3
+  );
+  ctx.persistence->saveCentroid("centroid-id", centroid).get();
+  auto response = ctx.server->removeDocumentFromCentroid(
+    folly::make_unique<string>("centroid-id"),
+    folly::make_unique<string>("missing-doc-id")
+  ).get();
+  EXPECT_TRUE(response.hasException<EDocumentDoesNotExist>());
+}
+
+TEST(RelevanceServer, TestRemoveDocumentFromCentroidMissingCentroid) {
+  RelevanceServerTestCtx ctx;
+  auto centroid = std::make_shared<Centroid>(
+    "centroid-id", unordered_map<string, double> {{"cats", 0.5}, {"dogs", 0.5}}, 15.3
+  );
+  ctx.persistence->saveCentroid("centroid-id", centroid).get();
+  ctx.server->createDocumentWithID(
+    folly::make_unique<string>("doc-id"),
+    folly::make_unique<string>("some text about dogs")
+  ).get();
+  auto response = ctx.server->removeDocumentFromCentroid(
+    folly::make_unique<string>("missing-centroid-id"),
+    folly::make_unique<string>("doc-id")
+  ).get();
+  EXPECT_TRUE(response.hasException<ECentroidDoesNotExist>());
+}
+
+TEST(RelevanceServer, TestRemoveDocumentFromCentroidMissingBoth) {
+  RelevanceServerTestCtx ctx;
+  auto centroid = std::make_shared<Centroid>(
+    "centroid-id", unordered_map<string, double> {{"cats", 0.5}, {"dogs", 0.5}}, 15.3
+  );
+  ctx.persistence->saveCentroid("centroid-id", centroid).get();
+  ctx.server->createDocumentWithID(
+    folly::make_unique<string>("doc-id"),
+    folly::make_unique<string>("some text about dogs")
+  ).get();
+  auto response = ctx.server->removeDocumentFromCentroid(
+    folly::make_unique<string>("missing-centroid-id"),
+    folly::make_unique<string>("missing-doc-id")
+  ).get();
+  EXPECT_TRUE(response.hasException<ECentroidDoesNotExist>());
+}
 
 TEST(RelevanceServer, TestCreateDocument) {
   RelevanceServerTestCtx ctx;
