@@ -29,3 +29,6 @@ RUN apt-get install -y \
 ADD data /data
 RUN cp /data/*.deb /data/relevanced.deb && \
         sudo dpkg -i /data/relevanced.deb
+
+EXPOSE 8097
+CMD /usr/bin/relevanced --config_file=/etc/relevanced/relevanced.json

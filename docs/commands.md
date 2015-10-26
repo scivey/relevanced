@@ -43,6 +43,24 @@ If there is no document matching `documentId`, the command fails with the except
 Note that if both the centroid and document do not exist, only the `ECentroidDoesNotExist` exception will be reported.
 
 ---
+## `multiGetDocumentSimilarity`
+#### `(centroidIds: list<string>, documentId: string) -> MultiSimilarityResponse`
+#### `{scores: map<string, double>}`
+
+Computes cosine similarity of the document with id `documentId` against each of the centroids specified by `centroidIds`, in parallel.
+
+The `scores` property of the returned `MultiSimilarityResponse` is a `Map<string, double>` of centroid IDs to their corresponding similarity scores.
+
+If the document does not exist, the command fails with the exception `EDocumentDoesNotExist`.
+
+If any of the centroids specified by `centroidIds` do not exist, the entire command fails with the exception `ECentroidDoesNotExist`.
+
+Note that the protocol does not distinguish between cases where a single centroid is missing and those where multiple centroids are missing.  These cases are all indicated by the exception `ECentroidDoesNotExist`.
+
+Also not that if both the document and one or more centroids are missing, only the exception `ECentroidDoesNotExist` will be reported.
+
+
+---
 ## `getCentroidSimilarity`
 #### `(centroidId1: string, centroidId2: string) -> double`
 

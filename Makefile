@@ -35,6 +35,9 @@ build-docker-standalone:
 	cp build/deb/*.deb scripts/packaging/containers/standalone_server/data/
 	sudo docker build -t relevanced/relevanced scripts/packaging/containers/standalone_server
 
+build-docker-2:
+	sudo docker build -t relevanced/relevanced scripts/packaging/containers/standalone_server
+
 GTEST_LIB = ./external/gtest-1.7.0-min/gtest-all.o
 GMOCK_LIB = ./external/gmock-1.7.0/src/gmock-all.o
 WORKDIR=$(shell pwd)
