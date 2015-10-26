@@ -57,7 +57,7 @@ If any of the centroids specified by `centroidIds` do not exist, the entire comm
 
 Note that the protocol does not distinguish between cases where a single centroid is missing and those where multiple centroids are missing.  These cases are all indicated by the exception `ECentroidDoesNotExist`.
 
-Also not that if both the document and one or more centroids are missing, only the exception `ECentroidDoesNotExist` will be reported.
+Also note that if both the document and one or more centroids are missing, only the exception `ECentroidDoesNotExist` will be reported.
 
 
 ---
