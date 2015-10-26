@@ -17,86 +17,134 @@ class RelevanceServerIf {
  public:
   virtual void ping() = 0;
   virtual void initialize() = 0;
+
   virtual folly::Future<std::unique_ptr<std::map<std::string, std::string>>>
-  getServerMetadata() = 0;
-  virtual folly::Future<folly::Try<double>> getDocumentSimilarity(
+    getServerMetadata() = 0;
+
+  virtual folly::Future<folly::Try<double>>
+    getDocumentSimilarity(
       std::unique_ptr<std::string> centroidId,
-      std::unique_ptr<std::string> docId) = 0;
-  virtual folly::Future<
-      folly::Try<std::unique_ptr<std::map<std::string, double>>>>
-  multiGetTextSimilarity(std::unique_ptr<std::vector<std::string>> centroidIds,
-                         std::unique_ptr<std::string> text) = 0;
-  virtual folly::Future<
-      folly::Try<std::unique_ptr<std::map<std::string, double>>>>
-  multiGetDocumentSimilarity(std::unique_ptr<std::vector<std::string>> centroidIds,
-                         std::unique_ptr<std::string> docId) = 0;
-  virtual folly::Future<folly::Try<double>> getTextSimilarity(
+      std::unique_ptr<std::string> docId
+    ) = 0;
+
+  virtual folly::Future<folly::Try<std::unique_ptr<std::map<std::string, double>>>>
+    multiGetTextSimilarity(
+      std::unique_ptr<std::vector<std::string>> centroidIds,
+      std::unique_ptr<std::string> text
+    ) = 0;
+
+  virtual folly::Future<folly::Try<std::unique_ptr<std::map<std::string, double>>>>
+    multiGetDocumentSimilarity(
+      std::unique_ptr<std::vector<std::string>> centroidIds,
+      std::unique_ptr<std::string> docId
+    ) = 0;
+
+  virtual folly::Future<folly::Try<double>>
+    getTextSimilarity(
       std::unique_ptr<std::string> centroidId,
-      std::unique_ptr<std::string> text) = 0;
-  virtual folly::Future<folly::Try<double>> getCentroidSimilarity(
+      std::unique_ptr<std::string> text
+    ) = 0;
+
+  virtual folly::Future<folly::Try<double>>
+    getCentroidSimilarity(
       std::unique_ptr<std::string> centroid1Id,
-      std::unique_ptr<std::string> centroid2Id) = 0;
+      std::unique_ptr<std::string> centroid2Id
+    ) = 0;
+
   virtual folly::Future<folly::Try<std::unique_ptr<std::string>>>
-  createDocument(std::unique_ptr<std::string> text) = 0;
+    createDocument(
+      std::unique_ptr<std::string> text
+    ) = 0;
+
   virtual folly::Future<folly::Try<std::unique_ptr<std::string>>>
-  createDocumentWithID(std::unique_ptr<std::string> id,
-                       std::unique_ptr<std::string> text) = 0;
-  virtual folly::Future<folly::Try<bool>> deleteDocument(
-      std::unique_ptr<std::string> id) = 0;
-  virtual folly::Future<folly::Try<std::unique_ptr<std::string>>> getDocument(
-      std::unique_ptr<std::string> id) = 0;
-  virtual folly::Future<folly::Try<bool>> createCentroid(
-      std::unique_ptr<std::string> centroidId) = 0;
-  virtual folly::Future<folly::Try<bool>> deleteCentroid(
-      std::unique_ptr<std::string> centroidId) = 0;
+    createDocumentWithID(
+      std::unique_ptr<std::string> id,
+      std::unique_ptr<std::string> text
+    ) = 0;
+
+  virtual folly::Future<folly::Try<bool>>
+    deleteDocument(std::unique_ptr<std::string> id) = 0;
+
+  virtual folly::Future<folly::Try<std::unique_ptr<std::string>>>
+    getDocument(std::unique_ptr<std::string> id) = 0;
+
+  virtual folly::Future<folly::Try<bool>>
+    createCentroid(std::unique_ptr<std::string> centroidId) = 0;
+
+  virtual folly::Future<folly::Try<bool>>
+    deleteCentroid(std::unique_ptr<std::string> centroidId) = 0;
+
   virtual folly::Future<folly::Try<std::unique_ptr<std::vector<std::string>>>>
-  listAllDocumentsForCentroid(std::unique_ptr<std::string> centroidId) = 0;
-  virtual folly::Future<folly::Try<bool>> addDocumentToCentroid(
+    listAllDocumentsForCentroid(std::unique_ptr<std::string> centroidId) = 0;
+
+  virtual folly::Future<folly::Try<bool>>
+    addDocumentToCentroid(
       std::unique_ptr<std::string> centroidId,
-      std::unique_ptr<std::string> docId) = 0;
-  virtual folly::Future<folly::Try<bool>> removeDocumentFromCentroid(
+      std::unique_ptr<std::string> docId
+    ) = 0;
+
+  virtual folly::Future<folly::Try<bool>>
+    removeDocumentFromCentroid(
       std::unique_ptr<std::string> centroidId,
-      std::unique_ptr<std::string> docId) = 0;
-  virtual folly::Future<folly::Try<bool>> joinCentroid(
-      std::unique_ptr<std::string> centroidId) = 0;
+      std::unique_ptr<std::string> docId
+    ) = 0;
+
+  virtual folly::Future<folly::Try<bool>>
+    joinCentroid(
+      std::unique_ptr<std::string> centroidId
+    ) = 0;
+
   virtual folly::Future<std::unique_ptr<std::vector<std::string>>>
-  listAllCentroids() = 0;
+    listAllCentroids() = 0;
+
   virtual folly::Future<std::unique_ptr<std::vector<std::string>>>
-  listAllDocuments() = 0;
+    listAllDocuments() = 0;
 
-  virtual folly::Future<std::unique_ptr<std::vector<std::string>>> listCentroidRange(
-    size_t offset, size_t count
-  ) = 0;
+  virtual folly::Future<std::unique_ptr<std::vector<std::string>>>
+    listCentroidRange(size_t offset, size_t count) = 0;
 
-  virtual folly::Future<std::unique_ptr<std::vector<std::string>>> listCentroidRangeFromID(
-    std::unique_ptr<std::string> centroidId, size_t count
-  ) = 0;
+  virtual folly::Future<std::unique_ptr<std::vector<std::string>>>
+    listCentroidRangeFromID(
+      std::unique_ptr<std::string> centroidId,
+      size_t count
+    ) = 0;
 
-  virtual folly::Future<std::unique_ptr<std::vector<std::string>>> listDocumentRange(
-    size_t offset, size_t count
-  ) = 0;
+  virtual folly::Future<std::unique_ptr<std::vector<std::string>>>
+    listDocumentRange(size_t offset, size_t count) = 0;
 
-  virtual folly::Future<std::unique_ptr<std::vector<std::string>>> listDocumentRangeFromID(
-    std::unique_ptr<std::string> docId, size_t count
-  ) = 0;
+  virtual folly::Future<std::unique_ptr<std::vector<std::string>>>
+    listDocumentRangeFromID(
+      std::unique_ptr<std::string> docId,
+      size_t count
+    ) = 0;
 
-  virtual folly::Future<folly::Try<std::unique_ptr<std::vector<std::string>>>> listCentroidDocumentRange(
-    std::unique_ptr<std::string> centroidId, size_t offset, size_t count
-  ) = 0;
+  virtual folly::Future<folly::Try<std::unique_ptr<std::vector<std::string>>>>
+    listCentroidDocumentRange(
+      std::unique_ptr<std::string> centroidId,
+      size_t offset,
+      size_t count
+    ) = 0;
 
-  virtual folly::Future<folly::Try<std::unique_ptr<std::vector<std::string>>>> listCentroidDocumentRangeFromID(
-    std::unique_ptr<std::string> centroidId, std::unique_ptr<std::string> docId, size_t count
-  ) = 0;
+  virtual folly::Future<folly::Try<std::unique_ptr<std::vector<std::string>>>>
+    listCentroidDocumentRangeFromID(
+      std::unique_ptr<std::string> centroidId,
+      std::unique_ptr<std::string> docId,
+      size_t count
+    ) = 0;
 
-  virtual folly::Future<folly::Unit> debugEraseAllData() = 0;
+  virtual folly::Future<folly::Unit>
+    debugEraseAllData() = 0;
 
   virtual folly::Future<folly::Try<std::shared_ptr<models::Centroid>>>
     debugGetFullCentroid(std::unique_ptr<std::string> centroidId) = 0;
 
   virtual folly::Future<folly::Try<std::shared_ptr<models::ProcessedDocument>>>
-    debugGetFullProcessedDocument(std::unique_ptr<std::string> documentId) = 0;
+    debugGetFullProcessedDocument(
+      std::unique_ptr<std::string> documentId
+    ) = 0;
 
   virtual ~RelevanceServerIf() = default;
+
 };
 
 /**
@@ -121,112 +169,172 @@ class RelevanceServerIf {
  */
 
 class RelevanceServer : public RelevanceServerIf {
-  std::shared_ptr<persistence::PersistenceIf> persistence_;
-  std::shared_ptr<persistence::CentroidMetadataDbIf> centroidMetadataDb_;
-  std::shared_ptr<util::ClockIf> clock_;
-  std::shared_ptr<similarity_score_worker::SimilarityScoreWorkerIf>
-      scoreWorker_;
-  std::shared_ptr<document_processing_worker::DocumentProcessingWorkerIf>
-      processingWorker_;
-  std::shared_ptr<centroid_update_worker::CentroidUpdateWorkerIf>
-      centroidUpdateWorker_;
-  folly::Future<folly::Try<std::unique_ptr<std::string>>>
-  internalCreateDocumentWithID(std::string id, std::string text);
+ protected:
+  std::shared_ptr<persistence::PersistenceIf>
+    persistence_;
 
-  folly::Future<
-      folly::Try<std::unique_ptr<std::map<std::string, double>>>>
-  internalMultiGetDocumentSimilarity(std::shared_ptr<std::vector<std::string>> centroidIds,
-                         std::shared_ptr<models::ProcessedDocument>);
+  std::shared_ptr<persistence::CentroidMetadataDbIf>
+    centroidMetadataDb_;
+
+  std::shared_ptr<util::ClockIf>
+    clock_;
+
+  std::shared_ptr<similarity_score_worker::SimilarityScoreWorkerIf>
+    scoreWorker_;
+
+  std::shared_ptr<document_processing_worker::DocumentProcessingWorkerIf>
+    processingWorker_;
+
+  std::shared_ptr<centroid_update_worker::CentroidUpdateWorkerIf>
+    centroidUpdateWorker_;
+
+  folly::Future<folly::Try<std::unique_ptr<std::string>>>
+    internalCreateDocumentWithID(std::string id, std::string text);
+
+  folly::Future<folly::Try<std::unique_ptr<std::map<std::string, double>>>>
+    internalMultiGetDocumentSimilarity(
+      std::shared_ptr<std::vector<std::string>> centroidIds,
+      std::shared_ptr<models::ProcessedDocument>
+    );
+
  public:
   RelevanceServer(
-      std::shared_ptr<persistence::PersistenceIf> persistenceSv,
-      std::shared_ptr<persistence::CentroidMetadataDbIf> metadata,
-      std::shared_ptr<util::ClockIf> clock,
-      std::shared_ptr<similarity_score_worker::SimilarityScoreWorkerIf>
-          scoreWorker,
-      std::shared_ptr<document_processing_worker::DocumentProcessingWorkerIf>
-          docProcessingWorker,
-      std::shared_ptr<centroid_update_worker::CentroidUpdateWorkerIf>
-          centroidUpdateWorker);
+    std::shared_ptr<persistence::PersistenceIf>,
+    std::shared_ptr<persistence::CentroidMetadataDbIf>,
+    std::shared_ptr<util::ClockIf>,
+    std::shared_ptr<similarity_score_worker::SimilarityScoreWorkerIf>,
+    std::shared_ptr<document_processing_worker::DocumentProcessingWorkerIf>,
+    std::shared_ptr<centroid_update_worker::CentroidUpdateWorkerIf>
+  );
+
   void initialize() override;
+
   void ping() override;
+
   folly::Future<std::unique_ptr<std::map<std::string, std::string>>>
-  getServerMetadata() override;
-  folly::Future<folly::Try<double>> getDocumentSimilarity(
+    getServerMetadata() override;
+
+  folly::Future<folly::Try<double>>
+    getDocumentSimilarity(
       std::unique_ptr<std::string> centroidId,
-      std::unique_ptr<std::string> docId) override;
+      std::unique_ptr<std::string> docId
+    ) override;
+
   folly::Future<folly::Try<std::unique_ptr<std::map<std::string, double>>>>
-  multiGetTextSimilarity(std::unique_ptr<std::vector<std::string>> centroidIds,
-                         std::unique_ptr<std::string> text) override;
-  folly::Future<
-      folly::Try<std::unique_ptr<std::map<std::string, double>>>>
-  multiGetDocumentSimilarity(std::unique_ptr<std::vector<std::string>> centroidIds,
-                         std::unique_ptr<std::string> docId) override;
-  folly::Future<folly::Try<double>> getTextSimilarity(
+    multiGetTextSimilarity(
+      std::unique_ptr<std::vector<std::string>> centroidIds,
+      std::unique_ptr<std::string> text
+    ) override;
+
+  folly::Future<folly::Try<std::unique_ptr<std::map<std::string, double>>>>
+    multiGetDocumentSimilarity(
+      std::unique_ptr<std::vector<std::string>> centroidIds,
+      std::unique_ptr<std::string> docId
+    ) override;
+
+  folly::Future<folly::Try<double>>
+    getTextSimilarity(
       std::unique_ptr<std::string> centroidId,
-      std::unique_ptr<std::string> text) override;
-  folly::Future<folly::Try<double>> getCentroidSimilarity(
+      std::unique_ptr<std::string> text
+    ) override;
+
+  folly::Future<folly::Try<double>>
+    getCentroidSimilarity(
       std::unique_ptr<std::string> centroid1Id,
-      std::unique_ptr<std::string> centroid2Id) override;
-  folly::Future<folly::Try<std::unique_ptr<std::string>>> createDocument(
-      std::unique_ptr<std::string> text) override;
-  folly::Future<folly::Try<std::unique_ptr<std::string>>> createDocumentWithID(
+      std::unique_ptr<std::string> centroid2Id
+    ) override;
+
+  folly::Future<folly::Try<std::unique_ptr<std::string>>>
+    createDocument(
+      std::unique_ptr<std::string> text
+    ) override;
+
+  folly::Future<folly::Try<std::unique_ptr<std::string>>>
+    createDocumentWithID(
       std::unique_ptr<std::string> id,
-      std::unique_ptr<std::string> text) override;
-  folly::Future<folly::Try<bool>> deleteDocument(
-      std::unique_ptr<std::string> id) override;
-  folly::Future<folly::Try<std::unique_ptr<std::string>>> getDocument(
-      std::unique_ptr<std::string> id) override;
-  folly::Future<folly::Try<bool>> createCentroid(
-      std::unique_ptr<std::string> centroidId) override;
-  folly::Future<folly::Try<bool>> deleteCentroid(
-      std::unique_ptr<std::string> centroidId) override;
+      std::unique_ptr<std::string> text
+    ) override;
+
+  folly::Future<folly::Try<bool>>
+    deleteDocument(std::unique_ptr<std::string> id) override;
+
+  folly::Future<folly::Try<std::unique_ptr<std::string>>>
+    getDocument(std::unique_ptr<std::string> id) override;
+
+  folly::Future<folly::Try<bool>>
+    createCentroid(std::unique_ptr<std::string> centroidId) override;
+
+  folly::Future<folly::Try<bool>>
+    deleteCentroid(std::unique_ptr<std::string> centroidId) override;
+
   folly::Future<folly::Try<std::unique_ptr<std::vector<std::string>>>>
-  listAllDocumentsForCentroid(std::unique_ptr<std::string> centroidId) override;
-  folly::Future<folly::Try<bool>> addDocumentToCentroid(
+    listAllDocumentsForCentroid(std::unique_ptr<std::string> centroidId) override;
+
+  folly::Future<folly::Try<bool>>
+    addDocumentToCentroid(
       std::unique_ptr<std::string> centroidId,
-      std::unique_ptr<std::string> docId) override;
-  folly::Future<folly::Try<bool>> removeDocumentFromCentroid(
+      std::unique_ptr<std::string> docId
+    ) override;
+
+  folly::Future<folly::Try<bool>>
+    removeDocumentFromCentroid(
       std::unique_ptr<std::string> centroidId,
-      std::unique_ptr<std::string> docId) override;
-  folly::Future<folly::Try<bool>> joinCentroid(
-      std::unique_ptr<std::string> centroidId) override;
-  folly::Future<std::unique_ptr<std::vector<std::string>>> listAllCentroids()
-      override;
-  folly::Future<std::unique_ptr<std::vector<std::string>>> listAllDocuments()
-      override;
+      std::unique_ptr<std::string> docId
+    ) override;
 
-  folly::Future<std::unique_ptr<std::vector<std::string>>> listCentroidRange(
-    size_t offset, size_t count
-  ) override;
+  folly::Future<folly::Try<bool>>
+    joinCentroid(
+      std::unique_ptr<std::string> centroidId
+    ) override;
 
-  folly::Future<std::unique_ptr<std::vector<std::string>>> listCentroidRangeFromID(
-    std::unique_ptr<std::string> centroidId, size_t count
-  ) override;
+  folly::Future<std::unique_ptr<std::vector<std::string>>>
+    listAllCentroids() override;
 
-  folly::Future<std::unique_ptr<std::vector<std::string>>> listDocumentRange(
-    size_t offset, size_t count
-  ) override;
+  folly::Future<std::unique_ptr<std::vector<std::string>>>
+    listAllDocuments() override;
 
-  folly::Future<std::unique_ptr<std::vector<std::string>>> listDocumentRangeFromID(
-    std::unique_ptr<std::string> docId, size_t count
-  ) override;
+  folly::Future<std::unique_ptr<std::vector<std::string>>>
+    listCentroidRange(size_t offset, size_t count) override;
 
-  folly::Future<folly::Try<std::unique_ptr<std::vector<std::string>>>> listCentroidDocumentRange(
-    std::unique_ptr<std::string> centroidId, size_t offset, size_t count
-  ) override;
+  folly::Future<std::unique_ptr<std::vector<std::string>>>
+    listCentroidRangeFromID(
+      std::unique_ptr<std::string> centroidId,
+      size_t count
+    ) override;
 
-  folly::Future<folly::Try<std::unique_ptr<std::vector<std::string>>>> listCentroidDocumentRangeFromID(
-    std::unique_ptr<std::string> centroidId, std::unique_ptr<std::string> docId, size_t count
-  ) override;
+  folly::Future<std::unique_ptr<std::vector<std::string>>>
+    listDocumentRange(size_t offset, size_t count) override;
 
-  folly::Future<folly::Unit> debugEraseAllData() override;
+  folly::Future<std::unique_ptr<std::vector<std::string>>>
+    listDocumentRangeFromID(
+      std::unique_ptr<std::string> docId,
+      size_t count
+    ) override;
+
+  folly::Future<folly::Try<std::unique_ptr<std::vector<std::string>>>>
+    listCentroidDocumentRange(
+      std::unique_ptr<std::string> centroidId,
+      size_t offset,
+      size_t count
+    ) override;
+
+  folly::Future<folly::Try<std::unique_ptr<std::vector<std::string>>>>
+    listCentroidDocumentRangeFromID(
+      std::unique_ptr<std::string> centroidId,
+      std::unique_ptr<std::string> docId,
+      size_t count
+    ) override;
+
+  folly::Future<folly::Unit>
+    debugEraseAllData() override;
 
   folly::Future<folly::Try<std::shared_ptr<models::Centroid>>>
     debugGetFullCentroid(std::unique_ptr<std::string> centroidId) override;
 
   folly::Future<folly::Try<std::shared_ptr<models::ProcessedDocument>>>
-    debugGetFullProcessedDocument(std::unique_ptr<std::string> documentId) override;
+    debugGetFullProcessedDocument(
+      std::unique_ptr<std::string> documentId
+    ) override;
 
 };
 
