@@ -9,7 +9,7 @@ To add it to a Maven project, add the following dependency to your `pom.xml` fil
 <dependency>
   <groupId>org.relevanced</groupId>
   <artifactId>client</artifactId>
-  <version>0.9.2-SNAPSHOT</version>
+  <version>0.9.5-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -20,7 +20,7 @@ resolvers +=
   "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 
 libraryDependencies ++= Seq(
-   "org.relevanced" % "client" % "0.9.2-SNAPSHOT"
+   "org.relevanced" % "client" % "0.9.5-SNAPSHOT"
 )
 
 ```
