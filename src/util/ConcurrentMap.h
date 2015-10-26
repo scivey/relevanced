@@ -7,6 +7,38 @@
 #include "util/MultiVersionPtr.h"
 #include "util/util.h"
 
+/*
+  This ConcurrentMap is an associative layer on top
+  of folly's ConcurrentSkipList.
+
+  ConcurrentSkipList already allows multiple readers
+  and multiple writers without a structure-wide
+  lock (i.e. nodes can be inserted, moved, deleted
+  without making another reader segfault)
+
+  On top of that, ConcurrentMap provides 2 things:
+
+  1) key-based access to the underlying `value_type`
+     (note that this is O(log(n)), not O(1)).
+
+  2) A pointer value type over the templated `TVal`
+     which allows the ConcurrentMap node's value
+     to be modified while leaving the old value
+     accessible to readers that have already obtained
+     it.
+
+  In benchmarks, using this structure instead of an
+  std::map or std::unordered_map with a structure-wide
+  lock has improved the SimilarityScoreWorker's throughput
+  by about 4x (when run with multiple threads).
+
+  This structure probably isn't ideal for a huge map due
+  to the O(log(n)) lookup time.  The SimilarityScoreWorker's
+  centroid map generally contains less than 100 items,
+  and almost certainly less than 1000, so that isn't
+  a big concern there.
+
+*/
 namespace relevanced {
 namespace util {
 
