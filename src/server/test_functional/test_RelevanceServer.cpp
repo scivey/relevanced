@@ -242,11 +242,20 @@ TEST(RelevanceServer, TestRemoveDocumentFromCentroidHappy) {
   auto centroid = std::make_shared<Centroid>(
     "centroid-id", unordered_map<string, double> {{"cats", 0.5}, {"dogs", 0.5}}, 15.3
   );
-  ctx.persistence->saveCentroid("centroid-id", centroid).get();
-  ctx.server->createDocumentWithID(
-    folly::make_unique<string>("doc-id"),
-    folly::make_unique<string>("some text about dogs")
-  ).get();
+  vector<Future<Try<bool>>> saves;
+  saves.push_back(
+    ctx.persistence->saveCentroid("centroid-id", centroid)
+  );
+  saves.push_back(
+    ctx.server->createDocumentWithID(
+      folly::make_unique<string>("doc-id"),
+      folly::make_unique<string>("some text about dogs")
+    ).then([](Try<unique_ptr<string>> result) {
+      EXPECT_FALSE(result.hasException());
+      return Try<bool>(true);
+    })
+  );
+  collect(saves).get();
   auto response1 = ctx.server->addDocumentToCentroid(
     folly::make_unique<string>("centroid-id"),
     folly::make_unique<string>("doc-id")
@@ -264,11 +273,20 @@ TEST(RelevanceServer, TestRemoveDocumentFromCentroidDocumentNotInCentroid) {
   auto centroid = std::make_shared<Centroid>(
     "centroid-id", unordered_map<string, double> {{"cats", 0.5}, {"dogs", 0.5}}, 15.3
   );
-  ctx.persistence->saveCentroid("centroid-id", centroid).get();
-  ctx.server->createDocumentWithID(
-    folly::make_unique<string>("doc-id"),
-    folly::make_unique<string>("some text about dogs")
-  ).get();
+  vector<Future<Try<bool>>> saves;
+  saves.push_back(
+    ctx.persistence->saveCentroid("centroid-id", centroid)
+  );
+  saves.push_back(
+    ctx.server->createDocumentWithID(
+      folly::make_unique<string>("doc-id"),
+      folly::make_unique<string>("some text about dogs")
+    ).then([](Try<unique_ptr<string>> result) {
+      EXPECT_FALSE(result.hasException());
+      return Try<bool>(true);
+    })
+  );
+  collect(saves).get();
   auto response = ctx.server->removeDocumentFromCentroid(
     folly::make_unique<string>("centroid-id"),
     folly::make_unique<string>("doc-id")
@@ -322,6 +340,62 @@ TEST(RelevanceServer, TestRemoveDocumentFromCentroidMissingBoth) {
   ).get();
   EXPECT_TRUE(response.hasException<ECentroidDoesNotExist>());
 }
+
+TEST(RelevanceServer, TestGetTextSimilarityHappy) {
+  RelevanceServerTestCtx ctx;
+  auto centroid = std::make_shared<Centroid>(
+    "centroid-id", unordered_map<string, double> {{"cat", 0.5}, {"dog", 0.5}}, 15.3
+  );
+  ctx.persistence->saveCentroid("centroid-id", centroid).get();
+  ctx.scoreWorker->reloadCentroid("centroid-id").get();
+  auto scoreResponse = ctx.server->getTextSimilarity(
+    folly::make_unique<string>("centroid-id"),
+    folly::make_unique<string>("This is some dog related text which is also about a cat.")
+  ).get();
+  EXPECT_FALSE(scoreResponse.hasException());
+  auto similarity = scoreResponse.value();
+  EXPECT_TRUE(similarity > 0);
+  EXPECT_TRUE(similarity < 1);
+}
+
+TEST(RelevanceServer, TestGetTextSimilarityMissingCentroid) {
+  RelevanceServerTestCtx ctx;
+  auto centroid = std::make_shared<Centroid>(
+    "centroid-id", unordered_map<string, double> {{"cat", 0.5}, {"dog", 0.5}}, 15.3
+  );
+  ctx.persistence->saveCentroid("centroid-id", centroid).get();
+  ctx.scoreWorker->reloadCentroid("centroid-id").get();
+  auto scoreResponse = ctx.server->getTextSimilarity(
+    folly::make_unique<string>("unrelated-centroid-id"),
+    folly::make_unique<string>("This is some dog related text which is also about a cat.")
+  ).get();
+  EXPECT_TRUE(scoreResponse.hasException<ECentroidDoesNotExist>());
+}
+
+TEST(RelevanceServer, TestMultiGetTextSimilarityHappy) {
+  RelevanceServerTestCtx ctx;
+  auto centroid1 = std::make_shared<Centroid>(
+    "centroid-1-id", unordered_map<string, double> {{"cat", 0.5}, {"dog", 0.5}}, 15.3
+  );
+  auto centroid2 = std::make_shared<Centroid>(
+    "centroid-2-id", unordered_map<string, double> {{"fish", 0.33}, {"cat", 0.33}, {"wombat", 0.33}}, 10.7
+  );
+  vector<Future<Try<bool>>> saves;
+  saves.push_back(ctx.persistence->saveCentroid("centroid-1-id", centroid1));
+  saves.push_back(ctx.persistence->saveCentroid("centroid-2-id", centroid2));
+  collect(saves).get();
+  vector<Future<bool>> reloads;
+  reloads.push_back(ctx.scoreWorker->reloadCentroid("centroid-1-id"));
+  reloads.push_back(ctx.scoreWorker->reloadCentroid("centroid-2-id"));
+  collect(reloads).get();
+  vector<string> centroidIds {"centroid-1-id", "centroid-2-id"};
+  auto scoreResponse = ctx.server->multiGetTextSimilarity(
+    folly::make_unique<vector<string>>(centroidIds),
+    folly::make_unique<string>("This is some dog related text which is also about a cat.")
+  ).get();
+  EXPECT_FALSE(scoreResponse.hasException());
+}
+
 
 TEST(RelevanceServer, TestCreateDocument) {
   RelevanceServerTestCtx ctx;
