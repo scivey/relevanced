@@ -36,8 +36,11 @@ void CentroidUpdateWorker::initialize() {
   chrono::milliseconds initialDelay(5000);
   chrono::milliseconds debounceInterval(30000);
   updateQueue_ = make_shared<Debouncer<string>>(
-      initialDelay, debounceInterval,
-      [this](string centroidId) { update(centroidId); });
+    initialDelay, debounceInterval,
+    [this](string centroidId) {
+      update(centroidId);
+    }
+  );
 }
 
 void CentroidUpdateWorker::incrInProgress() {
@@ -59,7 +62,8 @@ void CentroidUpdateWorker::stop() {
   }
 }
 
-Future<Try<bool>> CentroidUpdateWorker::update(const string &centroidId) {
+Future<Try<bool>> CentroidUpdateWorker::update(
+    const string &centroidId) {
   if (stopping_) {
     Try<bool> response {false};
     return makeFuture(response);
@@ -68,41 +72,45 @@ Future<Try<bool>> CentroidUpdateWorker::update(const string &centroidId) {
 }
 
 Future<Try<bool>> CentroidUpdateWorker::update(
-    const string &centroidId, chrono::milliseconds updateDelay) {
-  return threadPool_->addFuture([this, centroidId, updateDelay]() {
-    bool shouldUpdate = false;
-    SYNCHRONIZED(updatingSet_) {
-      if (updatingSet_.find(centroidId) == updatingSet_.end()) {
-        shouldUpdate = true;
-        updatingSet_.insert(centroidId);
+    const string &centroidId,
+    chrono::milliseconds updateDelay) {
+  return threadPool_->addFuture(
+    [this, centroidId, updateDelay]() {
+      bool shouldUpdate = false;
+      SYNCHRONIZED(updatingSet_) {
+        if (updatingSet_.count(centroidId) == 0) {
+          shouldUpdate = true;
+          updatingSet_.insert(centroidId);
+        }
       }
-    }
-    if (!shouldUpdate || stopping_) {
-      auto result = Try<bool>(false);
-      return makeFuture(result);
-    }
-    incrInProgress();
-    auto updater = updaterFactory_->makeForCentroidId(centroidId);
-    auto result = updater->run();
-    if (stopping_) {
-      decrInProgress();
-      if (result.hasException()) {
-        return makeFuture<Try<bool>>(result.exception());
-      } else {
-        Try<bool> response(true);
-        return makeFuture(response);
+      if (!shouldUpdate || stopping_) {
+        auto result = Try<bool>(false);
+        return makeFuture(result);
       }
-    }
-    return makeFuture(centroidId)
-        .delayed(updateDelay)
-        .then([this, result](string centroidId) {
-          SYNCHRONIZED(updatingSet_) { updatingSet_.erase(centroidId); }
-          if (!result.hasException()) {
-            this->echoUpdated(centroidId);
-          }
-          decrInProgress();
-          return result;
-        });
+      incrInProgress();
+      auto updater = updaterFactory_->makeForCentroidId(centroidId);
+      auto result = updater->run();
+      if (stopping_) {
+        decrInProgress();
+        if (result.hasException()) {
+          return makeFuture<Try<bool>>(result.exception());
+        } else {
+          Try<bool> response(true);
+          return makeFuture(response);
+        }
+      }
+      return makeFuture(centroidId)
+          .delayed(updateDelay)
+          .then([this, result](string centroidId) {
+            SYNCHRONIZED(updatingSet_) {
+              updatingSet_.erase(centroidId);
+            }
+            if (!result.hasException()) {
+              this->echoUpdated(centroidId);
+            }
+            decrInProgress();
+            return result;
+          });
   });
 }
 
@@ -112,7 +120,7 @@ void CentroidUpdateWorker::echoUpdated(const string &centroidId) {
       cb(centroidId);
     }
   }
-  vector<function<void(Try<string>) >> forCentroidCbs;
+  vector<function<void (Try<string>)>> forCentroidCbs;
   SYNCHRONIZED(perCentroidUpdateCallbacks_) {
     auto callbacksPair = perCentroidUpdateCallbacks_.find(centroidId);
     if (callbacksPair != perCentroidUpdateCallbacks_.end()) {
@@ -130,28 +138,33 @@ void CentroidUpdateWorker::echoUpdated(const string &centroidId) {
   }
 }
 
-void CentroidUpdateWorker::onUpdate(function<void(const string &) > callback) {
+void CentroidUpdateWorker::onUpdate(
+    function<void(const string &) > callback) {
   updateCallbacks_->push_back(std::move(callback));
 }
 
 void CentroidUpdateWorker::onUpdateSpecificOnce(
-    const string &id, function<void(Try<string>) > callback) {
+    const string &id,
+    function<void(Try<string>)> callback) {
   SYNCHRONIZED(perCentroidUpdateCallbacks_) {
     auto callbacksPair = perCentroidUpdateCallbacks_.find(id);
     if (callbacksPair == perCentroidUpdateCallbacks_.end()) {
       string tempId = id;
       perCentroidUpdateCallbacks_.insert(
-          make_pair(tempId, vector<decltype(callback)>{}));
+        make_pair(tempId, vector<decltype(callback)>{})
+      );
       callbacksPair = perCentroidUpdateCallbacks_.find(id);
     }
     callbacksPair->second.push_back(callback);
   }
 }
 
-folly::Future<Try<string>> CentroidUpdateWorker::joinUpdate(const string &id) {
+folly::Future<Try<string>> CentroidUpdateWorker::joinUpdate(
+    const string &id) {
   auto promise = make_shared<Promise<Try<string>>>();
-  onUpdateSpecificOnce(
-      id, [promise](Try<string> result) { promise->setValue(result); });
+  onUpdateSpecificOnce(id, [promise](Try<string> result) {
+    promise->setValue(result);
+  });
   update(id);
   return promise->getFuture();
 }

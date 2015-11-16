@@ -30,7 +30,9 @@ DocumentProcessingWorker::DocumentProcessingWorker(
     : processor_(processor), hasher_(hasher), threadPool_(threadPool) {}
 
 
-Future<shared_ptr<ProcessedDocument>> DocumentProcessingWorker::processNew(
+using FutureDoc = Future<shared_ptr<ProcessedDocument>>;
+
+FutureDoc DocumentProcessingWorker::processNew(
     shared_ptr<Document> doc) {
   return threadPool_->addFuture([this, doc]() {
     auto result = processor_->processNew(doc);
@@ -39,10 +41,11 @@ Future<shared_ptr<ProcessedDocument>> DocumentProcessingWorker::processNew(
   });
 }
 
-Future<shared_ptr<ProcessedDocument>>
-DocumentProcessingWorker::processNewWithoutHash(shared_ptr<Document> doc) {
-  return threadPool_->addFuture(
-      [this, doc]() { return processor_->processNew(doc); });
+FutureDoc DocumentProcessingWorker::processNewWithoutHash(
+    shared_ptr<Document> doc) {
+  return threadPool_->addFuture([this, doc]() {
+    return processor_->processNew(doc);
+  });
 }
 
 

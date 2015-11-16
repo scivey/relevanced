@@ -29,7 +29,8 @@ using namespace std;
 using util::UniquePointer;
 using namespace relevanced::text_util;
 
-void DocumentProcessor::process_(Document &doc, ProcessedDocument *result) {
+void DocumentProcessor::process_(
+    Document &doc, ProcessedDocument *result) {
   tokenizer::DestructiveTokenIterator it(doc.text);
   WordAccumulator accumulator {200};
   const char *cStr = doc.text.c_str();
@@ -62,8 +63,8 @@ void DocumentProcessor::process_(Document &doc, ProcessedDocument *result) {
   result->updated = timestamp;
 }
 
-void DocumentProcessor::process_(Document &doc,
-                                 shared_ptr<ProcessedDocument> result) {
+void DocumentProcessor::process_(
+    Document &doc, shared_ptr<ProcessedDocument> result) {
   return process_(doc, result.get());
 }
 
