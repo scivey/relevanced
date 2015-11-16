@@ -13,7 +13,6 @@
 #include "stemmer/StemmerIf.h"
 #include "stopwords/StopwordFilter.h"
 #include "tokenizer/Tokenizer.h"
-#include "tokenizer/DestructiveConllTokenIterator.h"
 #include "tokenizer/DestructiveTokenIterator.h"
 #include "util/Clock.h"
 #include "util/util.h"
@@ -33,7 +32,6 @@ using namespace relevanced::text_util;
 
 void DocumentProcessor::process_(Document &doc, ProcessedDocument *result) {
   tokenizer::DestructiveTokenIterator it(doc.text);
-  // tokenizer::DestructiveConllTokenIterator it(doc.text.data(), doc.text.size());
   WordAccumulator accumulator {200};
   const char *cStr = doc.text.c_str();
   std::tuple<bool, size_t, size_t> tokenOffsets;
