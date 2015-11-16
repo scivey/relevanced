@@ -62,7 +62,8 @@ var CLIENT_METHODS = [
     'removeDocumentFromCentroid',
     'joinCentroid',
     'listAllCentroids',
-    'listAllDocuments'
+    'listAllDocuments',
+    'listUnusedDocuments'
 ];
 
 _.each(CLIENT_METHODS, function(methodName) {

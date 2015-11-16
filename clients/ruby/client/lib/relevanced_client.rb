@@ -21,9 +21,6 @@ module RelevancedClient
             @thrift_transport.open()
         end
 
-        def foo()
-            puts 'ok'
-        end
         def ping()
             @thrift_client.ping()
         end
@@ -130,6 +127,10 @@ module RelevancedClient
 
         def list_document_range_from_id(document_id, count)
             @thrift_client.listDocumentRangeFromID(document_id, count)
+        end
+
+        def list_unused_documents(limit)
+            @thrift_client.listUnusedDocuments(limit)
         end
     end
 end

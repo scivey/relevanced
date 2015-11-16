@@ -110,6 +110,8 @@ class ThriftRelevanceServer : public thrift_protocol::RelevancedSvIf {
   folly::Future<std::unique_ptr<thrift_protocol::ListDocumentsResponse>>
   future_listAllDocuments() override;
   folly::Future<std::unique_ptr<thrift_protocol::ListDocumentsResponse>>
+  future_listUnusedDocuments(int64_t count) override;
+  folly::Future<std::unique_ptr<thrift_protocol::ListDocumentsResponse>>
   future_listDocumentRange(int64_t offset, int64_t count) override;
   folly::Future<std::unique_ptr<thrift_protocol::ListDocumentsResponse>>
   future_listDocumentRangeFromID(std::unique_ptr<std::string> startId, int64_t count) override;

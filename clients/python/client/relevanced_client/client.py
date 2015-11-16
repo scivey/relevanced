@@ -419,3 +419,10 @@ class Client(object):
         git revision, build timestamp, etc.
         """
         return self.thrift_client.getServerMetadata()
+
+    def list_unused_documents(self, limit):
+        """
+        Return a list of up to `limit` IDs of documents
+        which are not in any centroid.
+        """
+        return self.thrift_client.listUnusedDocuments(limit)

@@ -316,6 +316,16 @@ ThriftRelevanceServer::future_listAllDocuments() {
 }
 
 Future<unique_ptr<ListDocumentsResponse>>
+ThriftRelevanceServer::future_listUnusedDocuments(int64_t count) {
+  return server_->listUnusedDocuments((size_t) count).then(
+    [](unique_ptr<vector<string>> result) {
+      auto response = folly::make_unique<ListDocumentsResponse>();
+      response->documents = *result;
+      return std::move(response);
+    });
+}
+
+Future<unique_ptr<ListDocumentsResponse>>
 ThriftRelevanceServer::future_listDocumentRange(int64_t iOffset, int64_t iCount) {
   size_t offset = iOffset;
   size_t count = iCount;

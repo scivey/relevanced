@@ -171,6 +171,7 @@ service Relevanced {
     ListCentroidsResponse listCentroidRange(1: i64 offset, 2: i64 count),
     ListCentroidsResponse listCentroidRangeFromID(1: string centroidId, 2: i64 count),
     ListDocumentsResponse listAllDocuments(),
+    ListDocumentsResponse listUnusedDocuments(1: i64 limit),
     ListDocumentsResponse listDocumentRange(1: i64 offset, 2: i64 count),
     ListDocumentsResponse listDocumentRangeFromID(1: string documentId, 2: i64 count),
     void debugEraseAllData(),
