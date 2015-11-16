@@ -1,6 +1,7 @@
 # Allow the source files to find headers in src/
 include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/external/libstemmer/include)
+include_directories(${PROJECT_SOURCE_DIR}/external/mirror_utf8cpp/source)
 
 add_cxx_compiler_flag(-Wall)
 add_cxx_compiler_flag(-Wextra)
@@ -118,6 +119,9 @@ set(RELEVANCED_BASE_SOURCES
     "text_util/ScoredWord.cpp"
     "text_util/StringView.cpp"
     "text_util/WordAccumulator.cpp"
+    "libunicode/CodePointIterator.cpp"
+    "libunicode/UnicodeBlock.cpp"
+    "libunicode/code_point_support.cpp"
 
 )
 
@@ -162,6 +166,7 @@ set(UNIT_TEST_SOURCES
   "text_util/test_unit/test_WordAccumulator.cpp"
   "text_util/test_unit/test_StringView.cpp"
   "text_util/test_unit/test_ScoredWord.cpp"
+  "libunicode/test_unit/test_CodePointIterator.cpp"
   "testing/runTests.cpp"
 )
 

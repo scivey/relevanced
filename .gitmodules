@@ -1,0 +1,3 @@
+[submodule "external/mirror_utf8cpp"]
+	path = external/mirror_utf8cpp
+	url = git@github.com:staticlibs/mirror_utf8cpp
