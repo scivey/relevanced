@@ -126,6 +126,9 @@ class SyncPersistenceIf {
 
   virtual void debugEraseAllData() = 0;
 
+  virtual std::vector<std::string>
+    listUnusedDocuments(size_t count) = 0;
+
   virtual ~SyncPersistenceIf() = default;
 };
 
@@ -231,7 +234,7 @@ class SyncPersistence : public SyncPersistenceIf {
     listAllDocuments() override;
 
   std::vector<std::string>
-    listUnusedDocuments(size_t count);
+    listUnusedDocuments(size_t count) override;
 
   size_t deleteOldUnusedDocuments(int64_t minAge, size_t count);
 

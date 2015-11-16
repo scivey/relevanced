@@ -32,6 +32,8 @@ class MockSyncPersistence : public persistence::SyncPersistenceIf {
   MOCK_METHOD1(saveNewDocument, Try<bool>(shared_ptr<ProcessedDocument>));
   MOCK_METHOD1(deleteDocument, Try<bool>(const string&));
   MOCK_METHOD0(listAllDocuments, vector<string>(void));
+  MOCK_METHOD1(listUnusedDocuments, vector<string>(size_t));
+
   MOCK_METHOD2(listDocumentRangeFromId, vector<string>(const string&, size_t));
   MOCK_METHOD2(listDocumentRangeFromOffset, vector<string>(size_t, size_t));
 

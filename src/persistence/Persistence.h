@@ -35,6 +35,9 @@ class PersistenceIf {
     listAllDocuments() = 0;
 
   virtual folly::Future<std::vector<std::string>>
+    listUnusedDocuments(size_t count) = 0;
+
+  virtual folly::Future<std::vector<std::string>>
     listDocumentRangeFromId(const std::string &id, size_t count) = 0;
 
   virtual folly::Future<std::vector<std::string>>
@@ -160,6 +163,9 @@ class Persistence : public PersistenceIf {
 
   folly::Future<std::vector<std::string>>
     listAllDocuments() override;
+
+  folly::Future<std::vector<std::string>>
+    listUnusedDocuments(size_t count) override;
 
   folly::Future<std::vector<std::string>>
     listDocumentRangeFromId(const std::string &id, size_t count) override;

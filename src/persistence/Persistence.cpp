@@ -69,6 +69,12 @@ Future<vector<string>> Persistence::listAllDocuments() {
   });
 }
 
+Future<vector<string>> Persistence::listUnusedDocuments(size_t count) {
+  return threadPool_->addFuture([this, count]() {
+    return syncHandle_->listUnusedDocuments(count);
+  });
+}
+
 Future<vector<string>> Persistence::listDocumentRangeFromId(
     const string &documentId, size_t count) {
   return threadPool_->addFuture([this, documentId, count]() {

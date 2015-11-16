@@ -108,7 +108,7 @@ class StubSyncPersistence : public persistence::SyncPersistenceIf {
   MOCK_METHOD0(listAllDocuments, vector<string>(void));
   MOCK_METHOD2(listDocumentRangeFromId, vector<string>(const string&, size_t));
   MOCK_METHOD2(listDocumentRangeFromOffset, vector<string>(size_t, size_t));
-
+  MOCK_METHOD1(listUnusedDocuments, vector<string>(size_t));
   MOCK_METHOD1(loadDocument, Try<shared_ptr<ProcessedDocument>>(const string&));
 
   MOCK_METHOD1(doesCentroidExist, bool(const string&));
