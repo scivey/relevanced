@@ -3,6 +3,16 @@ namespace java org.relevanced.client.gen_thrift_protocol
 
 cpp_include "unordered_map"
 
+enum Language  {
+    DE,
+    EN,
+    ES,
+    FR,
+    IT,
+    RU,
+    OTHER
+}
+
 typedef map<string, double> (cpp.template = "std::unordered_map") stringToDoubleMap
 
 struct WordVectorDTO {
