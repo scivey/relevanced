@@ -10,7 +10,7 @@ enum Language  {
     FR,
     IT,
     RU,
-    OTHER
+    OTHER = 254
 }
 
 typedef map<string, double> (cpp.template = "std::unordered_map") stringToDoubleMap
@@ -152,11 +152,11 @@ service Relevanced {
     map<string, string> getServerMetadata(),
     double getDocumentSimilarity(1: string centroidId, 2: string docId) throws (1: ECentroidDoesNotExist centroidErr, 2: EDocumentDoesNotExist docErr),
     MultiSimilarityResponse multiGetDocumentSimilarity(1: list<string> centroidIds, 2: string documentId) throws (1: ECentroidDoesNotExist centroidErr, 2: EDocumentDoesNotExist docErr),
-    MultiSimilarityResponse multiGetTextSimilarity(1: list<string> centroidIds, 2: string text) throws (1: ECentroidDoesNotExist err),
-    double getTextSimilarity(1: string centroidId, 2: string text) throws (1: ECentroidDoesNotExist err),
+    MultiSimilarityResponse multiGetTextSimilarity(1: list<string> centroidIds, 2: string text, 3: Language lang) throws (1: ECentroidDoesNotExist err),
+    double getTextSimilarity(1: string centroidId, 2: string text, 3: Language lang) throws (1: ECentroidDoesNotExist err),
     double getCentroidSimilarity(1: string centroid1Id, 2: string centroid2Id) throws (1: ECentroidDoesNotExist err),
-    CreateDocumentResponse createDocument(1: string text),
-    CreateDocumentResponse createDocumentWithID(1: string id, 2: string text) throws (1: EDocumentAlreadyExists err),
+    CreateDocumentResponse createDocument(1: string text, 2: Language language),
+    CreateDocumentResponse createDocumentWithID(1: string id, 2: string text, 3: Language language) throws (1: EDocumentAlreadyExists err),
     DeleteDocumentResponse deleteDocument(1: string id) throws (1: EDocumentDoesNotExist err),
     GetDocumentMetadataResponse getDocumentMetadata(1: string id) throws (1: EDocumentDoesNotExist err),
     CreateCentroidResponse createCentroid(1: string centroidId) throws (1: ECentroidAlreadyExists err),

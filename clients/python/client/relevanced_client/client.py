@@ -3,6 +3,7 @@ from collections import defaultdict
 from thrift.protocol import TBinaryProtocol
 from thrift.transport import TSocket, TTransport
 from relevanced_client.gen_py.RelevancedProtocol import Relevanced
+from relevanced_client.gen_py.RelevancedProtocol.ttypes import Language
 
 class Client(object):
     def __init__(self, host, port):
@@ -145,10 +146,13 @@ class Client(object):
             centroid_id, document_id
         )
 
-    def create_document_with_id(self, document_id, document_text):
+    def create_document_with_id(self, document_id, document_text, lang=Language.EN):
         """
         Create a new document on the server with ID `document_id`
         and text `document_text`.
+
+        Takes an optional `lang` argument which defaults to
+        `Language.EN` (English).
 
         Returns a `CreateDocumentResponse` with `id` property
         equal to `document_id`.
@@ -159,18 +163,24 @@ class Client(object):
 
         return self.thrift_client.createDocumentWithID(
             document_id.encode('utf-8'),
-            document_text.encode('utf-8')
+            document_text.encode('utf-8'),
+            lang
         )
 
-    def create_document(self, document_text):
+    def create_document(self, document_text, lang=Language.EN):
         """
         Create a new document with text `document_text`. The server
         will generate a UUID for the new document's ID.
 
+        Takes an optional `lang` argument which defaults to
+        `Language.EN` (English).
+
         Returns a `CreateDocumentResponse`.  Its `id` property
         gives the server-generated UUID of the new document.
         """
-        return self.thrift_client.createDocument(document_text.encode('utf-8'))
+        return self.thrift_client.createDocument(
+            document_text.encode('utf-8'), lang
+        )
 
     def delete_document(self, document_id):
         """
@@ -301,7 +311,7 @@ class Client(object):
 
         return self.thrift_client.getCentroidSimilarity(centroid_1_id, centroid_2_id)
 
-    def get_text_similarity(self, centroid_id, text):
+    def get_text_similarity(self, centroid_id, text, lang=Language.EN):
         """
         Return cosine similarity of raw text `text` against the centroid
         given by `centroid_id`, as double-precision floating point.
@@ -315,10 +325,10 @@ class Client(object):
         `ECentroidDoesNotExist`.
         """
         return self.thrift_client.getTextSimilarity(
-            centroid_id, text.encode('utf-8')
+            centroid_id, text.encode('utf-8'), lang
         )
 
-    def multi_get_text_similarity(self, centroid_ids, text):
+    def multi_get_text_similarity(self, centroid_ids, text, lang=Language.EN):
         """
         Calculate the cosine similarity of raw text `text`
         against multiple centroids in parallel.
@@ -344,7 +354,7 @@ class Client(object):
             centroid_ids = [centroid_ids]
 
         return self.thrift_client.multiGetTextSimilarity(
-            centroid_ids, text.encode('utf-8')
+            centroid_ids, text.encode('utf-8'), lang
         )
 
     def multi_get_document_similarity(self, centroid_ids, document_id):

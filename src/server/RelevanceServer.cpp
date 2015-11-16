@@ -33,6 +33,7 @@ using namespace std;
 using namespace folly;
 using thrift_protocol::EDocumentAlreadyExists;
 using thrift_protocol::ECentroidDoesNotExist;
+using thrift_protocol::Language;
 
 using similarity_score_worker::SimilarityScoreWorkerIf;
 using centroid_update_worker::CentroidUpdateWorkerIf;
@@ -139,8 +140,10 @@ RelevanceServer::internalMultiGetDocumentSimilarity(
 
 Future<Try<unique_ptr<map<string, double>>>>
 RelevanceServer::multiGetTextSimilarity(
-    unique_ptr<vector<string>> centroidIds, unique_ptr<string> text) {
-  auto doc = std::make_shared<Document>("no-id", *text);
+    unique_ptr<vector<string>> centroidIds,
+    unique_ptr<string> text,
+    Language lang) {
+  auto doc = std::make_shared<Document>("no-id", *text, lang);
   auto cIds = std::make_shared<vector<string>>(*centroidIds);
   return processingWorker_->processNew(doc)
     .then([this, cIds](shared_ptr<ProcessedDocument> processed) {
@@ -168,8 +171,10 @@ RelevanceServer::multiGetDocumentSimilarity(
 
 
 Future<Try<double>> RelevanceServer::getTextSimilarity(
-    unique_ptr<string> centroidId, unique_ptr<string> text) {
-  auto doc = std::make_shared<Document>("no-id", *text);
+    unique_ptr<string> centroidId,
+    unique_ptr<string> text,
+    Language lang) {
+  auto doc = std::make_shared<Document>("no-id", *text, lang);
   auto cId = *centroidId;
   return processingWorker_->processNew(doc)
     .then([this, cId](shared_ptr<ProcessedDocument> processed) {
@@ -179,14 +184,14 @@ Future<Try<double>> RelevanceServer::getTextSimilarity(
 
 
 Future<Try<unique_ptr<string>>> RelevanceServer::createDocument(
-    unique_ptr<string> text) {
-  return internalCreateDocumentWithID(util::getUuid(), *text);
+    unique_ptr<string> text, Language lang) {
+  return internalCreateDocumentWithID(util::getUuid(), *text, lang);
 }
 
 
 Future<Try<unique_ptr<string>>> RelevanceServer::internalCreateDocumentWithID(
-    string id, string text) {
-  auto doc = std::make_shared<Document>(id, text);
+    string id, string text, Language lang) {
+  auto doc = std::make_shared<Document>(id, text, lang);
   return processingWorker_->processNew(doc)
     .then([this, id](shared_ptr<ProcessedDocument> processed) {
       return persistence_->saveNewDocument(processed)
@@ -205,8 +210,8 @@ Future<Try<unique_ptr<string>>> RelevanceServer::internalCreateDocumentWithID(
 
 
 Future<Try<unique_ptr<string>>> RelevanceServer::createDocumentWithID(
-    unique_ptr<string> id, unique_ptr<string> text) {
-  return internalCreateDocumentWithID(*id, *text);
+    unique_ptr<string> id, unique_ptr<string> text, Language lang) {
+  return internalCreateDocumentWithID(*id, *text, lang);
 }
 
 

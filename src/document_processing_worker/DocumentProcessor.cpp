@@ -49,7 +49,7 @@ void DocumentProcessor::process_(
     StringView view(tokenStart, len);
     uint8_t wordLen = (uint8_t) len;
     ScoredWord scored(tokenStart, wordLen);
-    if (stopwordFilter_->isStopword(scored.word)) {
+    if (stopwordFilter_->isStopword(scored.word, doc.language)) {
       continue;
     }
     accumulator.add(view);

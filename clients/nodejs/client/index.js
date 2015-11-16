@@ -4,6 +4,7 @@ var thrift = require('thrift');
 var thriftTransports = require('thrift/lib/thrift/transport');
 var thriftProtocols = require('thrift/lib/thrift/protocol');
 var generated = require('./gen-nodejs/Relevanced');
+var genTypes = require('./gen-nodejs/RelevancedProtocol_types');
 
 var RelevancedClient = function(hostname, portno) {
     this.hostname = hostname;
@@ -85,7 +86,49 @@ _.each(CLIENT_METHODS, function(methodName) {
     };
 });
 
+(function() {
+    var original = RelevancedClient.prototype.createDocument;
+    RelevancedClient.prototype.createDocument = function(text, lang) {
+        if (!_.isNumber(lang)) {
+            lang = genTypes.Language.EN;
+        }
+        return original.apply(this, [text, lang]);
+    };
+})();
+
+(function() {
+    var original = RelevancedClient.prototype.createDocumentWithID;
+    RelevancedClient.prototype.createDocumentWithId = function(id, text, lang) {
+        if (!_.isNumber(lang)) {
+            lang = genTypes.Language.EN;
+        }
+        return original.apply(this, [id, text, lang]);
+    };
+})();
+
+(function() {
+    var original = RelevancedClient.prototype.getTextSimilarity;
+    RelevancedClient.prototype.getTextSimilarity = function(centroid, text, lang) {
+        if (!_.isNumber(lang)) {
+            lang = genTypes.Language.EN;
+        }
+        return original.apply(this, [centroid, text , lang]);
+    };
+})();
+
+(function() {
+    var original = RelevancedClient.prototype.multiGetTextSimilarity;
+    RelevancedClient.prototype.multiGetTextSimilarity = function(centroids, text, lang) {
+        if (!_.isNumber(lang)) {
+            lang = genTypes.Language.EN;
+        }
+        return original.apply(this, [centroids, text , lang]);
+    };
+})();
+
+
 module.exports = {
-    RelevancedClient: RelevancedClient
+    RelevancedClient: RelevancedClient,
+    Language: genTypes.Language
 };
 

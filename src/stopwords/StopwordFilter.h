@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-
+#include "gen-cpp2/RelevancedProtocol_types.h"
 namespace relevanced {
 namespace stopwords {
 
@@ -13,12 +13,18 @@ namespace stopwords {
 
 class StopwordFilterIf {
  public:
-  virtual bool isStopword(const std::string &stemmedWord) = 0;
+  virtual bool isStopword(
+    const std::string &stemmedWord,
+    thrift_protocol::Language language
+  ) = 0;
 };
 
 class StopwordFilter : public StopwordFilterIf {
  public:
-  bool isStopword(const std::string &stemmedWord) override;
+  bool isStopword(
+    const std::string &stemmedWord,
+    thrift_protocol::Language language
+  ) override;
 };
 
 } // stopwords

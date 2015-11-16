@@ -37,7 +37,8 @@ class ThriftRelevanceServer : public thrift_protocol::RelevancedSvIf {
   folly::Future<std::unique_ptr<thrift_protocol::MultiSimilarityResponse>>
   future_multiGetTextSimilarity(
       std::unique_ptr<std::vector<std::string>> centroidIds,
-      std::unique_ptr<std::string> text) override;
+      std::unique_ptr<std::string> text,
+      thrift_protocol::Language) override;
 
   folly::Future<std::unique_ptr<thrift_protocol::MultiSimilarityResponse>>
   future_multiGetDocumentSimilarity(
@@ -46,18 +47,25 @@ class ThriftRelevanceServer : public thrift_protocol::RelevancedSvIf {
 
   folly::Future<double> future_getTextSimilarity(
       std::unique_ptr<std::string> centroidId,
-      std::unique_ptr<std::string> text) override;
+      std::unique_ptr<std::string> text,
+      thrift_protocol::Language) override;
 
   folly::Future<double> future_getCentroidSimilarity(
       std::unique_ptr<std::string> centroid1Id,
       std::unique_ptr<std::string> centroid2Id) override;
 
   folly::Future<std::unique_ptr<thrift_protocol::CreateDocumentResponse>>
-  future_createDocument(std::unique_ptr<std::string> text) override;
+  future_createDocument(
+    std::unique_ptr<std::string> text,
+    thrift_protocol::Language lang
+  ) override;
 
   folly::Future<std::unique_ptr<thrift_protocol::CreateDocumentResponse>>
-  future_createDocumentWithID(std::unique_ptr<std::string> id,
-                              std::unique_ptr<std::string> text) override;
+  future_createDocumentWithID(
+    std::unique_ptr<std::string> id,
+    std::unique_ptr<std::string> text,
+    thrift_protocol::Language lang
+  ) override;
 
   folly::Future<std::unique_ptr<thrift_protocol::DeleteDocumentResponse>>
   future_deleteDocument(std::unique_ptr<std::string> id) override;

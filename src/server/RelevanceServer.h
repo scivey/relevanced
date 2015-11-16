@@ -4,9 +4,9 @@
 #include <folly/futures/Future.h>
 #include <folly/futures/helpers.h>
 #include <folly/futures/Try.h>
-
 #include <glog/logging.h>
 #include <folly/Optional.h>
+#include "gen-cpp2/RelevancedProtocol_types.h"
 #include "util/util.h"
 #include "declarations.h"
 namespace relevanced {
@@ -30,7 +30,8 @@ class RelevanceServerIf {
   virtual folly::Future<folly::Try<std::unique_ptr<std::map<std::string, double>>>>
     multiGetTextSimilarity(
       std::unique_ptr<std::vector<std::string>> centroidIds,
-      std::unique_ptr<std::string> text
+      std::unique_ptr<std::string> text,
+      thrift_protocol::Language
     ) = 0;
 
   virtual folly::Future<folly::Try<std::unique_ptr<std::map<std::string, double>>>>
@@ -42,7 +43,8 @@ class RelevanceServerIf {
   virtual folly::Future<folly::Try<double>>
     getTextSimilarity(
       std::unique_ptr<std::string> centroidId,
-      std::unique_ptr<std::string> text
+      std::unique_ptr<std::string> text,
+      thrift_protocol::Language
     ) = 0;
 
   virtual folly::Future<folly::Try<double>>
@@ -53,13 +55,15 @@ class RelevanceServerIf {
 
   virtual folly::Future<folly::Try<std::unique_ptr<std::string>>>
     createDocument(
-      std::unique_ptr<std::string> text
+      std::unique_ptr<std::string> text,
+      thrift_protocol::Language
     ) = 0;
 
   virtual folly::Future<folly::Try<std::unique_ptr<std::string>>>
     createDocumentWithID(
       std::unique_ptr<std::string> id,
-      std::unique_ptr<std::string> text
+      std::unique_ptr<std::string> text,
+      thrift_protocol::Language
     ) = 0;
 
   virtual folly::Future<folly::Try<bool>>
@@ -189,7 +193,11 @@ class RelevanceServer : public RelevanceServerIf {
     centroidUpdateWorker_;
 
   folly::Future<folly::Try<std::unique_ptr<std::string>>>
-    internalCreateDocumentWithID(std::string id, std::string text);
+    internalCreateDocumentWithID(
+      std::string id,
+      std::string text,
+      thrift_protocol::Language
+    );
 
   folly::Future<folly::Try<std::unique_ptr<std::map<std::string, double>>>>
     internalMultiGetDocumentSimilarity(
@@ -223,7 +231,8 @@ class RelevanceServer : public RelevanceServerIf {
   folly::Future<folly::Try<std::unique_ptr<std::map<std::string, double>>>>
     multiGetTextSimilarity(
       std::unique_ptr<std::vector<std::string>> centroidIds,
-      std::unique_ptr<std::string> text
+      std::unique_ptr<std::string> text,
+      thrift_protocol::Language lang
     ) override;
 
   folly::Future<folly::Try<std::unique_ptr<std::map<std::string, double>>>>
@@ -235,7 +244,8 @@ class RelevanceServer : public RelevanceServerIf {
   folly::Future<folly::Try<double>>
     getTextSimilarity(
       std::unique_ptr<std::string> centroidId,
-      std::unique_ptr<std::string> text
+      std::unique_ptr<std::string> text,
+      thrift_protocol::Language lang
     ) override;
 
   folly::Future<folly::Try<double>>
@@ -246,13 +256,15 @@ class RelevanceServer : public RelevanceServerIf {
 
   folly::Future<folly::Try<std::unique_ptr<std::string>>>
     createDocument(
-      std::unique_ptr<std::string> text
+      std::unique_ptr<std::string> text,
+      thrift_protocol::Language
     ) override;
 
   folly::Future<folly::Try<std::unique_ptr<std::string>>>
     createDocumentWithID(
       std::unique_ptr<std::string> id,
-      std::unique_ptr<std::string> text
+      std::unique_ptr<std::string> text,
+      thrift_protocol::Language
     ) override;
 
   folly::Future<folly::Try<bool>>

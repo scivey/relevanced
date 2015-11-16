@@ -7,5 +7,6 @@ from relevanced_client.gen_py.RelevancedProtocol.ttypes import (
     EDocumentAlreadyExists,
     ECentroidAlreadyExists,
     EDocumentNotInCentroid,
-    EDocumentAlreadyInCentroid
+    EDocumentAlreadyInCentroid,
+    Language
 )
