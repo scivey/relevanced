@@ -33,54 +33,54 @@ shared_ptr<FutureExecutor<CPUThreadPoolExecutor>> getThreadPool() {
   return threads;
 }
 
-// TEST(TestPersistence, TestDoesDocumentExist1) {
-//   MockSyncPersistence syncPersistence;
+TEST(TestPersistence, TestDoesDocumentExist1) {
+  MockSyncPersistence syncPersistence;
 
-//   UniquePointer<SyncPersistenceIf> syncPersistencePtr(
-//       (SyncPersistenceIf*) &syncPersistence, NonDeleter<SyncPersistenceIf>());
+  UniquePointer<SyncPersistenceIf> syncPersistencePtr(
+      (SyncPersistenceIf*) &syncPersistence, NonDeleter<SyncPersistenceIf>());
 
-//   Persistence persistence(std::move(syncPersistencePtr), getThreadPool());
-//   string id = "doc-id";
-//   EXPECT_CALL(syncPersistence, doesDocumentExist(id)).WillOnce(Return(true));
-//   auto result = persistence.doesDocumentExist(id).get();
-//   EXPECT_TRUE(result);
-// }
+  Persistence persistence(std::move(syncPersistencePtr), getThreadPool());
+  string id = "doc-id";
+  EXPECT_CALL(syncPersistence, doesDocumentExist(id)).WillOnce(Return(true));
+  auto result = persistence.doesDocumentExist(id).get();
+  EXPECT_TRUE(result);
+}
 
-// TEST(TestPersistence, TestDoesDocumentExist2) {
-//   MockSyncPersistence syncPersistence;
+TEST(TestPersistence, TestDoesDocumentExist2) {
+  MockSyncPersistence syncPersistence;
 
-//   UniquePointer<SyncPersistenceIf> syncPersistencePtr(
-//       (SyncPersistenceIf*) &syncPersistence, NonDeleter<SyncPersistenceIf>());
+  UniquePointer<SyncPersistenceIf> syncPersistencePtr(
+      (SyncPersistenceIf*) &syncPersistence, NonDeleter<SyncPersistenceIf>());
 
-//   Persistence persistence(std::move(syncPersistencePtr), getThreadPool());
-//   string id = "doc-id";
-//   EXPECT_CALL(syncPersistence, doesDocumentExist(id)).WillOnce(Return(false));
-//   auto result = persistence.doesDocumentExist(id).get();
-//   EXPECT_FALSE(result);
-// }
+  Persistence persistence(std::move(syncPersistencePtr), getThreadPool());
+  string id = "doc-id";
+  EXPECT_CALL(syncPersistence, doesDocumentExist(id)).WillOnce(Return(false));
+  auto result = persistence.doesDocumentExist(id).get();
+  EXPECT_FALSE(result);
+}
 
-// TEST(TestPersistence, TestDoesCentroidExist1) {
-//   MockSyncPersistence syncPersistence;
+TEST(TestPersistence, TestDoesCentroidExist1) {
+  MockSyncPersistence syncPersistence;
 
-//   UniquePointer<SyncPersistenceIf> syncPersistencePtr(
-//       (SyncPersistenceIf*) &syncPersistence, NonDeleter<SyncPersistenceIf>());
+  UniquePointer<SyncPersistenceIf> syncPersistencePtr(
+      (SyncPersistenceIf*) &syncPersistence, NonDeleter<SyncPersistenceIf>());
 
-//   Persistence persistence(std::move(syncPersistencePtr), getThreadPool());
-//   string id = "centroid-id";
-//   EXPECT_CALL(syncPersistence, doesCentroidExist(id)).WillOnce(Return(true));
-//   auto result = persistence.doesCentroidExist(id).get();
-//   EXPECT_TRUE(result);
-// }
+  Persistence persistence(std::move(syncPersistencePtr), getThreadPool());
+  string id = "centroid-id";
+  EXPECT_CALL(syncPersistence, doesCentroidExist(id)).WillOnce(Return(true));
+  auto result = persistence.doesCentroidExist(id).get();
+  EXPECT_TRUE(result);
+}
 
-// TEST(TestPersistence, TestDoesCentroidExist2) {
-//   MockSyncPersistence syncPersistence;
+TEST(TestPersistence, TestDoesCentroidExist2) {
+  MockSyncPersistence syncPersistence;
 
-//   UniquePointer<SyncPersistenceIf> syncPersistencePtr(
-//       (SyncPersistenceIf*) &syncPersistence, NonDeleter<SyncPersistenceIf>());
+  UniquePointer<SyncPersistenceIf> syncPersistencePtr(
+      (SyncPersistenceIf*) &syncPersistence, NonDeleter<SyncPersistenceIf>());
 
-//   Persistence persistence(std::move(syncPersistencePtr), getThreadPool());
-//   string id = "centroid-id";
-//   EXPECT_CALL(syncPersistence, doesCentroidExist(id)).WillOnce(Return(false));
-//   auto result = persistence.doesCentroidExist(id).get();
-//   EXPECT_FALSE(result);
-// }
+  Persistence persistence(std::move(syncPersistencePtr), getThreadPool());
+  string id = "centroid-id";
+  EXPECT_CALL(syncPersistence, doesCentroidExist(id)).WillOnce(Return(false));
+  auto result = persistence.doesCentroidExist(id).get();
+  EXPECT_FALSE(result);
+}
