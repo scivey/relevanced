@@ -1,9 +1,11 @@
 $:.push('gen-rb')
 
 require 'thrift'
-require File.join(File.dirname(__FILE__), 'gen-rb', 'relevanced')
 
 module RelevancedClient
+
+    require File.join(File.dirname(__FILE__), 'gen-rb', 'relevanced')
+    require File.join(File.dirname(__FILE__), 'gen-rb', 'relevanced_protocol_types')
 
     class Client
         def initialize(host, port)
@@ -19,6 +21,9 @@ module RelevancedClient
             @thrift_transport.open()
         end
 
+        def foo()
+            puts 'ok'
+        end
         def ping()
             @thrift_client.ping()
         end
@@ -31,9 +36,9 @@ module RelevancedClient
             @thrift_client.getDocumentSimilarity(centroid_id, document_id)
         end
 
-        def multi_get_text_similarity(centroid_id_list, text)
+        def multi_get_text_similarity(centroid_id_list, text, lang=Language::EN)
             @thrift_client.multiGetTextSimilarity(
-                centroid_id_list, text
+                centroid_id_list, text, lang
             )
         end
 
@@ -43,8 +48,8 @@ module RelevancedClient
             )
         end
 
-        def get_text_similarity(centroid_id, text)
-            @thrift_client.getTextSimilarity(centroid_id, text)
+        def get_text_similarity(centroid_id, text, lang=Language::EN)
+            @thrift_client.getTextSimilarity(centroid_id, text, lang)
         end
 
         def get_centroid_similarity(centroid_1_id, centroid_2_id)
@@ -53,13 +58,13 @@ module RelevancedClient
             )
         end
 
-        def create_document(text)
-            @thrift_client.createDocument(text)
+        def create_document(text, lang=Language::EN)
+            @thrift_client.createDocument(text, lang)
         end
 
-        def create_document_with_id(document_id, text)
+        def create_document_with_id(document_id, text, lang=Language::EN)
             @thrift_client.createDocumentWithID(
-                document_id, text
+                document_id, text, lang
             )
         end
 

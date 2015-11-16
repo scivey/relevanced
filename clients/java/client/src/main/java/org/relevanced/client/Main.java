@@ -25,6 +25,7 @@
 //             System.out.println("comparing " + docId + " against " + centroidId + "...");
 //             double similarity = client.getDocumentSimilarity(centroidId, docId);
 //             System.out.println("result: " + similarity);
+//             // client.createDocumentWithID("something", "some text");
 //         } catch (TException err) {
 //             err.printStackTrace();
 //         }

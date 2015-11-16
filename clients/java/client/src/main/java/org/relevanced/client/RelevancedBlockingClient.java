@@ -13,6 +13,10 @@ import org.apache.thrift.transport.TSSLTransportFactory;
 import org.apache.thrift.transport.TTransport;
 
 import org.relevanced.client.gen_thrift_protocol.Relevanced;
+import org.relevanced.client.gen_thrift_protocol.Language;
+import org.relevanced.client.gen_thrift_protocol.CreateDocumentResponse;
+import org.relevanced.client.gen_thrift_protocol.MultiSimilarityResponse;
+
 
 public class RelevancedBlockingClient extends Relevanced.Client {
     public Relevanced.Client thriftClient_;
@@ -27,6 +31,22 @@ public class RelevancedBlockingClient extends Relevanced.Client {
         portNum_ = port;
         thriftProtocol_ = protocol;
         thriftTransport_ = transport;
+    }
+
+    public double getTextSimilarity(String centroidId, String text) throws TException {
+        return getTextSimilarity(centroidId, text, Language.EN);
+    }
+
+    public MultiSimilarityResponse multiGetTextSimilarity(List<String> centroidIds, String text) throws TException {
+        return multiGetTextSimilarity(centroidIds, text, Language.EN);
+    }
+
+    public CreateDocumentResponse createDocument(String text) throws TException {
+        return createDocument(text, Language.EN);
+    }
+
+    public CreateDocumentResponse createDocumentWithID(String id, String text) throws TException {
+        return createDocumentWithID(id, text, Language.EN);
     }
 
     public static RelevancedBlockingClient connect(String host, int port) throws TException {
