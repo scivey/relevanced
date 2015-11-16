@@ -14,6 +14,7 @@
 #include "stopwords/StopwordFilter.h"
 #include "tokenizer/Tokenizer.h"
 #include "tokenizer/DestructiveConllTokenIterator.h"
+#include "tokenizer/DestructiveTokenIterator.h"
 #include "util/Clock.h"
 #include "util/util.h"
 #include "text_util/ScoredWord.h"
@@ -31,7 +32,8 @@ using util::UniquePointer;
 using namespace relevanced::text_util;
 
 void DocumentProcessor::process_(Document &doc, ProcessedDocument *result) {
-  tokenizer::DestructiveConllTokenIterator it(doc.text.data(), doc.text.size());
+  tokenizer::DestructiveTokenIterator it(doc.text);
+  // tokenizer::DestructiveConllTokenIterator it(doc.text.data(), doc.text.size());
   WordAccumulator accumulator {200};
   const char *cStr = doc.text.c_str();
   std::tuple<bool, size_t, size_t> tokenOffsets;

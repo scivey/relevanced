@@ -113,13 +113,13 @@ set(RELEVANCED_BASE_SOURCES
     "stopwords/StopwordFilter.cpp"
     "tokenizer/Tokenizer.cpp"
     "tokenizer/DestructiveConllTokenIterator.cpp"
+    "tokenizer/DestructiveTokenIterator.cpp"
     "util/util.cpp"
     "release_metadata/release_metadata.cpp"
     "stemmer/Utf8Stemmer.cpp"
     "text_util/ScoredWord.cpp"
     "text_util/StringView.cpp"
     "text_util/WordAccumulator.cpp"
-    "libunicode/CodePointIterator.cpp"
     "libunicode/UnicodeBlock.cpp"
     "libunicode/code_point_support.cpp"
 
@@ -159,6 +159,7 @@ set(UNIT_TEST_SOURCES
   "persistence/test_unit/test_SyncPersistence.cpp"
   "persistence/test_unit/test_Persistence.cpp"
   "tokenizer/test_unit/test_Tokenizer.cpp"
+  "tokenizer/test_unit/test_DestructiveTokenIterator.cpp"
   "stemmer/test_unit/test_Utf8Stemmer.cpp"
   "serialization/test_unit/test_DocumentSerialization.cpp"
   "serialization/test_unit/test_CentroidSerialization.cpp"
@@ -166,7 +167,8 @@ set(UNIT_TEST_SOURCES
   "text_util/test_unit/test_WordAccumulator.cpp"
   "text_util/test_unit/test_StringView.cpp"
   "text_util/test_unit/test_ScoredWord.cpp"
-  "libunicode/test_unit/test_CodePointIterator.cpp"
+  "libunicode/test_unit/test_UnicodeBlock.cpp"
+  "libunicode/test_unit/test_code_point_support.cpp"
   "testing/runTests.cpp"
 )
 
