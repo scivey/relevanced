@@ -115,7 +115,6 @@ set(RELEVANCED_BASE_SOURCES
     "stopwords/italian_stopwords.cpp"
     "stopwords/russian_stopwords.cpp"
     "stopwords/spanish_stopwords.cpp"
-
     "stopwords/StopwordFilter.cpp"
     "tokenizer/DestructiveTokenIterator.cpp"
     "util/util.cpp"
