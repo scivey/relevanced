@@ -653,31 +653,34 @@ TEST(RelevanceServer, TestDeleteDocumentMissing) {
   EXPECT_TRUE(result.hasException<EDocumentDoesNotExist>());
 }
 
-// TEST(RelevanceServer, TestListUnusedDocuments) {
-//   RelevanceServerTestCtx ctx;
-//   vector<Future<Try<unique_ptr<string>>>> documentCreations;
-//   for (size_t i = 0; i < 6; i++) {
-//     auto id = sformat("some-doc-{}", i);
-//     documentCreations.push_back(ctx.server->createDocumentWithID(
-//       folly::make_unique<string>(id),
-//       folly::make_unique<string>("this is some text about things"),
-//       Language::EN
-//     ));
-//   }
-//   collect(documentCreations).get();
-//   ctx.server->createCentroid("c1").get();
-//   vector<Future<Try<bool>>> additions;
-//   vector<string> toAdd {"some-doc-1", "some-doc-3", "some-doc-4"};
-//   for (string id: toAdd) {
-//     additions.push_back(ctx.server->addDocumentToCentroid(
-//       folly::make_unique<string>("c1"),
-//       folly::make_unique<string>(id)
-//     ));
-//   }
-//   collect(additions).get();
-//   auto unused = ctx.server->listUnusedDocuments(10).get();
-//   vector<string> expected {
-//     "some-doc-0", "some-doc-2", "some-doc-5"
-//   };
-//   EXPECT_EQ(expected, unused);
-// }
+TEST(RelevanceServer, TestListUnusedDocuments) {
+  RelevanceServerTestCtx ctx;
+  vector<Future<Try<unique_ptr<string>>>> documentCreations;
+  for (size_t i = 0; i < 6; i++) {
+    auto id = sformat("some-doc-{}", i);
+    documentCreations.push_back(ctx.server->createDocumentWithID(
+      folly::make_unique<string>(id),
+      folly::make_unique<string>("this is some text about things"),
+      Language::EN
+    ));
+  }
+  collect(documentCreations).get();
+  ctx.server->createCentroid(
+    folly::make_unique<string>("c1")
+  ).get();
+  vector<Future<Try<bool>>> additions;
+  vector<string> toAdd {"some-doc-1", "some-doc-3", "some-doc-4"};
+  for (string id: toAdd) {
+    additions.push_back(ctx.server->addDocumentToCentroid(
+      folly::make_unique<string>("c1"),
+      folly::make_unique<string>(id)
+    ));
+  }
+  collect(additions).get();
+  auto unused = ctx.server->listUnusedDocuments(10).get();
+  vector<string> result = *unused;
+  vector<string> expected {
+    "some-doc-0", "some-doc-2", "some-doc-5"
+  };
+  EXPECT_EQ(expected, result);
+}
