@@ -18,7 +18,6 @@
 #include "stemmer/ThreadSafeUtf8Stemmer.h"
 #include "stemmer/StemmerIf.h"
 #include "stopwords/StopwordFilter.h"
-#include "tokenizer/Tokenizer.h"
 #include "util/util.h"
 #include "util/Clock.h"
 #include "util/Sha1Hasher.h"
@@ -32,23 +31,30 @@ using namespace relevanced::similarity_score_worker;
 using namespace relevanced::server;
 using relevanced::stopwords::StopwordFilter;
 using relevanced::stemmer::ThreadSafeUtf8Stemmer;
-using relevanced::tokenizer::Tokenizer;
 
 namespace relevanced {
 namespace server {
 
 shared_ptr<ThriftServerWrapper> buildNormalThriftServer(
     shared_ptr<RelevanceServerOptions> options) {
+
   ServerBuilder builder(options);
   builder.buildClock<util::Clock>();
-  builder.buildPersistence<RockHandle, SyncPersistence, Persistence,
-                           CentroidMetadataDb>();
-  builder.buildDocumentProcessor<DocumentProcessingWorker, DocumentProcessor,
-                                 ThreadSafeUtf8Stemmer, StopwordFilter,
-                                 util::Sha1Hasher>();
-  builder.buildCentroidUpdateWorker<CentroidUpdateWorker,
-                                    CentroidUpdaterFactory,
-                                    DocumentAccumulatorFactory>();
+  builder.buildPersistence<
+    RockHandle, SyncPersistence,
+    Persistence, CentroidMetadataDb
+  >();
+
+  builder.buildDocumentProcessor<
+    DocumentProcessingWorker, DocumentProcessor,
+    ThreadSafeUtf8Stemmer, StopwordFilter,
+    util::Sha1Hasher
+  >();
+
+  builder.buildCentroidUpdateWorker<
+    CentroidUpdateWorker, CentroidUpdaterFactory,
+    DocumentAccumulatorFactory
+  >();
   builder.buildSimilarityWorker<SimilarityScoreWorker>();
   auto server = builder.buildThriftServer<RelevanceServer>();
   auto wrapper = std::make_shared<ThriftServerWrapper>(server);

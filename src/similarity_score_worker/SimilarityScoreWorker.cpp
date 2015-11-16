@@ -75,14 +75,18 @@ Future<bool> SimilarityScoreWorker::reloadCentroid(string id) {
 
 Future<Try<double>> SimilarityScoreWorker::getDocumentSimilarity(
     string centroidId, ProcessedDocument *doc) {
-  return threadPool_->addFuture([this, centroidId, doc]() {
-    auto centroid = centroids_->getOption(centroidId);
-    if (!centroid.hasValue()) {
-      LOG(INFO) << "relevance request against null centroid: " << centroidId;
-      return Try<double>(make_exception_wrapper<ECentroidDoesNotExist>());
-    }
-    auto result = centroid.value()->score(doc);
-    return Try<double>(result);
+  return threadPool_->addFuture(
+    [this, centroidId, doc]() {
+      auto centroid = centroids_->getOption(centroidId);
+      if (!centroid.hasValue()) {
+        LOG(INFO) << "relevance request against null centroid: "
+                  << centroidId;
+        return Try<double>(
+          make_exception_wrapper<ECentroidDoesNotExist>()
+        );
+      }
+      auto result = centroid.value()->score(doc);
+      return Try<double>(result);
   });
 }
 
@@ -93,14 +97,20 @@ Future<Try<double>> SimilarityScoreWorker::getDocumentSimilarity(
 
 Future<Try<double>> SimilarityScoreWorker::getCentroidSimilarity(
     string centroid1Id, string centroid2Id) {
-  return threadPool_->addFuture([this, centroid1Id, centroid2Id]() {
-    auto centroid1 = centroids_->getOption(centroid1Id);
-    auto centroid2 = centroids_->getOption(centroid2Id);
-    if (!centroid1.hasValue() || !centroid2.hasValue()) {
-      return Try<double>(make_exception_wrapper<ECentroidDoesNotExist>());
-    }
-    return Try<double>(
-        centroid1.value()->score(&centroid2.value().get()->wordVector));
+  return threadPool_->addFuture(
+    [this, centroid1Id, centroid2Id]() {
+      auto centroid1 = centroids_->getOption(centroid1Id);
+      auto centroid2 = centroids_->getOption(centroid2Id);
+      if (!centroid1.hasValue() || !centroid2.hasValue()) {
+        return Try<double>(
+          make_exception_wrapper<ECentroidDoesNotExist>()
+        );
+      }
+      return Try<double>(
+        centroid1.value()->score(
+          &centroid2.value().get()->wordVector
+        )
+      );
   });
 }
 

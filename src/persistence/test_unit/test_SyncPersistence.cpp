@@ -18,7 +18,6 @@
 #include "persistence/SyncPersistence.h"
 #include "stemmer/StemmerIf.h"
 #include "stopwords/StopwordFilter.h"
-#include "tokenizer/Tokenizer.h"
 #include "util/util.h"
 #include "text_util/ScoredWord.h"
 

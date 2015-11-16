@@ -111,7 +111,6 @@ set(RELEVANCED_BASE_SOURCES
     "similarity_score_worker/SimilarityScoreWorker.cpp"
     "stopwords/english_stopwords.cpp"
     "stopwords/StopwordFilter.cpp"
-    "tokenizer/Tokenizer.cpp"
     "tokenizer/DestructiveTokenIterator.cpp"
     "util/util.cpp"
     "release_metadata/release_metadata.cpp"

@@ -13,7 +13,6 @@
 #include "models/ProcessedDocument.h"
 #include "stopwords/StopwordFilter.h"
 #include "stemmer/StemmerIf.h"
-#include "tokenizer/Tokenizer.h"
 #include "testing/TestHelpers.h"
 #include "testing/MockHasher.h"
 #include "util/Sha1Hasher.h"
@@ -29,7 +28,6 @@ using namespace relevanced::util;
 using namespace relevanced::text_util;
 using relevanced::stopwords::StopwordFilterIf;
 using relevanced::stemmer::StemmerIf;
-using relevanced::tokenizer::TokenizerIf;
 using ::testing::Return;
 using ::testing::_;
 

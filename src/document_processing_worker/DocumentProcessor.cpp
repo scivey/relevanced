@@ -12,7 +12,6 @@
 #include "models/WordVector.h"
 #include "stemmer/StemmerIf.h"
 #include "stopwords/StopwordFilter.h"
-#include "tokenizer/Tokenizer.h"
 #include "tokenizer/DestructiveTokenIterator.h"
 #include "util/Clock.h"
 #include "util/util.h"

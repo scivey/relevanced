@@ -24,7 +24,6 @@
 #include "models/ProcessedDocument.h"
 #include "stopwords/StopwordFilter.h"
 #include "stemmer/StemmerIf.h"
-#include "tokenizer/Tokenizer.h"
 #include "testing/MockSyncPersistence.h"
 #include "testing/MockCentroidMetadataDb.h"
 #include "util/util.h"
@@ -42,7 +41,6 @@ using namespace relevanced::thrift_protocol;
 using relevanced::thrift_protocol::ECentroidDoesNotExist;
 using relevanced::stopwords::StopwordFilterIf;
 using relevanced::stemmer::StemmerIf;
-using relevanced::tokenizer::TokenizerIf;
 using util::UniquePointer;
 using text_util::ScoredWord;
 using ::testing::Return;

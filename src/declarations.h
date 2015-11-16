@@ -34,11 +34,6 @@ class StopwordFilterIf;
 class StopwordFilter;
 } // stopwords
 
-namespace tokenizer {
-class TokenizerIf;
-class Tokenizer;
-} // tokenizer
-
 namespace similarity_score_worker {
 class SimilarityScoreWorkerIf;
 } // similarity_score_worker
