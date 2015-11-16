@@ -17,6 +17,9 @@ CodePointIterator::Iterator::Iterator(char *it, char *end, bool isGood)
 CodePointIterator::Iterator::Iterator(char *it, char *end)
   : CodePointIterator::Iterator::Iterator(it, end, false) {}
 
+CodePointIterator::Iterator::Iterator()
+  : it_(nullptr), end_(nullptr), isGoodIter_(false) {}
+
 CodePointIterator::Iterator& CodePointIterator::Iterator::operator++() {
 
   // unchecked because utf8's error handling prevents

@@ -17,6 +17,7 @@ public:
     uint32_t current_ = 0;
     bool isGoodIter_ {false};
   public:
+    Iterator();
     Iterator(char *it, char *end, bool isGood);
     Iterator(char *it, char *end);
     bool operator!=(const Iterator &other);
