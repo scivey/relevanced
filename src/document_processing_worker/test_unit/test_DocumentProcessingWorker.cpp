@@ -17,7 +17,7 @@
 #include "testing/MockHasher.h"
 #include "util/Sha1Hasher.h"
 #include "text_util/ScoredWord.h"
-
+#include "gen-cpp2/RelevancedProtocol_types.h"
 
 using namespace std;
 using namespace wangle;
@@ -28,6 +28,7 @@ using namespace relevanced::util;
 using namespace relevanced::text_util;
 using relevanced::stopwords::StopwordFilterIf;
 using relevanced::stemmer::StemmerIf;
+using relevanced::thrift_protocol::Language;
 using ::testing::Return;
 using ::testing::_;
 
@@ -59,8 +60,9 @@ TEST(DocumentProcessingWorker, Simple) {
   shared_ptr<ProcessedDocument> processed = make_shared<ProcessedDocument>(
     "processed-doc-id", words, 20.3
   );
-  shared_ptr<Document> doc =
-      make_shared<Document>("doc-id", "This is some text about bears");
+  shared_ptr<Document> doc = make_shared<Document>(
+    "doc-id", "This is some text about bears", Language::EN
+  );
 
   EXPECT_CALL(hasher, hash("This is some text about bears"))
       .WillOnce(Return("SHA1_HASH"));
@@ -93,8 +95,9 @@ TEST(DocumentProcessingWorker, WithoutHash) {
   shared_ptr<ProcessedDocument> processed = make_shared<ProcessedDocument>(
     "processed-doc-id", words, 20.3
   );
-  shared_ptr<Document> doc =
-      make_shared<Document>("doc-id", "This is some text about bears");
+  shared_ptr<Document> doc = make_shared<Document>(
+    "doc-id", "This is some text about bears", Language::EN
+  );
 
   EXPECT_CALL(mockProcessor, processNew(doc)).WillOnce(Return(processed));
 

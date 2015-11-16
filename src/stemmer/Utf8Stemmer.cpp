@@ -12,7 +12,7 @@ namespace stemmer {
 
 Utf8Stemmer::Utf8Stemmer(Language lang): language_(lang) {
   const char *countryCode = util::countryCodeOfThriftLanguage(language_);
-  if (countryCode == "UNKNOWN") {
+  if (strcmp(countryCode, "UNKNOWN")) {
     countryCode = "en";
   }
   stemmer_ = sb_stemmer_new(countryCode, "UTF_8");

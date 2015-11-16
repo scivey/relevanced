@@ -45,7 +45,7 @@ using namespace relevanced::document_processing_worker;
 using namespace relevanced::stemmer;
 using namespace relevanced::stopwords;
 using namespace relevanced::tokenizer;
-
+using relevanced::thrift_protocol::Language;
 
 using ::testing::Return;
 using ::testing::_;
@@ -87,7 +87,9 @@ struct ProcessingWorkerTestCtx {
 
 TEST(DocumentProcessingWorker, TestSanity) {
   ProcessingWorkerTestCtx ctx;
-  Document document("doc-id", "this is some document text fish words");
+  Document document(
+    "doc-id", "this is some document text fish words", Language::EN
+  );
   shared_ptr<Document> docPtr(&document, NonDeleter<Document>());
   auto result = ctx.worker->processNew(docPtr).get();
   EXPECT_EQ("doc-id", result->id);
@@ -100,7 +102,9 @@ TEST(DocumentProcessingWorker, TestSanity) {
 
 TEST(DocumentProcessingWorker, TestWithWithoutHash) {
   ProcessingWorkerTestCtx ctx;
-  Document document("doc-id", "this is some document text");
+  Document document(
+    "doc-id", "this is some document text", Language::EN
+  );
   shared_ptr<Document> docPtr(&document, NonDeleter<Document>());
   auto result = ctx.worker->processNew(docPtr).get();
   EXPECT_TRUE(result->sha1Hash.hasValue());
