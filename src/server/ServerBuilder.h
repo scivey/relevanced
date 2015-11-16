@@ -6,7 +6,8 @@
 #include <thrift/lib/cpp2/async/AsyncProcessor.h>
 
 #include "stopwords/StopwordFilter.h"
-#include "stemmer/StemmerIf.h"
+#include "stemmer/StemmerManagerIf.h"
+#include "stemmer/ThreadSafeStemmerManager.h"
 #include "document_processing_worker/DocumentProcessor.h"
 #include "document_processing_worker/DocumentProcessingWorker.h"
 #include "centroid_update_worker/CentroidUpdaterFactory.h"
@@ -35,7 +36,7 @@ using namespace persistence;
 using namespace similarity_score_worker;
 using namespace centroid_update_worker;
 using namespace document_processing_worker;
-using relevanced::stemmer::StemmerIf;
+using relevanced::stemmer::StemmerManagerIf;
 using relevanced::stopwords::StopwordFilter;
 using relevanced::stopwords::StopwordFilterIf;
 using wangle::CPUThreadPoolExecutor;
@@ -94,15 +95,15 @@ class ServerBuilder {
 
   template <typename ProcessWorkerT,
             typename ProcessorT,
-            typename StemmerT,
+            typename StemmerManagerT,
             typename StopwordFilterT,
             typename HasherT>
   void buildDocumentProcessor() {
     assert(clock_.get() != nullptr);
-    shared_ptr<StemmerIf> stemmer(new StemmerT);
+    shared_ptr<StemmerManagerIf> stemmerManager(new StemmerManagerT);
     shared_ptr<StopwordFilterIf> stopwordFilter(new StopwordFilterT);
     shared_ptr<DocumentProcessorIf> processor(
-        new ProcessorT(stemmer, stopwordFilter, clock_));
+        new ProcessorT(stemmerManager, stopwordFilter, clock_));
     auto threadPool = make_shared<FutureExecutor<CPUThreadPoolExecutor>>(
         options_->getDocumentProcessingThreadCount());
     shared_ptr<util::Sha1HasherIf> hasher(new HasherT);

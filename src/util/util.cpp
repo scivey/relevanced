@@ -10,7 +10,10 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <openssl/sha.h>
 
+#include "gen-cpp2/RelevancedProtocol_types.h"
+
 using namespace std;
+using relevanced::thrift_protocol::Language;
 
 namespace relevanced {
 namespace util {
@@ -49,6 +52,19 @@ string sha1(const string &input) {
     output << std::hex << current;
   }
   return output.str();
+}
+
+const char* countryCodeOfThriftLanguage(Language lang) {
+  switch (lang) {
+    case Language::DE : return "de";
+    case Language::EN : return "en";
+    case Language::ES : return "es";
+    case Language::FR : return "fr";
+    case Language::IT : return "it";
+    case Language::RU : return "ru";
+    case Language::OTHER : return "OTHER";
+    default           : return "UNKNOWN";
+  }
 }
 
 } // util

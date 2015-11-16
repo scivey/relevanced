@@ -15,8 +15,9 @@
 #include "server/ThriftRelevanceServer.h"
 #include "server/ThriftServerWrapper.h"
 #include "similarity_score_worker/SimilarityScoreWorker.h"
-#include "stemmer/ThreadSafeUtf8Stemmer.h"
-#include "stemmer/StemmerIf.h"
+#include "stemmer/ThreadSafeStemmerManager.h"
+#include "stemmer/StemmerManagerIf.h"
+
 #include "stopwords/StopwordFilter.h"
 #include "util/util.h"
 #include "util/Clock.h"
@@ -30,7 +31,7 @@ using namespace relevanced::persistence;
 using namespace relevanced::similarity_score_worker;
 using namespace relevanced::server;
 using relevanced::stopwords::StopwordFilter;
-using relevanced::stemmer::ThreadSafeUtf8Stemmer;
+using relevanced::stemmer::ThreadSafeStemmerManager;
 
 namespace relevanced {
 namespace server {
@@ -47,7 +48,7 @@ shared_ptr<ThriftServerWrapper> buildNormalThriftServer(
 
   builder.buildDocumentProcessor<
     DocumentProcessingWorker, DocumentProcessor,
-    ThreadSafeUtf8Stemmer, StopwordFilter,
+    ThreadSafeStemmerManager, StopwordFilter,
     util::Sha1Hasher
   >();
 

@@ -9,6 +9,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include "gen-cpp2/RelevancedProtocol_types.h"
 
 namespace relevanced {
 namespace util {
@@ -127,6 +128,8 @@ bool isOnlyAscii(const std::string &text);
 
 int64_t getChronoEpochTime();
 std::string sha1(const std::string &input);
+
+const char *countryCodeOfThriftLanguage(thrift_protocol::Language);
 
 } // util
 } // relevanced

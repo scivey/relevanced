@@ -120,6 +120,7 @@ set(RELEVANCED_BASE_SOURCES
     "util/util.cpp"
     "release_metadata/release_metadata.cpp"
     "stemmer/Utf8Stemmer.cpp"
+    "stemmer/ThreadSafeStemmerManager.cpp"
     "text_util/ScoredWord.cpp"
     "text_util/StringView.cpp"
     "text_util/WordAccumulator.cpp"

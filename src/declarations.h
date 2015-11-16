@@ -26,6 +26,8 @@ class DocumentProcessor;
 
 namespace stemmer {
 class StemmerIf;
+class StemmerManagerIf;
+class ThreadSafeStemmerManager;
 class PorterStemmer;
 } // stemmmer
 

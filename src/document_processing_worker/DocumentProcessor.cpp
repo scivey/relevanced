@@ -10,8 +10,8 @@
 #include "models/Document.h"
 #include "models/ProcessedDocument.h"
 #include "models/WordVector.h"
-#include "stemmer/StemmerIf.h"
 #include "stopwords/StopwordFilter.h"
+#include "stemmer/StemmerManagerIf.h"
 #include "tokenizer/DestructiveTokenIterator.h"
 #include "util/Clock.h"
 #include "util/util.h"
@@ -35,6 +35,7 @@ void DocumentProcessor::process_(
   WordAccumulator accumulator {200};
   const char *cStr = doc.text.c_str();
   std::tuple<bool, size_t, size_t> tokenOffsets;
+  auto stemmer = stemmerManager_->getStemmer(doc.language);
   while (it.next(tokenOffsets)) {
     if (!std::get<0>(tokenOffsets)) {
       break;
@@ -42,7 +43,7 @@ void DocumentProcessor::process_(
     size_t startPos = ::std::get<1>(tokenOffsets);
     size_t len = ::std::get<2>(tokenOffsets) - startPos;
     const char *tokenStart = cStr + startPos;
-    len = stemmer_->getStemPos(tokenStart, len);
+    len = stemmer->getStemPos(tokenStart, len);
     if (len > 23) {
       len = 23;
     }

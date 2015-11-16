@@ -21,14 +21,14 @@ class DocumentProcessor : public DocumentProcessorIf {
   void process_(models::Document &doc, models::ProcessedDocument *result);
   void process_(models::Document &doc,
                 std::shared_ptr<models::ProcessedDocument> result);
-  std::shared_ptr<stemmer::StemmerIf> stemmer_;
+  std::shared_ptr<stemmer::StemmerManagerIf> stemmerManager_;
   std::shared_ptr<stopwords::StopwordFilterIf> stopwordFilter_;
   std::shared_ptr<util::ClockIf> clock_;
  public:
-  DocumentProcessor(std::shared_ptr<stemmer::StemmerIf> stemmer,
+  DocumentProcessor(std::shared_ptr<stemmer::StemmerManagerIf> stemmerManager,
                     std::shared_ptr<stopwords::StopwordFilterIf> stopwordFilter,
                     std::shared_ptr<util::ClockIf> clock)
-      : stemmer_(stemmer),
+      : stemmerManager_(stemmerManager),
         stopwordFilter_(stopwordFilter),
         clock_(clock) {}
   std::shared_ptr<models::ProcessedDocument> processNew(
