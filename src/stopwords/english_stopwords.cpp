@@ -1,4 +1,4 @@
-#include <set>
+#include <unordered_set>
 #include <string>
 #include <vector>
 
@@ -9,7 +9,7 @@ using namespace std;
 namespace relevanced {
 namespace stopwords {
 
-const set<string> stopwordSet = {
+const unordered_set<string> stopwordSet = {
   "a",
   "about",
   "above",
@@ -140,7 +140,7 @@ const set<string> stopwordSet = {
 };
 
 bool isEnglishStopword(const string &word) {
-  return stopwordSet.find(word) != stopwordSet.end();
+  return stopwordSet.count(word) > 0;
 }
 
 } // stopwords

@@ -1,6 +1,8 @@
 #include <string>
 #include <set>
 #include "stopwords/english_stopwords.h"
+#include "stopwords/german_stopwords.h"
+
 #include "stopwords/StopwordFilter.h"
 
 using namespace std;

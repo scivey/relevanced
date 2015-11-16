@@ -110,6 +110,7 @@ set(RELEVANCED_BASE_SOURCES
     "server/simpleServerBuilders.cpp"
     "similarity_score_worker/SimilarityScoreWorker.cpp"
     "stopwords/english_stopwords.cpp"
+    "stopwords/german_stopwords.cpp"
     "stopwords/StopwordFilter.cpp"
     "tokenizer/DestructiveTokenIterator.cpp"
     "util/util.cpp"
