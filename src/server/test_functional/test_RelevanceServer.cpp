@@ -32,7 +32,8 @@
 #include "document_processing_worker/DocumentProcessingWorker.h"
 #include "similarity_score_worker/SimilarityScoreWorker.h"
 #include "stopwords/StopwordFilter.h"
-#include "stemmer/ThreadSafeUtf8Stemmer.h"
+#include "stemmer/Utf8Stemmer.h"
+#include "stemmer/ThreadSafeStemmerManager.h"
 #include "server/RelevanceServer.h"
 #include "models/ProcessedDocument.h"
 #include "server/RelevanceServer.h"
@@ -58,10 +59,7 @@ using namespace relevanced::similarity_score_worker;
 using namespace relevanced::stemmer;
 using namespace relevanced::stopwords;
 using namespace relevanced::server;
-using namespace relevanced::tokenizer;
 using namespace relevanced::thrift_protocol;
-
-
 
 using ::testing::Return;
 using ::testing::_;
@@ -72,7 +70,7 @@ struct RelevanceServerTestCtx {
   shared_ptr<CentroidMetadataDbIf> metadb;
   shared_ptr<Sha1HasherIf> hasher;
   shared_ptr<ClockIf> sysClock;
-  shared_ptr<StemmerIf> stemmer;
+  shared_ptr<StemmerManagerIf> stemmerManager;
   shared_ptr<StopwordFilterIf> stopwordFilter;
   shared_ptr<DocumentProcessorIf> processor;
   shared_ptr<CentroidUpdaterFactoryIf> updaterFactory;
@@ -92,17 +90,17 @@ struct RelevanceServerTestCtx {
     scoringThreads.reset(new wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>(2));
     updatingThreads.reset(new wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>(2));
     UniquePointer<RockHandleIf> rockHandle(new InMemoryRockHandle("foo"));
+    sysClock.reset(new Clock);
     UniquePointer<SyncPersistenceIf> syncPersistence(
-      new SyncPersistence(std::move(rockHandle))
+      new SyncPersistence(sysClock, std::move(rockHandle))
     );
     persistence.reset(new Persistence(std::move(syncPersistence), persistenceThreads));
     hasher.reset(new Sha1Hasher);
     metadb.reset(new CentroidMetadataDb(persistence));
-    stemmer.reset(new ThreadSafeUtf8Stemmer);
+    stemmerManager.reset(new ThreadSafeStemmerManager);
     stopwordFilter.reset(new StopwordFilter);
-    sysClock.reset(new Clock);
     processor.reset(
-      new DocumentProcessor(stemmer, stopwordFilter, sysClock)
+      new DocumentProcessor(stemmerManager, stopwordFilter, sysClock)
     );
     accumulatorFactory.reset(new DocumentAccumulatorFactory);
     updaterFactory.reset(new CentroidUpdaterFactory(
@@ -152,7 +150,8 @@ TEST(RelevanceServer, TestAddDocumentToCentroidHappy) {
   ctx.persistence->saveCentroid("centroid-id", centroid).get();
   ctx.server->createDocumentWithID(
     folly::make_unique<string>("doc-id"),
-    folly::make_unique<string>("some text about dogs")
+    folly::make_unique<string>("some text about dogs"),
+    Language::EN
   ).get();
   auto response = ctx.server->addDocumentToCentroid(
     folly::make_unique<string>("centroid-id"),
@@ -172,7 +171,8 @@ TEST(RelevanceServer, TestAddDocumentToCentroidAlreadyInCentroid) {
   ctx.persistence->saveCentroid("centroid-id", centroid).get();
   ctx.server->createDocumentWithID(
     folly::make_unique<string>("doc-id"),
-    folly::make_unique<string>("some text about dogs")
+    folly::make_unique<string>("some text about dogs"),
+    Language::EN
   ).get();
   auto response1 = ctx.server->addDocumentToCentroid(
     folly::make_unique<string>("centroid-id"),
@@ -194,7 +194,8 @@ TEST(RelevanceServer, TestAddDocumentToCentroidMissingDocument) {
   ctx.persistence->saveCentroid("centroid-id", centroid).get();
   ctx.server->createDocumentWithID(
     folly::make_unique<string>("unrelated-doc-id"),
-    folly::make_unique<string>("some text about dogs")
+    folly::make_unique<string>("some text about dogs"),
+    Language::EN
   ).get();
   auto response = ctx.server->addDocumentToCentroid(
     folly::make_unique<string>("centroid-id"),
@@ -211,7 +212,8 @@ TEST(RelevanceServer, TestAddDocumentToCentroidMissingCentroid) {
   ctx.persistence->saveCentroid("centroid-id", centroid).get();
   ctx.server->createDocumentWithID(
     folly::make_unique<string>("doc-id"),
-    folly::make_unique<string>("some text about dogs")
+    folly::make_unique<string>("some text about dogs"),
+    Language::EN
   ).get();
   auto response = ctx.server->addDocumentToCentroid(
     folly::make_unique<string>("missing-centroid-id"),
@@ -228,7 +230,8 @@ TEST(RelevanceServer, TestAddDocumentToCentroidMissingBoth) {
   ctx.persistence->saveCentroid("centroid-id", centroid).get();
   ctx.server->createDocumentWithID(
     folly::make_unique<string>("doc-id"),
-    folly::make_unique<string>("some text about dogs")
+    folly::make_unique<string>("some text about dogs"),
+    Language::EN
   ).get();
   auto response = ctx.server->addDocumentToCentroid(
     folly::make_unique<string>("missing-centroid-id"),
@@ -249,7 +252,8 @@ TEST(RelevanceServer, TestRemoveDocumentFromCentroidHappy) {
   saves.push_back(
     ctx.server->createDocumentWithID(
       folly::make_unique<string>("doc-id"),
-      folly::make_unique<string>("some text about dogs")
+      folly::make_unique<string>("some text about dogs"),
+      Language::EN
     ).then([](Try<unique_ptr<string>> result) {
       EXPECT_FALSE(result.hasException());
       return Try<bool>(true);
@@ -280,7 +284,8 @@ TEST(RelevanceServer, TestRemoveDocumentFromCentroidDocumentNotInCentroid) {
   saves.push_back(
     ctx.server->createDocumentWithID(
       folly::make_unique<string>("doc-id"),
-      folly::make_unique<string>("some text about dogs")
+      folly::make_unique<string>("some text about dogs"),
+      Language::EN
     ).then([](Try<unique_ptr<string>> result) {
       EXPECT_FALSE(result.hasException());
       return Try<bool>(true);
@@ -315,7 +320,8 @@ TEST(RelevanceServer, TestRemoveDocumentFromCentroidMissingCentroid) {
   ctx.persistence->saveCentroid("centroid-id", centroid).get();
   ctx.server->createDocumentWithID(
     folly::make_unique<string>("doc-id"),
-    folly::make_unique<string>("some text about dogs")
+    folly::make_unique<string>("some text about dogs"),
+    Language::EN
   ).get();
   auto response = ctx.server->removeDocumentFromCentroid(
     folly::make_unique<string>("missing-centroid-id"),
@@ -332,7 +338,8 @@ TEST(RelevanceServer, TestRemoveDocumentFromCentroidMissingBoth) {
   ctx.persistence->saveCentroid("centroid-id", centroid).get();
   ctx.server->createDocumentWithID(
     folly::make_unique<string>("doc-id"),
-    folly::make_unique<string>("some text about dogs")
+    folly::make_unique<string>("some text about dogs"),
+    Language::EN
   ).get();
   auto response = ctx.server->removeDocumentFromCentroid(
     folly::make_unique<string>("missing-centroid-id"),
@@ -350,7 +357,8 @@ TEST(RelevanceServer, TestGetTextSimilarityHappy) {
   ctx.scoreWorker->reloadCentroid("centroid-id").get();
   auto scoreResponse = ctx.server->getTextSimilarity(
     folly::make_unique<string>("centroid-id"),
-    folly::make_unique<string>("This is some dog related text which is also about a cat.")
+    folly::make_unique<string>("This is some dog related text which is also about a cat."),
+    Language::EN
   ).get();
   EXPECT_FALSE(scoreResponse.hasException());
   auto similarity = scoreResponse.value();
@@ -367,7 +375,8 @@ TEST(RelevanceServer, TestGetTextSimilarityMissingCentroid) {
   ctx.scoreWorker->reloadCentroid("centroid-id").get();
   auto scoreResponse = ctx.server->getTextSimilarity(
     folly::make_unique<string>("unrelated-centroid-id"),
-    folly::make_unique<string>("This is some dog related text which is also about a cat.")
+    folly::make_unique<string>("This is some dog related text which is also about a cat."),
+    Language::EN
   ).get();
   EXPECT_TRUE(scoreResponse.hasException<ECentroidDoesNotExist>());
 }
@@ -391,7 +400,8 @@ TEST(RelevanceServer, TestMultiGetTextSimilarityHappy) {
   vector<string> centroidIds {"centroid-1-id", "centroid-2-id"};
   auto scoreResponse = ctx.server->multiGetTextSimilarity(
     folly::make_unique<vector<string>>(centroidIds),
-    folly::make_unique<string>("This is some dog related text which is also about a cat.")
+    folly::make_unique<string>("This is some dog related text which is also about a cat."),
+    Language::EN
   ).get();
   EXPECT_FALSE(scoreResponse.hasException());
 }
@@ -401,7 +411,9 @@ TEST(RelevanceServer, TestCreateDocument) {
   RelevanceServerTestCtx ctx;
   auto text = folly::make_unique<string>("some text about cats and dogs and fish and so forth");
 
-  auto response = ctx.server->createDocument(std::move(text)).get();
+  auto response = ctx.server->createDocument(
+    std::move(text), Language::EN
+  ).get();
   EXPECT_TRUE(response.hasValue());
   string docId = *response.value();
   auto persisted = ctx.persistence->loadDocumentOption(docId).get();
@@ -413,7 +425,9 @@ TEST(RelevanceServer, TestCreateDocumentWithID) {
   RelevanceServerTestCtx ctx;
   auto text = folly::make_unique<string>("some text about cats and dogs and fish and so forth");
   auto id = folly::make_unique<string>("doc-id");
-  auto response = ctx.server->createDocumentWithID(std::move(id), std::move(text)).get();
+  auto response = ctx.server->createDocumentWithID(
+    std::move(id), std::move(text), Language::EN
+  ).get();
   EXPECT_TRUE(response.hasValue());
   EXPECT_EQ("doc-id", *response.value());
   auto persisted = ctx.persistence->loadDocumentOption("doc-id").get();
@@ -425,11 +439,14 @@ TEST(RelevanceServer, TestCreateDocumentWithIDAlreadyExists) {
   RelevanceServerTestCtx ctx;
   auto text = folly::make_unique<string>("some text about cats and dogs and fish and so forth");
   auto id = folly::make_unique<string>("doc-id");
-  auto response1 = ctx.server->createDocumentWithID(std::move(id), std::move(text)).get();
+  auto response1 = ctx.server->createDocumentWithID(
+    std::move(id), std::move(text), Language::EN
+  ).get();
   EXPECT_FALSE(response1.hasException());
   auto response2 = ctx.server->createDocumentWithID(
     folly::make_unique<string>("doc-id"),
-    folly::make_unique<string>("some text")
+    folly::make_unique<string>("some text"),
+    Language::EN
   ).get();
   EXPECT_TRUE(response2.hasException<EDocumentAlreadyExists>());
 }
@@ -527,7 +544,8 @@ TEST(RelevanceServer, TestListAllDocuments) {
     expectedIds.insert(id);
     creations.push_back(ctx.server->createDocumentWithID(
       folly::make_unique<string>(id),
-      folly::make_unique<string>("this is some text about things")
+      folly::make_unique<string>("this is some text about things"),
+      Language::EN
     ));
   }
   set<string> createdIds;
@@ -553,7 +571,8 @@ TEST(RelevanceServer, TestListDocumentRange) {
     auto id = sformat("some-doc-{}", i);
     creations.push_back(ctx.server->createDocumentWithID(
       folly::make_unique<string>(id),
-      folly::make_unique<string>("this is some text about things")
+      folly::make_unique<string>("this is some text about things"),
+      Language::EN
     ));
   }
   collect(creations).get();
@@ -575,7 +594,8 @@ TEST(RelevanceServer, TestListDocumentRangeFromID) {
     auto id = sformat("some-doc-{}", i);
     creations.push_back(ctx.server->createDocumentWithID(
       folly::make_unique<string>(id),
-      folly::make_unique<string>("this is some text about things")
+      folly::make_unique<string>("this is some text about things"),
+      Language::EN
     ));
   }
   collect(creations).get();
@@ -599,7 +619,8 @@ TEST(RelevanceServer, TestDeleteDocument) {
     auto id = sformat("some-doc-{}", i);
     creations.push_back(ctx.server->createDocumentWithID(
       folly::make_unique<string>(id),
-      folly::make_unique<string>("this is some text about things")
+      folly::make_unique<string>("this is some text about things"),
+      Language::EN
     ));
   }
   collect(creations).get();
@@ -623,10 +644,40 @@ TEST(RelevanceServer, TestDeleteDocumentMissing) {
     auto id = sformat("some-doc-{}", i);
     creations.push_back(ctx.server->createDocumentWithID(
       folly::make_unique<string>(id),
-      folly::make_unique<string>("this is some text about things")
+      folly::make_unique<string>("this is some text about things"),
+      Language::EN
     ));
   }
   collect(creations).get();
   auto result = ctx.server->deleteDocument(folly::make_unique<string>("some-doc-8")).get();
   EXPECT_TRUE(result.hasException<EDocumentDoesNotExist>());
 }
+
+// TEST(RelevanceServer, TestListUnusedDocuments) {
+//   RelevanceServerTestCtx ctx;
+//   vector<Future<Try<unique_ptr<string>>>> documentCreations;
+//   for (size_t i = 0; i < 6; i++) {
+//     auto id = sformat("some-doc-{}", i);
+//     documentCreations.push_back(ctx.server->createDocumentWithID(
+//       folly::make_unique<string>(id),
+//       folly::make_unique<string>("this is some text about things"),
+//       Language::EN
+//     ));
+//   }
+//   collect(documentCreations).get();
+//   ctx.server->createCentroid("c1").get();
+//   vector<Future<Try<bool>>> additions;
+//   vector<string> toAdd {"some-doc-1", "some-doc-3", "some-doc-4"};
+//   for (string id: toAdd) {
+//     additions.push_back(ctx.server->addDocumentToCentroid(
+//       folly::make_unique<string>("c1"),
+//       folly::make_unique<string>(id)
+//     ));
+//   }
+//   collect(additions).get();
+//   auto unused = ctx.server->listUnusedDocuments(10).get();
+//   vector<string> expected {
+//     "some-doc-0", "some-doc-2", "some-doc-5"
+//   };
+//   EXPECT_EQ(expected, unused);
+// }

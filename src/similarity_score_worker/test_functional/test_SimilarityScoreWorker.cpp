@@ -29,7 +29,6 @@
 #include "document_processing_worker/DocumentProcessingWorker.h"
 #include "similarity_score_worker/SimilarityScoreWorker.h"
 #include "stopwords/StopwordFilter.h"
-#include "stemmer/ThreadSafeUtf8Stemmer.h"
 #include "models/ProcessedDocument.h"
 #include "models/Centroid.h"
 #include "models/Document.h"
@@ -52,7 +51,6 @@ using namespace relevanced::document_processing_worker;
 using namespace relevanced::similarity_score_worker;
 using namespace relevanced::stemmer;
 using namespace relevanced::stopwords;
-using namespace relevanced::tokenizer;
 using thrift_protocol::ECentroidDoesNotExist;
 
 
@@ -73,13 +71,13 @@ struct SimilarityWorkerTestCtx {
     threadPool1.reset(new wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>(2));
     threadPool2.reset(new wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>(2));
     UniquePointer<RockHandleIf> rockHandle(new InMemoryRockHandle("foo"));
+    sysClock.reset(new Clock);
     UniquePointer<SyncPersistenceIf> syncPersistence(
-      new SyncPersistence(std::move(rockHandle))
+      new SyncPersistence(sysClock, std::move(rockHandle))
     );
     persistence.reset(new Persistence(std::move(syncPersistence), threadPool1));
     hasher.reset(new Sha1Hasher);
     metadb.reset(new CentroidMetadataDb(persistence));
-    sysClock.reset(new Clock);
     worker.reset(new SimilarityScoreWorker(
       persistence, metadb, threadPool2
     ));

@@ -23,7 +23,7 @@
 #include "document_processing_worker/DocumentProcessor.h"
 #include "document_processing_worker/DocumentProcessingWorker.h"
 #include "stopwords/StopwordFilter.h"
-#include "stemmer/ThreadSafeUtf8Stemmer.h"
+#include "stemmer/ThreadSafeStemmerManager.h"
 #include "models/ProcessedDocument.h"
 #include "models/Centroid.h"
 #include "models/Document.h"
@@ -44,7 +44,6 @@ using namespace relevanced::centroid_update_worker;
 using namespace relevanced::document_processing_worker;
 using namespace relevanced::stemmer;
 using namespace relevanced::stopwords;
-using namespace relevanced::tokenizer;
 using relevanced::thrift_protocol::Language;
 
 using ::testing::Return;
@@ -55,7 +54,7 @@ struct ProcessingWorkerTestCtx {
   shared_ptr<PersistenceIf> persistence;
   shared_ptr<Sha1HasherIf> hasher;
   shared_ptr<ClockIf> sysClock;
-  shared_ptr<StemmerIf> stemmer;
+  shared_ptr<StemmerManagerIf> stemmerManager;
   shared_ptr<StopwordFilterIf> stopwordFilter;
   shared_ptr<FutureExecutor<CPUThreadPoolExecutor>> threadPool1;
   shared_ptr<FutureExecutor<CPUThreadPoolExecutor>> threadPool2;
@@ -66,18 +65,18 @@ struct ProcessingWorkerTestCtx {
     threadPool1.reset(new wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>(2));
     threadPool2.reset(new wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>(2));
     UniquePointer<RockHandleIf> rockHandle(new InMemoryRockHandle("foo"));
+    sysClock.reset(new Clock);
     UniquePointer<SyncPersistenceIf> syncPersistence(
-      new SyncPersistence(std::move(rockHandle))
+      new SyncPersistence(sysClock, std::move(rockHandle))
     );
     persistence.reset(
       new Persistence(std::move(syncPersistence), threadPool1)
     );
     hasher.reset(new Sha1Hasher);
-    sysClock.reset(new Clock);
-    stemmer.reset(new ThreadSafeUtf8Stemmer);
+    stemmerManager.reset(new ThreadSafeStemmerManager);
     stopwordFilter.reset(new StopwordFilter);
     processor.reset(
-      new DocumentProcessor(stemmer, stopwordFilter, sysClock)
+      new DocumentProcessor(stemmerManager, stopwordFilter, sysClock)
     );
     worker.reset(new DocumentProcessingWorker(
       processor, hasher, threadPool2

@@ -57,9 +57,10 @@ struct UpdateWorkerTestCtx {
   UpdateWorkerTestCtx() {
     threadPool1.reset(new wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>(2));
     threadPool2.reset(new wangle::FutureExecutor<wangle::CPUThreadPoolExecutor>(2));
+    sysClock.reset(new Clock);
     UniquePointer<RockHandleIf> rockHandle(new InMemoryRockHandle("foo"));
     UniquePointer<SyncPersistenceIf> syncPersistence(
-      new SyncPersistence(std::move(rockHandle))
+      new SyncPersistence(sysClock, std::move(rockHandle))
     );
     shared_ptr<PersistenceIf> result(
       new Persistence(std::move(syncPersistence), threadPool1)
@@ -67,7 +68,6 @@ struct UpdateWorkerTestCtx {
     persistence = result;
     metadb.reset(new CentroidMetadataDb(persistence));
     accumulatorFactory.reset(new DocumentAccumulatorFactory);
-    sysClock.reset(new Clock);
     updaterFactory.reset(new CentroidUpdaterFactory(
       persistence, metadb, accumulatorFactory, sysClock
     ));

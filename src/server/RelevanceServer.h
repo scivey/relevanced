@@ -105,6 +105,9 @@ class RelevanceServerIf {
     listAllDocuments() = 0;
 
   virtual folly::Future<std::unique_ptr<std::vector<std::string>>>
+    listUnusedDocuments(size_t count) = 0;
+
+  virtual folly::Future<std::unique_ptr<std::vector<std::string>>>
     listCentroidRange(size_t offset, size_t count) = 0;
 
   virtual folly::Future<std::unique_ptr<std::vector<std::string>>>
@@ -304,6 +307,9 @@ class RelevanceServer : public RelevanceServerIf {
 
   folly::Future<std::unique_ptr<std::vector<std::string>>>
     listAllDocuments() override;
+
+  folly::Future<std::unique_ptr<std::vector<std::string>>>
+    listUnusedDocuments(size_t count) override;
 
   folly::Future<std::unique_ptr<std::vector<std::string>>>
     listCentroidRange(size_t offset, size_t count) override;

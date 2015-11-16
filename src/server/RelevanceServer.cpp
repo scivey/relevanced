@@ -400,6 +400,15 @@ Future<unique_ptr<vector<string>>> RelevanceServer::listAllDocuments() {
     });
 }
 
+Future<unique_ptr<vector<string>>> RelevanceServer::listUnusedDocuments(
+    size_t count) {
+  return persistence_->listUnusedDocuments(count)
+    .then([](vector<string> docIds) {
+      return std::move(
+        folly::make_unique<vector<string>>(docIds)
+      );
+    });
+}
 
 Future<unique_ptr<vector<string>>> RelevanceServer::listDocumentRange(
     size_t offset, size_t count) {
