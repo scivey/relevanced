@@ -95,7 +95,8 @@ bool isLatin1SupplementLetter(uint32_t cp) {
   if (cp == 215 || cp == 247) {
     return false;
   }
-  return false;
+
+  return true;
 }
 
 bool isMathematicalAlphanumericSymbolLetter(uint32_t cp) {
@@ -114,6 +115,7 @@ bool isLetterPoint(uint32_t cp, UnicodeBlock uBlock) {
     case UnicodeBlock::LATIN_EXTENDED_D : return true;
     case UnicodeBlock::LATIN_EXTENDED_E : return true;
     case UnicodeBlock::LATIN_EXTENDED_ADDITIONAL : return true;
+    case UnicodeBlock::GENERAL_PUNCTUATION : return false;
 
     case UnicodeBlock::ARROWS : return false;
     case UnicodeBlock::BLOCK_ELEMENTS : return false;
