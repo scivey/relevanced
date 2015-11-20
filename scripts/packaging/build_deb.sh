@@ -23,4 +23,4 @@ UBUNTU_DEPS="libboost-all-dev (>= 1.54.0),\
 
 MAKE_SCRIPT="$SCRIPT_DIR/make_linux_package.sh"
 
-$MAKE_SCRIPT -t deb -i 0.9.5 -d $UBUNTU_DEPS
+$MAKE_SCRIPT -t deb -i 0.9.6 -d $UBUNTU_DEPS

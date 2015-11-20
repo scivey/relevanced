@@ -3,7 +3,7 @@ name := "client"
 // orgnization name (e.g., the package name of the project)
 organization := "org.relevanced"
 
-version := "0.9.5-SNAPSHOT"
+version := "0.9.6-SNAPSHOT"
 
 // project description
 description := "Java client for relevanced text similarity server."
