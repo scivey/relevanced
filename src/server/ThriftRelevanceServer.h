@@ -92,15 +92,15 @@ class ThriftRelevanceServer : public thrift_protocol::RelevancedSvIf {
   future_listCentroidDocumentRangeFromID(std::unique_ptr<std::string> centroidId, std::unique_ptr<std::string> docId, int64_t count) override;
 
 
-  folly::Future<std::unique_ptr<thrift_protocol::AddDocumentToCentroidResponse>>
-  future_addDocumentToCentroid(std::unique_ptr<std::string> centroidId,
-                               std::unique_ptr<std::string> docId) override;
+  folly::Future<std::unique_ptr<thrift_protocol::AddDocumentsToCentroidResponse>>
+  future_addDocumentsToCentroid(
+    std::unique_ptr<thrift_protocol::AddDocumentsToCentroidRequest> request
+  ) override;
 
-  folly::Future<
-      std::unique_ptr<thrift_protocol::RemoveDocumentFromCentroidResponse>>
-  future_removeDocumentFromCentroid(
-      std::unique_ptr<std::string> centroidId,
-      std::unique_ptr<std::string> docId) override;
+  folly::Future<std::unique_ptr<thrift_protocol::RemoveDocumentsFromCentroidResponse>>
+  future_removeDocumentsFromCentroid(
+    std::unique_ptr<thrift_protocol::RemoveDocumentsFromCentroidRequest> request
+  ) override;
 
   folly::Future<std::unique_ptr<thrift_protocol::JoinCentroidResponse>>
     future_joinCentroid(

@@ -285,37 +285,26 @@ ThriftRelevanceServer::future_listCentroidDocumentRangeFromID(
   });
 }
 
-Future<unique_ptr<AddDocumentToCentroidResponse>>
-ThriftRelevanceServer::future_addDocumentToCentroid(
-    unique_ptr<string> centroidId, unique_ptr<string> docId) {
-  auto cId = *centroidId;
-  auto dId = *docId;
-  return server_->addDocumentToCentroid(
-    std::move(centroidId), std::move(docId)
-  ).then([cId, dId](Try<bool> result) {
+Future<unique_ptr<AddDocumentsToCentroidResponse>>
+ThriftRelevanceServer::future_addDocumentsToCentroid(
+    unique_ptr<AddDocumentsToCentroidRequest> request) {
+  return server_->addDocumentsToCentroid(
+    std::move(request)
+  ).then([](Try<unique_ptr<AddDocumentsToCentroidResponse>> result) {
     result.throwIfFailed();
-    auto response = folly::make_unique<AddDocumentToCentroidResponse>();
-    response->documentId = dId;
-    response->centroidId = cId;
-    return std::move(response);
+    return std::move(result.value());
   });
 }
 
-Future<unique_ptr<RemoveDocumentFromCentroidResponse>>
-ThriftRelevanceServer::future_removeDocumentFromCentroid(
-    unique_ptr<string> centroidId, unique_ptr<string> docId) {
-  auto cId = *centroidId;
-  auto dId = *docId;
-  return server_->removeDocumentFromCentroid(std::move(centroidId),
-                                             std::move(docId))
-      .then([cId, dId](Try<bool> result) {
-        result.throwIfFailed();
-        auto response =
-            folly::make_unique<RemoveDocumentFromCentroidResponse>();
-        response->documentId = dId;
-        response->centroidId = cId;
-        return std::move(response);
-      });
+Future<unique_ptr<RemoveDocumentsFromCentroidResponse>>
+ThriftRelevanceServer::future_removeDocumentsFromCentroid(
+    unique_ptr<RemoveDocumentsFromCentroidRequest> request) {
+  return server_->removeDocumentsFromCentroid(
+    std::move(request)
+  ).then([](Try<unique_ptr<RemoveDocumentsFromCentroidResponse>> result) {
+    result.throwIfFailed();
+    return std::move(result.value());
+  });
 }
 
 Future<unique_ptr<JoinCentroidResponse>>

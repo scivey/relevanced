@@ -138,14 +138,32 @@ struct DeleteCentroidResponse {
     1: required string id;
 }
 
-struct AddDocumentToCentroidResponse {
+struct AddDocumentsToCentroidRequest {
     1: required string centroidId;
-    2: required string documentId;
+    2: required list<string> documentIds;
+    3: optional bool ignoreMissingDocument;
+    4: optional bool ignoreMissingCentroid;
+    5: optional bool ignoreAlreadyInCentroid;
 }
 
-struct RemoveDocumentFromCentroidResponse {
+struct AddDocumentsToCentroidResponse {
     1: required string centroidId;
-    2: required string documentId;
+    2: required list<string> documentIds;
+    3: required list<bool> added;
+}
+
+struct RemoveDocumentsFromCentroidRequest {
+    1: required string centroidId;
+    2: required list<string> documentIds;
+    3: optional bool ignoreMissingDocument;
+    4: optional bool ignoreMissingCentroid;
+    5: optional bool ignoreNotInCentroid;
+}
+
+struct RemoveDocumentsFromCentroidResponse {
+    1: required string centroidId;
+    2: required list<string> documentIds;
+    3: required list<bool> removed;
 }
 
 struct MultiJoinCentroidsRequest {
@@ -205,8 +223,8 @@ service Relevanced {
     map<string, string> getServerMetadata(),
     double getDocumentSimilarity(1: string centroidId, 2: string docId) throws (1: ECentroidDoesNotExist centroidErr, 2: EDocumentDoesNotExist docErr),
     MultiSimilarityResponse multiGetDocumentSimilarity(1: list<string> centroidIds, 2: string documentId) throws (1: ECentroidDoesNotExist centroidErr, 2: EDocumentDoesNotExist docErr),
-    MultiSimilarityResponse multiGetTextSimilarity(1: list<string> centroidIds, 2: string text, 3: Language lang) throws (1: ECentroidDoesNotExist err),
     double getTextSimilarity(1: string centroidId, 2: string text, 3: Language lang) throws (1: ECentroidDoesNotExist err),
+    MultiSimilarityResponse multiGetTextSimilarity(1: list<string> centroidIds, 2: string text, 3: Language lang) throws (1: ECentroidDoesNotExist err),
     double getCentroidSimilarity(1: string centroid1Id, 2: string centroid2Id) throws (1: ECentroidDoesNotExist err),
     CreateDocumentResponse createDocument(1: string text, 2: Language language),
     CreateDocumentResponse createDocumentWithID(1: string id, 2: string text, 3: Language language) throws (1: EDocumentAlreadyExists err),
@@ -219,8 +237,8 @@ service Relevanced {
     ListCentroidDocumentsResponse listAllDocumentsForCentroid(1: string centroidId) throws (1: ECentroidDoesNotExist err),
     ListCentroidDocumentsResponse listCentroidDocumentRange(1: string centroidId, 2: i64 offset, 3: i64 count) throws (1: ECentroidDoesNotExist err),
     ListCentroidDocumentsResponse listCentroidDocumentRangeFromID(1: string centroidId, 2: string documentId, 3: i64 count) throws (1: ECentroidDoesNotExist err),
-    AddDocumentToCentroidResponse addDocumentToCentroid(1: string centroidId, 2: string docId) throws (1: ECentroidDoesNotExist centroidErr, 2: EDocumentDoesNotExist docErr, 3: EDocumentAlreadyInCentroid bothErr),
-    RemoveDocumentFromCentroidResponse removeDocumentFromCentroid(1: string centroidId, 2: string docId) throws (1: ECentroidDoesNotExist centroidErr, 2: EDocumentDoesNotExist docErr, 3: EDocumentNotInCentroid bothErr),
+    AddDocumentsToCentroidResponse addDocumentsToCentroid(1: AddDocumentsToCentroidRequest request) throws (1: ECentroidDoesNotExist centroidErr, 2: EDocumentDoesNotExist docErr, 3: EDocumentAlreadyInCentroid bothErr),
+    RemoveDocumentsFromCentroidResponse removeDocumentsFromCentroid(1: RemoveDocumentsFromCentroidRequest request) throws (1: ECentroidDoesNotExist centroidErr, 2: EDocumentDoesNotExist docErr, 3: EDocumentNotInCentroid bothErr),
     JoinCentroidResponse joinCentroid(1: JoinCentroidRequest request) throws (1: ECentroidDoesNotExist err),
     MultiJoinCentroidsResponse multiJoinCentroids(1: MultiJoinCentroidsRequest request) throws (1: ECentroidDoesNotExist err),
     ListCentroidsResponse listAllCentroids(),

@@ -31,12 +31,7 @@ namespace server {
 
 using namespace std;
 using namespace folly;
-using thrift_protocol::EDocumentAlreadyExists;
-using thrift_protocol::ECentroidDoesNotExist;
-using thrift_protocol::ECentroidAlreadyExists;
-
-using thrift_protocol::Language;
-
+using namespace relevanced::thrift_protocol;
 using similarity_score_worker::SimilarityScoreWorkerIf;
 using centroid_update_worker::CentroidUpdateWorkerIf;
 using document_processing_worker::DocumentProcessingWorkerIf;
@@ -337,35 +332,112 @@ RelevanceServer::listCentroidDocumentRangeFromID(
 }
 
 
-Future<Try<bool>> RelevanceServer::addDocumentToCentroid(
-    unique_ptr<string> centroidId, unique_ptr<string> docId) {
-  auto cId = *centroidId;
-  return persistence_->addDocumentToCentroid(cId, *docId)
-    .then([this, cId](Try<bool> result) {
-      if (!result.hasException()) {
-        centroidMetadataDb_->setLastDocumentChangeTimestamp(
-          cId, clock_->getEpochTime()
-        );
-        centroidUpdateWorker_->triggerUpdate(cId);
+Future<Try<unique_ptr<AddDocumentsToCentroidResponse>>> RelevanceServer::addDocumentsToCentroid(
+    unique_ptr<AddDocumentsToCentroidRequest> request) {
+  vector<Future<Try<bool>>> tasks;
+  for (auto docId: request->documentIds) {
+    tasks.push_back(addOneDocumentToCentroid(
+      request->centroidId, docId,
+      request->ignoreMissingDocument,
+      request->ignoreAlreadyInCentroid
+    ));
+  }
+  auto docIds = std::make_shared<vector<string>>(request->documentIds);
+  string cId = request->centroidId;
+  return collect(tasks)
+    .then([docIds, cId](vector<Try<bool>> results) {
+      vector<bool> successes;
+      for (auto elem: results) {
+        if (elem.hasException()) {
+          return Try<unique_ptr<AddDocumentsToCentroidResponse>>(elem.exception());
+        }
+        successes.push_back(elem.value());
       }
-      return result;
+      auto response = folly::make_unique<AddDocumentsToCentroidResponse>();
+      response->centroidId = cId;
+      response->documentIds = *docIds;
+      response->added = successes;
+      return Try<unique_ptr<AddDocumentsToCentroidResponse>>(
+        std::move(response)
+      );
+    });
+}
+
+Future<Try<unique_ptr<RemoveDocumentsFromCentroidResponse>>> RelevanceServer::removeDocumentsFromCentroid(
+    unique_ptr<RemoveDocumentsFromCentroidRequest> request) {
+  vector<Future<Try<bool>>> tasks;
+  for (auto docId: request->documentIds) {
+    tasks.push_back(removeOneDocumentFromCentroid(
+      request->centroidId, docId,
+      request->ignoreMissingDocument,
+      request->ignoreNotInCentroid
+    ));
+  }
+  auto docIds = std::make_shared<vector<string>>(request->documentIds);
+  string cId = request->centroidId;
+  return collect(tasks)
+    .then([docIds, cId](vector<Try<bool>> results) {
+      vector<bool> successes;
+      for (auto elem: results) {
+        if (elem.hasException()) {
+          return Try<unique_ptr<RemoveDocumentsFromCentroidResponse>>(elem.exception());
+        }
+        successes.push_back(elem.value());
+      }
+      auto response = folly::make_unique<RemoveDocumentsFromCentroidResponse>();
+      response->centroidId = cId;
+      response->documentIds = *docIds;
+      response->removed = successes;
+      return Try<unique_ptr<RemoveDocumentsFromCentroidResponse>>(
+        std::move(response)
+      );
     });
 }
 
 
-Future<Try<bool>> RelevanceServer::removeDocumentFromCentroid(
-    unique_ptr<string> centroidId, unique_ptr<string> docId) {
-  auto cId = *centroidId;
-  return persistence_->removeDocumentFromCentroid(cId, *docId)
-    .then([this, cId](Try<bool> result) {
-      if (!result.hasException()) {
-        centroidMetadataDb_->setLastDocumentChangeTimestamp(
-          cId, clock_->getEpochTime()
-        );
-        centroidUpdateWorker_->triggerUpdate(cId);
-      }
-      return result;
-    });
+Future<Try<bool>> RelevanceServer::addOneDocumentToCentroid(
+    string centroidId, string docId, bool ignoreMissingDoc,
+    bool ignoreAlreadyInCentroid) {
+  return persistence_->addDocumentToCentroid(centroidId, docId)
+    .then([this, centroidId, ignoreMissingDoc, ignoreAlreadyInCentroid]
+      (Try<bool> result) {
+        if (!result.hasException()) {
+          centroidMetadataDb_->setLastDocumentChangeTimestamp(
+            centroidId, clock_->getEpochTime()
+          );
+          centroidUpdateWorker_->triggerUpdate(centroidId);
+        }
+        if (ignoreMissingDoc && result.hasException<EDocumentDoesNotExist>()) {
+          return Try<bool>(false);
+        }
+        if (ignoreAlreadyInCentroid && result.hasException<EDocumentAlreadyInCentroid>()) {
+          return Try<bool>(false);
+        }
+        return result;
+      });
+}
+
+
+Future<Try<bool>> RelevanceServer::removeOneDocumentFromCentroid(
+    string centroidId, string docId, bool ignoreMissingDoc,
+    bool ignoreNotInCentroid) {
+  return persistence_->removeDocumentFromCentroid(centroidId, docId)
+    .then([this, centroidId, ignoreMissingDoc, ignoreNotInCentroid]
+      (Try<bool> result) {
+        if (!result.hasException()) {
+          centroidMetadataDb_->setLastDocumentChangeTimestamp(
+            centroidId, clock_->getEpochTime()
+          );
+          centroidUpdateWorker_->triggerUpdate(centroidId);
+        }
+        if (ignoreMissingDoc && result.hasException<EDocumentDoesNotExist>()) {
+          return Try<bool>(false);
+        }
+        if (ignoreNotInCentroid && result.hasException<EDocumentNotInCentroid>()) {
+          return Try<bool>(false);
+        }
+        return result;
+      });
 }
 
 Future<Try<bool>> RelevanceServer::joinCentroid(

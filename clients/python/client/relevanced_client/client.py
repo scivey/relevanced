@@ -8,6 +8,8 @@ from relevanced_client.gen_py.RelevancedProtocol.ttypes import (
     MultiCreateCentroidsRequest,
     JoinCentroidRequest,
     MultiJoinCentroidsRequest,
+    AddDocumentsToCentroidRequest,
+    RemoveDocumentsFromCentroidRequest,
     Language
 )
 
@@ -133,7 +135,15 @@ class Client(object):
         """
         return self.thrift_client.listDocumentRangeFromID(document_id, count)
 
-    def add_document_to_centroid(self, centroid_id, document_id):
+    def add_documents_to_centroid(self, centroid_id, document_ids, ignore_missing_document=False, ignore_already_in_centroid=False):
+        request = AddDocumentsToCentroidRequest()
+        request.centroidId = centroid_id
+        request.documentIds = document_ids
+        request.ignoreMissingDocument = ignore_missing_document
+        request.ignoreAlreadyInCentroid = ignore_already_in_centroid
+        return self.thrift_client.addDocumentsToCentroid(request)
+
+    def add_document_to_centroid(self, centroid_id, document_id, ignore_missing_document=False, ignore_already_in_centroid=False):
         """
         Add the document with id `document_id` to the centroid with
         id `centroid_id`.
@@ -150,11 +160,22 @@ class Client(object):
         If the document has already been added to the centroid,
         raises `EDocumentAlreadyInCentroid`.
         """
-        return self.thrift_client.addDocumentToCentroid(
-            centroid_id, document_id
+        return self.add_documents_to_centroid(
+            centroid_id=centroid_id,
+            document_ids=[document_id],
+            ignore_missing_document=ignore_missing_document,
+            ignore_already_in_centroid=ignore_already_in_centroid
         )
 
-    def remove_document_from_centroid(self, centroid_id, document_id):
+    def remove_documents_from_centroid(self, centroid_id, document_ids, ignore_missing_document=False, ignore_not_in_centroid=False):
+        request = RemoveDocumentsFromCentroidRequest()
+        request.centroidId = centroid_id
+        request.documentIds = document_ids
+        request.ignoreMissingDocument = ignore_missing_document
+        request.ignoreNotInCentroid = ignore_not_in_centroid
+        return self.thrift_client.removeDocumentsFromCentroid(request)
+
+    def remove_document_from_centroid(self, centroid_id, document_id, ignore_missing_document=False, ignore_not_in_centroid=False):
         """
         Remove the document with id `document_id` from the centroid with
         id `centroid_id`.
@@ -171,8 +192,11 @@ class Client(object):
         If the document is not in the given centroid,
         raises `EDocumentNotInCentroid`.
         """
-        return self.thrift_client.removeDocumentFromCentroid(
-            centroid_id, document_id
+        return self.remove_documents_from_centroid(
+            centroid_id=centroid_id,
+            document_ids=[document_id],
+            ignore_missing_document=ignore_missing_document,
+            ignore_not_in_centroid=ignore_not_in_centroid
         )
 
     def create_document_with_id(self, document_id, document_text, lang=Language.EN):

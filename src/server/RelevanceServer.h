@@ -87,16 +87,14 @@ class RelevanceServerIf {
   virtual folly::Future<folly::Try<std::unique_ptr<std::vector<std::string>>>>
     listAllDocumentsForCentroid(std::unique_ptr<std::string> centroidId) = 0;
 
-  virtual folly::Future<folly::Try<bool>>
-    addDocumentToCentroid(
-      std::unique_ptr<std::string> centroidId,
-      std::unique_ptr<std::string> docId
+  virtual folly::Future<folly::Try<std::unique_ptr<thrift_protocol::AddDocumentsToCentroidResponse>>>
+    addDocumentsToCentroid(
+      std::unique_ptr<thrift_protocol::AddDocumentsToCentroidRequest> request
     ) = 0;
 
-  virtual folly::Future<folly::Try<bool>>
-    removeDocumentFromCentroid(
-      std::unique_ptr<std::string> centroidId,
-      std::unique_ptr<std::string> docId
+  virtual folly::Future<folly::Try<std::unique_ptr<thrift_protocol::RemoveDocumentsFromCentroidResponse>>>
+    removeDocumentsFromCentroid(
+      std::unique_ptr<thrift_protocol::RemoveDocumentsFromCentroidRequest> request
     ) = 0;
 
   virtual folly::Future<folly::Try<bool>>
@@ -308,15 +306,23 @@ class RelevanceServer : public RelevanceServerIf {
     listAllDocumentsForCentroid(std::unique_ptr<std::string> centroidId) override;
 
   folly::Future<folly::Try<bool>>
-    addDocumentToCentroid(
-      std::unique_ptr<std::string> centroidId,
-      std::unique_ptr<std::string> docId
-    ) override;
+    addOneDocumentToCentroid(
+      std::string centroidId, std::string documentId, bool ignoreMissingDoc, bool ignoreAlreadyInCentroid
+    );
 
   folly::Future<folly::Try<bool>>
-    removeDocumentFromCentroid(
-      std::unique_ptr<std::string> centroidId,
-      std::unique_ptr<std::string> docId
+    removeOneDocumentFromCentroid(
+      std::string centroidId, std::string documentId, bool ignoreMissingDoc, bool ignoreNotInCentroid
+    );
+
+  folly::Future<folly::Try<std::unique_ptr<thrift_protocol::AddDocumentsToCentroidResponse>>>
+    addDocumentsToCentroid(
+      std::unique_ptr<thrift_protocol::AddDocumentsToCentroidRequest> request
+    ) override;
+
+  folly::Future<folly::Try<std::unique_ptr<thrift_protocol::RemoveDocumentsFromCentroidResponse>>>
+    removeDocumentsFromCentroid(
+      std::unique_ptr<thrift_protocol::RemoveDocumentsFromCentroidRequest> request
     ) override;
 
   folly::Future<folly::Try<bool>>
