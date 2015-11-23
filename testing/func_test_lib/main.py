@@ -48,25 +48,32 @@ def init_centroids(client):
     existing_math_docs = set(client.list_all_documents_for_centroid('wiki_math').documents)
     existing_poli_docs = set(client.list_all_documents_for_centroid('wiki_poli').documents)
 
-    for url in load_large_math().keys():
-        if url not in existing_math_docs:
-            client.add_document_to_centroid(
-                'wiki_math', url
-            )
+    missing_math = [url for url in load_large_math().keys() if url not in existing_math_docs]
+    client.add_documents_to_centroid(
+        'wiki_math', missing_math
+    )
+    # for url in load_large_math().keys():
+    #     if url not in existing_math_docs:
+    #         client.add_document_to_centroid(
+    #             'wiki_math', url
+    #         )
 
-    for url in load_large_poli().keys():
-        if url not in existing_poli_docs:
-            client.add_document_to_centroid(
-                'wiki_poli', url
-            )
+    missing_poli = [url for url in load_large_poli().keys() if url not in existing_poli_docs]
+    client.add_documents_to_centroid(
+        'wiki_poli', missing_poli
+    )
+    # for url in load_large_poli().keys():
+    #     if url not in existing_poli_docs:
+    #         client.add_document_to_centroid(
+    #             'wiki_poli', url
+    #         )
 
 def main():
     client = get_client()
     init_documents(client)
     if not len(client.list_all_centroids().centroids) >= 2:
         init_centroids(client)
-    client.join_centroid('wiki_math')
-    client.join_centroid('wiki_poli')
+    client.multi_join_centroids(['wiki_math', 'wiki_poli'])
     print('\n\n')
     print('math vs math')
     for doc in load_large_math().values()[:10]:
@@ -78,4 +85,5 @@ def main():
     for doc in load_large_math().values()[:10]:
         print(doc['title'])
         print(client.get_text_similarity('wiki_poli', doc['text']))
+
 
