@@ -212,8 +212,24 @@ Future<Try<unique_ptr<string>>> RelevanceServer::createDocumentWithID(
 }
 
 
-Future<Try<bool>> RelevanceServer::deleteDocument(unique_ptr<string> id) {
-  return persistence_->deleteDocument(*id);
+Future<Try<bool>> RelevanceServer::deleteDocument(
+    unique_ptr<string> id, bool ignoreMissing) {
+  return persistence_->deleteDocument(*id)
+    .then([ignoreMissing](Try<bool> result) {
+      if (result.hasException<EDocumentDoesNotExist>() && ignoreMissing) {
+        return Try<bool>(false);
+      }
+      return result;
+    });
+}
+
+Future<vector<Try<bool>>> RelevanceServer::multiDeleteDocuments(
+    unique_ptr<vector<string>> documentIds, bool ignoreMissing) {
+  vector<Future<Try<bool>>> tasks;
+  for (auto id: *documentIds) {
+    tasks.push_back(deleteDocument(folly::make_unique<string>(id), ignoreMissing));
+  }
+  return collect(tasks);
 }
 
 

@@ -5,6 +5,7 @@ from thrift.transport import TSocket, TTransport
 from relevanced_client.gen_py.RelevancedProtocol import Relevanced
 from relevanced_client.gen_py.RelevancedProtocol.ttypes import (
     CreateCentroidRequest,
+    DeleteDocumentRequest,
     MultiCreateCentroidsRequest,
     JoinCentroidRequest,
     MultiJoinCentroidsRequest,
@@ -235,7 +236,7 @@ class Client(object):
             document_text.encode('utf-8'), lang
         )
 
-    def delete_document(self, document_id):
+    def delete_document(self, document_id, ignore_missing=False):
         """
         Delete the document with id = `document_id`.
         This is not reversible.
@@ -247,9 +248,13 @@ class Client(object):
         centroids it has been added to.
 
         If no document exists with the given ID, raises
-        `EDocumentDoesNotExist`.
+        `EDocumentDoesNotExist` unless `ignore_missing=True`
+        was passed.
         """
-        return self.thrift_client.deleteDocument(document_id)
+        request = DeleteDocumentRequest()
+        request.ignoreMissing = ignore_missing
+        request.id = document_id
+        return self.thrift_client.deleteDocument(request)
 
     def delete_centroid(self, centroid_id):
         """

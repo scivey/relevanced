@@ -67,7 +67,10 @@ class RelevanceServerIf {
     ) = 0;
 
   virtual folly::Future<folly::Try<bool>>
-    deleteDocument(std::unique_ptr<std::string> id) = 0;
+    deleteDocument(std::unique_ptr<std::string> id, bool ignoreMissing) = 0;
+
+  virtual folly::Future<std::vector<folly::Try<bool>>>
+    multiDeleteDocuments(std::unique_ptr<std::vector<std::string>> ids, bool ignoreMissing) = 0;
 
   virtual folly::Future<folly::Try<std::unique_ptr<std::string>>>
     getDocument(std::unique_ptr<std::string> id) = 0;
@@ -282,7 +285,10 @@ class RelevanceServer : public RelevanceServerIf {
     ) override;
 
   folly::Future<folly::Try<bool>>
-    deleteDocument(std::unique_ptr<std::string> id) override;
+    deleteDocument(std::unique_ptr<std::string> id, bool ignoreMissing) override;
+
+  folly::Future<std::vector<folly::Try<bool>>>
+    multiDeleteDocuments(std::unique_ptr<std::vector<std::string>> ids, bool ignoreMissing) override;
 
   folly::Future<folly::Try<std::unique_ptr<std::string>>>
     getDocument(std::unique_ptr<std::string> id) override;

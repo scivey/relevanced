@@ -131,10 +131,11 @@ ThriftRelevanceServer::future_createDocumentWithID(
 
 Future<unique_ptr<DeleteDocumentResponse>>
 ThriftRelevanceServer::future_deleteDocument(
-    unique_ptr<string> id) {
-  string docId = *id;
+    unique_ptr<DeleteDocumentRequest> request) {
+  string docId = request->id;
   return server_->deleteDocument(
-    std::move(id)
+    folly::make_unique<string>(request->id),
+    request->ignoreMissing
   ).then([this, docId](Try<bool> result) {
     result.throwIfFailed();
     auto response = folly::make_unique<DeleteDocumentResponse>();
@@ -143,6 +144,32 @@ ThriftRelevanceServer::future_deleteDocument(
   });
 }
 
+Future<unique_ptr<MultiDeleteDocumentsResponse>>
+ThriftRelevanceServer::future_multiDeleteDocuments(
+    unique_ptr<MultiDeleteDocumentsRequest> request) {
+  auto ids = std::make_shared<vector<string>>(request->ids);
+  bool ignoreMissing = request->ignoreMissing;
+  return server_->multiDeleteDocuments(
+    folly::make_unique<vector<string>>(request->ids),
+    request->ignoreMissing
+  ).then([ids, ignoreMissing](vector<Try<bool>> result) {
+    vector<string> deleted;
+    for (size_t i = 0; i < result.size(); i++) {
+      auto elem = result.at(i);
+      if (elem.hasException()) {
+        if (!ignoreMissing || !elem.hasException<EDocumentDoesNotExist>()) {
+          elem.throwIfFailed();
+        }
+      }
+      if (elem.value()) {
+        deleted.push_back(ids->at(i));
+      }
+    }
+    auto response = folly::make_unique<MultiDeleteDocumentsResponse>();
+    response->ids = *ids;
+    return std::move(response);
+  });
+}
 
 Future<unique_ptr<CreateCentroidResponse>>
 ThriftRelevanceServer::future_createCentroid(
