@@ -3,7 +3,13 @@ from collections import defaultdict
 from thrift.protocol import TBinaryProtocol
 from thrift.transport import TSocket, TTransport
 from relevanced_client.gen_py.RelevancedProtocol import Relevanced
-from relevanced_client.gen_py.RelevancedProtocol.ttypes import Language
+from relevanced_client.gen_py.RelevancedProtocol.ttypes import (
+    CreateCentroidRequest,
+    MultiCreateCentroidsRequest,
+    JoinCentroidRequest,
+    MultiJoinCentroidsRequest,
+    Language
+)
 
 class Client(object):
     def __init__(self, host, port):
@@ -56,7 +62,7 @@ class Client(object):
         """
         return self.thrift_client.listCentroidRangeFromID(centroid_id, count)
 
-    def create_centroid(self, id):
+    def create_centroid(self, id, ignore_existing=False):
         """
         Create a new centroid on the server.
 
@@ -66,8 +72,31 @@ class Client(object):
 
         If a centroid already exists with ID `id`,
         raises `ECentroidAlreadyExists`.
+
+        If `ignore_existing` is True, this exception
+        will not be raised.
         """
-        return self.thrift_client.createCentroid(id)
+        request = CreateCentroidRequest()
+        request.id = id
+        request.ignoreExisting = ignore_existing
+        return self.thrift_client.createCentroid(request)
+
+    def multi_create_centroids(self, ids, ignore_existing=False):
+        """
+        Create multiple new centroids on the server.
+
+        On success, returns a `MultiCreateCentroidsResponse`.
+        The `created` property of this object is an array
+        containing the IDs of all centroids created.
+
+        If a centroid already exists with one of the IDs in
+        `ids`, raises an `ECentroidAlreadyExists` exception
+        unless `ignore_existing=True` is passed.
+        """
+        request = MultiCreateCentroidsRequest()
+        request.ids = ids
+        request.ignoreExisting = ignore_existing
+        return self.thrift_client.multiCreateCentroids(request)
 
     def list_all_documents(self):
         """
@@ -215,7 +244,7 @@ class Client(object):
         """
         return self.thrift_client.deleteCentroid(centroid_id)
 
-    def join_centroid(self, centroid_id):
+    def join_centroid(self, centroid_id, ignore_missing=False):
         """
         Synchronize with the server-side centroid
         recalculation cycle.
@@ -232,14 +261,33 @@ class Client(object):
         a recalculation was actually performed.
 
         If no centroid exists with the given ID, raises
-        `ECentroidDoesNotExist`.
+        `ECentroidDoesNotExist` unless `ignore_missing=True`
+        is passed.
 
         This command is not necessary under most circumstances,
         as the server automatically recalculates centroids
         as documents are added and removed.  It mainly exists
         to aid development and testing.
         """
-        return self.thrift_client.joinCentroid(centroid_id)
+        request = JoinCentroidRequest()
+        request.id = centroid_id
+        request.ignoreMissing = ignore_missing
+        return self.thrift_client.joinCentroid(request)
+
+    def multi_join_centroids(self, centroid_ids, ignore_missing=False):
+        """
+        Synchronize with the server-side centroid
+        recalculation cycle for multiple centroids.
+
+        See the documentation on `join_centroid` for
+        details.
+        `multi_join_centroids` takes a list of centroid IDs
+        instead of a single ID.
+        """
+        request = MultiJoinCentroidsRequest()
+        request.ids = centroid_ids
+        request.ignoreMissing = ignore_missing
+        return self.thrift_client.multiJoinCentroids(request)
 
     def list_all_documents_for_centroid(self, centroid_id):
         """

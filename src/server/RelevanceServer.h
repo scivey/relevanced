@@ -73,10 +73,16 @@ class RelevanceServerIf {
     getDocument(std::unique_ptr<std::string> id) = 0;
 
   virtual folly::Future<folly::Try<bool>>
-    createCentroid(std::unique_ptr<std::string> centroidId) = 0;
+    createCentroid(std::unique_ptr<std::string> centroidId, bool ignoreExisting) = 0;
+
+  virtual folly::Future<std::vector<folly::Try<bool>>>
+    multiCreateCentroids(std::unique_ptr<std::vector<std::string>> ids, bool ignoreExisting) = 0;
 
   virtual folly::Future<folly::Try<bool>>
-    deleteCentroid(std::unique_ptr<std::string> centroidId) = 0;
+    deleteCentroid(std::unique_ptr<std::string> centroidId, bool ignoreMissing) = 0;
+
+  virtual folly::Future<std::vector<folly::Try<bool>>>
+    multiDeleteCentroids(std::unique_ptr<std::vector<std::string>> ids, bool ignoreMissing) = 0;
 
   virtual folly::Future<folly::Try<std::unique_ptr<std::vector<std::string>>>>
     listAllDocumentsForCentroid(std::unique_ptr<std::string> centroidId) = 0;
@@ -95,7 +101,14 @@ class RelevanceServerIf {
 
   virtual folly::Future<folly::Try<bool>>
     joinCentroid(
-      std::unique_ptr<std::string> centroidId
+      std::unique_ptr<std::string> centroidId,
+      bool ignoreMissing
+    ) = 0;
+
+  virtual folly::Future<std::unique_ptr<std::vector<folly::Try<bool>>>>
+    multiJoinCentroids(
+      std::unique_ptr<std::vector<std::string>> centroidIds,
+      bool ignoreMissing
     ) = 0;
 
   virtual folly::Future<std::unique_ptr<std::vector<std::string>>>
@@ -277,10 +290,19 @@ class RelevanceServer : public RelevanceServerIf {
     getDocument(std::unique_ptr<std::string> id) override;
 
   folly::Future<folly::Try<bool>>
-    createCentroid(std::unique_ptr<std::string> centroidId) override;
+    createCentroid(std::unique_ptr<std::string> centroidId, bool ignoreExisting) override;
+
+  folly::Future<std::vector<folly::Try<bool>>>
+    multiCreateCentroids(std::unique_ptr<std::vector<std::string>> ids, bool ignoreExisting) override;
 
   folly::Future<folly::Try<bool>>
-    deleteCentroid(std::unique_ptr<std::string> centroidId) override;
+    deleteCentroid(
+      std::unique_ptr<std::string> centroidId,
+      bool ignoreMissing
+    ) override;
+
+  folly::Future<std::vector<folly::Try<bool>>>
+    multiDeleteCentroids(std::unique_ptr<std::vector<std::string>> ids, bool ignoreMissing) override;
 
   folly::Future<folly::Try<std::unique_ptr<std::vector<std::string>>>>
     listAllDocumentsForCentroid(std::unique_ptr<std::string> centroidId) override;
@@ -299,7 +321,20 @@ class RelevanceServer : public RelevanceServerIf {
 
   folly::Future<folly::Try<bool>>
     joinCentroid(
-      std::unique_ptr<std::string> centroidId
+      std::string centroidId,
+      bool ignoreMissing
+    );
+
+  folly::Future<folly::Try<bool>>
+    joinCentroid(
+      std::unique_ptr<std::string> centroidId,
+      bool ignoreMissing
+    ) override;
+
+  folly::Future<std::unique_ptr<std::vector<folly::Try<bool>>>>
+    multiJoinCentroids(
+      std::unique_ptr<std::vector<std::string>> centroidIds,
+      bool ignoreMissing
     ) override;
 
   folly::Future<std::unique_ptr<std::vector<std::string>>>

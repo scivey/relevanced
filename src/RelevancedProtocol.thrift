@@ -88,12 +88,50 @@ struct CreateDocumentResponse {
     1: required string id;
 }
 
+struct DeleteDocumentRequest {
+    1: required string id;
+    2: required bool ignoreMissing;
+}
+
 struct DeleteDocumentResponse {
     1: required string id;
 }
 
+struct MultiDeleteDocumentsRequest {
+    1: required list<string> ids;
+    2: required bool ignoreMissing;
+}
+
+struct MultiDeleteCentroidsResponse {
+    1: required list<string> ids;
+}
+
 struct CreateCentroidResponse {
+    1: required string created;
+}
+
+struct CreateCentroidRequest {
     1: required string id;
+    2: required bool ignoreExisting;
+}
+
+struct MultiCreateCentroidsRequest {
+    1: required list<string> ids;
+    2: required bool ignoreExisting;
+}
+
+struct MultiCreateCentroidsResponse {
+    1: required list<string> created;
+}
+
+struct DeleteCentroidRequest {
+    1: required string id;
+    2: required bool ignoreMissing;
+}
+
+struct MultiDeleteCentroidsRequest {
+    1: required list<string> ids;
+    2: required bool ignoreMissing;
 }
 
 struct DeleteCentroidResponse {
@@ -108,6 +146,21 @@ struct AddDocumentToCentroidResponse {
 struct RemoveDocumentFromCentroidResponse {
     1: required string centroidId;
     2: required string documentId;
+}
+
+struct MultiJoinCentroidsRequest {
+    1: required list<string> ids;
+    2: required bool ignoreMissing;
+}
+
+struct MultiJoinCentroidsResponse {
+    1: required list<string> ids;
+    2: required list<bool> recalculated;
+}
+
+struct JoinCentroidRequest {
+    1: required string id;
+    2: required bool ignoreMissing;
 }
 
 struct JoinCentroidResponse {
@@ -159,14 +212,17 @@ service Relevanced {
     CreateDocumentResponse createDocumentWithID(1: string id, 2: string text, 3: Language language) throws (1: EDocumentAlreadyExists err),
     DeleteDocumentResponse deleteDocument(1: string id) throws (1: EDocumentDoesNotExist err),
     GetDocumentMetadataResponse getDocumentMetadata(1: string id) throws (1: EDocumentDoesNotExist err),
-    CreateCentroidResponse createCentroid(1: string centroidId) throws (1: ECentroidAlreadyExists err),
-    DeleteCentroidResponse deleteCentroid(1: string centroidId) throws (1: ECentroidDoesNotExist err),
+    CreateCentroidResponse createCentroid(1: CreateCentroidRequest request) throws (1: ECentroidAlreadyExists err),
+    MultiCreateCentroidsResponse multiCreateCentroids(1: MultiCreateCentroidsRequest request) throws (1: ECentroidAlreadyExists err),
+    DeleteCentroidResponse deleteCentroid(1: DeleteCentroidRequest request) throws (1: ECentroidDoesNotExist err),
+    MultiDeleteCentroidsResponse multiDeleteCentroids(1: MultiDeleteCentroidsRequest request) throws (1: ECentroidDoesNotExist err),
     ListCentroidDocumentsResponse listAllDocumentsForCentroid(1: string centroidId) throws (1: ECentroidDoesNotExist err),
     ListCentroidDocumentsResponse listCentroidDocumentRange(1: string centroidId, 2: i64 offset, 3: i64 count) throws (1: ECentroidDoesNotExist err),
     ListCentroidDocumentsResponse listCentroidDocumentRangeFromID(1: string centroidId, 2: string documentId, 3: i64 count) throws (1: ECentroidDoesNotExist err),
     AddDocumentToCentroidResponse addDocumentToCentroid(1: string centroidId, 2: string docId) throws (1: ECentroidDoesNotExist centroidErr, 2: EDocumentDoesNotExist docErr, 3: EDocumentAlreadyInCentroid bothErr),
     RemoveDocumentFromCentroidResponse removeDocumentFromCentroid(1: string centroidId, 2: string docId) throws (1: ECentroidDoesNotExist centroidErr, 2: EDocumentDoesNotExist docErr, 3: EDocumentNotInCentroid bothErr),
-    JoinCentroidResponse joinCentroid(1: string centroidId) throws (1: ECentroidDoesNotExist err),
+    JoinCentroidResponse joinCentroid(1: JoinCentroidRequest request) throws (1: ECentroidDoesNotExist err),
+    MultiJoinCentroidsResponse multiJoinCentroids(1: MultiJoinCentroidsRequest request) throws (1: ECentroidDoesNotExist err),
     ListCentroidsResponse listAllCentroids(),
     ListCentroidsResponse listCentroidRange(1: i64 offset, 2: i64 count),
     ListCentroidsResponse listCentroidRangeFromID(1: string centroidId, 2: i64 count),

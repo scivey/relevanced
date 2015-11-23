@@ -146,31 +146,92 @@ ThriftRelevanceServer::future_deleteDocument(
 
 Future<unique_ptr<CreateCentroidResponse>>
 ThriftRelevanceServer::future_createCentroid(
-    unique_ptr<string> centroidId) {
-  string cId = *centroidId;
+    unique_ptr<CreateCentroidRequest> request) {
+  auto cId = request->id;
   return server_->createCentroid(
-    std::move(centroidId)
+    folly::make_unique<string>(request->id),
+    request->ignoreExisting
   ).then([cId](Try<bool> result) {
     result.throwIfFailed();
     auto response = folly::make_unique<CreateCentroidResponse>();
-    response->id = cId;
+    if (result.value()) {
+      response->created = cId;
+    } else {
+      response->created = "";
+    }
+    return std::move(response);
+  });
+}
+
+Future<unique_ptr<MultiCreateCentroidsResponse>>
+ThriftRelevanceServer::future_multiCreateCentroids(
+    unique_ptr<MultiCreateCentroidsRequest> request) {
+  auto ids = std::make_shared<vector<string>>(request->ids);
+  return server_->multiCreateCentroids(
+    folly::make_unique<vector<string>>(request->ids),
+    request->ignoreExisting
+  ).then([ids](vector<Try<bool>> result) {
+    vector<string> created;
+    for (size_t i = 0; i < result.size(); i++) {
+      auto elem = result.at(i);
+      elem.throwIfFailed();
+      if (elem.value()) {
+        created.push_back(ids->at(i));
+      }
+    }
+    auto response = folly::make_unique<MultiCreateCentroidsResponse>();
+    response->created = created;
     return std::move(response);
   });
 }
 
 Future<unique_ptr<DeleteCentroidResponse>>
 ThriftRelevanceServer::future_deleteCentroid(
-    unique_ptr<string> centroidId) {
-  string cId = *centroidId;
+    unique_ptr<DeleteCentroidRequest> request) {
+  string cId = request->id;
+  bool ignoreMissing = request->ignoreMissing;
   return server_->deleteCentroid(
-    std::move(centroidId)
-  ).then([cId](Try<bool> result) {
-    result.throwIfFailed();
+    folly::make_unique<string>(request->id),
+    request->ignoreMissing
+  ).then([cId, ignoreMissing](Try<bool> result) {
+    if (result.hasException()) {
+      if (!ignoreMissing || !result.hasException<ECentroidDoesNotExist>()) {
+        result.throwIfFailed();
+      }
+    }
     auto response = folly::make_unique<DeleteCentroidResponse>();
     response->id = cId;
     return std::move(response);
   });
 }
+
+Future<unique_ptr<MultiDeleteCentroidsResponse>>
+ThriftRelevanceServer::future_multiDeleteCentroids(
+    unique_ptr<MultiDeleteCentroidsRequest> request) {
+  auto ids = std::make_shared<vector<string>>(request->ids);
+  bool ignoreMissing = request->ignoreMissing;
+  return server_->multiDeleteCentroids(
+    folly::make_unique<vector<string>>(request->ids),
+    request->ignoreMissing
+  ).then([ids, ignoreMissing](vector<Try<bool>> result) {
+    vector<string> deleted;
+    for (size_t i = 0; i < result.size(); i++) {
+      auto elem = result.at(i);
+      if (elem.hasException()) {
+        if (!ignoreMissing || !elem.hasException<ECentroidDoesNotExist>()) {
+          elem.throwIfFailed();
+        }
+      }
+      if (elem.value()) {
+        deleted.push_back(ids->at(i));
+      }
+    }
+    auto response = folly::make_unique<MultiDeleteCentroidsResponse>();
+    response->ids = *ids;
+    return std::move(response);
+  });
+}
+
 
 Future<unique_ptr<ListCentroidDocumentsResponse>>
 ThriftRelevanceServer::future_listAllDocumentsForCentroid(
@@ -259,18 +320,50 @@ ThriftRelevanceServer::future_removeDocumentFromCentroid(
 
 Future<unique_ptr<JoinCentroidResponse>>
 ThriftRelevanceServer::future_joinCentroid(
-    unique_ptr<string> centroidId) {
-  auto cId = *centroidId;
+    unique_ptr<JoinCentroidRequest> request) {
+  auto cId = request->id;
+  bool ignoreMissing = request->ignoreMissing;
   return server_->joinCentroid(
-    std::move(centroidId)
-  ).then([cId](Try<bool> result) {
-    result.throwIfFailed();
+    folly::make_unique<string>(request->id),
+    request->ignoreMissing
+  ).then([cId, ignoreMissing](Try<bool> result) {
+    if (result.hasException()) {
+      if (!ignoreMissing || !result.hasException<ECentroidDoesNotExist>()) {
+        result.throwIfFailed();
+      }
+    }
     auto response = folly::make_unique<JoinCentroidResponse>();
     response->id = cId;
     response->recalculated = result.value();
     return std::move(response);
   });
 }
+
+Future<unique_ptr<MultiJoinCentroidsResponse>>
+ThriftRelevanceServer::future_multiJoinCentroids(
+    unique_ptr<MultiJoinCentroidsRequest> request) {
+  auto cIds = std::make_shared<vector<string>>(request->ids);
+  bool ignoreMissing = request->ignoreMissing;
+  return server_->multiJoinCentroids(
+    folly::make_unique<vector<string>>(request->ids),
+    request->ignoreMissing
+  ).then([cIds, ignoreMissing](unique_ptr<vector<Try<bool>>> result) {
+    vector<bool> recalculations;
+    for (auto &elem: *result) {
+      if (elem.hasException()) {
+        if (!ignoreMissing || !elem.hasException<ECentroidDoesNotExist>()) {
+          elem.throwIfFailed();
+        }
+      }
+      recalculations.push_back(elem.value());
+    }
+    auto response = folly::make_unique<MultiJoinCentroidsResponse>();
+    response->ids = *cIds;
+    response->recalculated = recalculations;
+    return std::move(response);
+  });
+}
+
 
 Future<unique_ptr<ListCentroidsResponse>>
 ThriftRelevanceServer::future_listAllCentroids() {

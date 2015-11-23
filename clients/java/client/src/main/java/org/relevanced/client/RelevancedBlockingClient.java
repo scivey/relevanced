@@ -15,8 +15,11 @@ import org.apache.thrift.transport.TTransport;
 import org.relevanced.client.gen_thrift_protocol.Relevanced;
 import org.relevanced.client.gen_thrift_protocol.Language;
 import org.relevanced.client.gen_thrift_protocol.CreateDocumentResponse;
+import org.relevanced.client.gen_thrift_protocol.CreateCentroidResponse;
+import org.relevanced.client.gen_thrift_protocol.CreateCentroidRequest;
+import org.relevanced.client.gen_thrift_protocol.MultiCreateCentroidsRequest;
+import org.relevanced.client.gen_thrift_protocol.MultiCreateCentroidsResponse;
 import org.relevanced.client.gen_thrift_protocol.MultiSimilarityResponse;
-
 
 public class RelevancedBlockingClient extends Relevanced.Client {
     public Relevanced.Client thriftClient_;
@@ -47,6 +50,28 @@ public class RelevancedBlockingClient extends Relevanced.Client {
 
     public CreateDocumentResponse createDocumentWithID(String id, String text) throws TException {
         return createDocumentWithID(id, text, Language.EN);
+    }
+
+    public CreateCentroidResponse createCentroid(String id, Bool ignoreExisting) throws TException {
+        CreateCentroidRequest request = new CreateCentroidRequest;
+        request.id = id;
+        request.ignoreExisting = ignoreExisting;
+        return createCentroid(request);
+    }
+
+    public CreateCentroidResponse createCentroid(String id) throws TException {
+        return createCentroid(id, false);
+    }
+
+    public MultiCreateCentroidsResponse multiCreateCentroids(List<string> centroidIds, Bool ignoreExisting) throws TException {
+        MultiCreateCentroidsRequest request = new MultiCreateCentroidsRequest;
+        request.ids = centroidIds;
+        request.ignoreExisting = ignoreExisting;
+        return multiCreateCentroids(request);
+    }
+
+    public MultiCreateCentroidsResponse multiCreateCentroids(List<string> centroidIds) throws TException {
+        return multiCreateCentroids(centroidIds, false);
     }
 
     public static RelevancedBlockingClient connect(String host, int port) throws TException {

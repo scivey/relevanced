@@ -454,7 +454,8 @@ TEST(RelevanceServer, TestCreateDocumentWithIDAlreadyExists) {
 TEST(RelevanceServer, TestCreateCentroid) {
   RelevanceServerTestCtx ctx;
   auto id = folly::make_unique<string>("some-centroid");
-  auto response = ctx.server->createCentroid(std::move(id)).get();
+  bool ignoreExisting = false;
+  auto response = ctx.server->createCentroid(std::move(id), ignoreExisting).get();
   EXPECT_TRUE(response.hasValue());
   EXPECT_TRUE(response.value());
   auto persisted = ctx.persistence->loadCentroid("some-centroid").get();
@@ -465,10 +466,29 @@ TEST(RelevanceServer, TestCreateCentroid) {
 TEST(RelevanceServer, TestCreateCentroidAlreadyExists) {
   RelevanceServerTestCtx ctx;
   auto id = folly::make_unique<string>("some-centroid");
-  auto response1 = ctx.server->createCentroid(folly::make_unique<string>("some-centroid")).get();
+  bool ignoreExisting = false;
+  auto response1 = ctx.server->createCentroid(
+    folly::make_unique<string>("some-centroid"), ignoreExisting
+  ).get();
   EXPECT_FALSE(response1.hasException());
-  auto response2 = ctx.server->createCentroid(folly::make_unique<string>("some-centroid")).get();
+  auto response2 = ctx.server->createCentroid(
+    folly::make_unique<string>("some-centroid"), ignoreExisting
+  ).get();
   EXPECT_TRUE(response2.hasException<ECentroidAlreadyExists>());
+}
+
+TEST(RelevanceServer, TestCreateCentroidAlreadyExistsIgnoreExisting) {
+  RelevanceServerTestCtx ctx;
+  auto id = folly::make_unique<string>("some-centroid");
+  bool ignoreExisting = true;
+  auto response1 = ctx.server->createCentroid(
+    folly::make_unique<string>("some-centroid"), ignoreExisting
+  ).get();
+  EXPECT_FALSE(response1.hasException());
+  auto response2 = ctx.server->createCentroid(
+    folly::make_unique<string>("some-centroid"), ignoreExisting
+  ).get();
+  EXPECT_FALSE(response2.hasException<ECentroidAlreadyExists>());
 }
 
 TEST(RelevanceServer, TestListAllCentroids) {

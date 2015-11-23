@@ -33,6 +33,8 @@ using namespace std;
 using namespace folly;
 using thrift_protocol::EDocumentAlreadyExists;
 using thrift_protocol::ECentroidDoesNotExist;
+using thrift_protocol::ECentroidAlreadyExists;
+
 using thrift_protocol::Language;
 
 using similarity_score_worker::SimilarityScoreWorkerIf;
@@ -234,20 +236,55 @@ Future<Try<unique_ptr<string>>> RelevanceServer::getDocument(
     });
 }
 
+Future<vector<Try<bool>>> RelevanceServer::multiCreateCentroids(
+    unique_ptr<vector<string>> centroidIds, bool ignoreExisting) {
+
+  vector<Future<Try<bool>>> results;
+  for (auto id: *centroidIds) {
+    results.push_back(persistence_->createNewCentroid(id)
+      .then([ignoreExisting](Try<bool> response) {
+        if (response.hasException<ECentroidAlreadyExists>() && ignoreExisting) {
+          return Try<bool>(false);
+        }
+        return response;
+      })
+    );
+  }
+  return collect(results);
+}
 
 Future<Try<bool>> RelevanceServer::createCentroid(
-    unique_ptr<string> centroidId) {
+    unique_ptr<string> centroidId, bool ignoreExisting) {
   auto id = *centroidId;
-  return persistence_->createNewCentroid(id);
+  return persistence_->createNewCentroid(id).then([ignoreExisting](Try<bool> response) {
+    if (response.hasException<ECentroidAlreadyExists>() && ignoreExisting) {
+      return Try<bool>(false);
+    }
+    return response;
+  });
 }
 
 
 Future<Try<bool>> RelevanceServer::deleteCentroid(
-    unique_ptr<string> centroidId) {
+    unique_ptr<string> centroidId, bool ignoreMissing) {
   auto cId = *centroidId;
-  return persistence_->deleteCentroid(cId);
+  return persistence_->deleteCentroid(cId)
+    .then([ignoreMissing](Try<bool> result) {
+      if (result.hasException<ECentroidDoesNotExist>() && ignoreMissing) {
+        return Try<bool>(false);
+      }
+      return result;
+    });
 }
 
+Future<vector<Try<bool>>> RelevanceServer::multiDeleteCentroids(
+    unique_ptr<vector<string>> centroidIds, bool ignoreMissing) {
+  vector<Future<Try<bool>>> tasks;
+  for (auto id: *centroidIds) {
+    tasks.push_back(deleteCentroid(folly::make_unique<string>(id), ignoreMissing));
+  }
+  return collect(tasks);
+}
 
 Future<Try<unique_ptr<vector<string>>>>
 RelevanceServer::listAllDocumentsForCentroid(
@@ -331,12 +368,14 @@ Future<Try<bool>> RelevanceServer::removeDocumentFromCentroid(
     });
 }
 
-
 Future<Try<bool>> RelevanceServer::joinCentroid(
-    unique_ptr<string> centroidId) {
-  auto cId = *centroidId;
-  return centroidMetadataDb_->isCentroidUpToDate(cId)
-    .then([this, cId](Try<bool> isUpToDate) {
+    string centroidId, bool ignoreMissing) {
+  return centroidMetadataDb_->isCentroidUpToDate(centroidId)
+    .then([ignoreMissing, this, centroidId](Try<bool> isUpToDate) {
+      if (ignoreMissing && isUpToDate.hasException<ECentroidDoesNotExist>()) {
+        Try<bool> result(false);
+        return makeFuture(result);
+      }
       if (isUpToDate.hasException()) {
         Try<bool> result(isUpToDate.exception());
         return makeFuture(result);
@@ -346,13 +385,13 @@ Future<Try<bool>> RelevanceServer::joinCentroid(
         Try<bool> result(recomputed);
         return makeFuture(result);
       }
-      return centroidUpdateWorker_->joinUpdate(cId)
-        .then([this, cId](Try<string> result) {
+      return centroidUpdateWorker_->joinUpdate(centroidId)
+        .then([this, centroidId](Try<string> result) {
           if (result.hasException()) {
             Try<bool> toReturn(result.exception());
             return makeFuture(toReturn);
           }
-          return scoreWorker_->reloadCentroid(cId).then([](){
+          return scoreWorker_->reloadCentroid(centroidId).then([](){
             bool recomputed = true;
             return Try<bool>(recomputed);
           });
@@ -360,6 +399,23 @@ Future<Try<bool>> RelevanceServer::joinCentroid(
     });
 }
 
+
+Future<Try<bool>> RelevanceServer::joinCentroid(
+    unique_ptr<string> centroidId, bool ignoreMissing) {
+  return joinCentroid(*centroidId, ignoreMissing);
+}
+
+Future<unique_ptr<vector<Try<bool>>>> RelevanceServer::multiJoinCentroids(
+    unique_ptr<vector<string>> centroidIds,
+    bool ignoreMissing) {
+  vector<Future<Try<bool>>> tasks;
+  for (auto cId: *centroidIds) {
+    tasks.push_back(joinCentroid(cId, ignoreMissing));
+  }
+  return collect(tasks).then([](vector<Try<bool>> results) {
+    return std::move(folly::make_unique<vector<Try<bool>>>(std::move(results)));
+  });
+}
 
 Future<unique_ptr<vector<string>>> RelevanceServer::listAllCentroids() {
   return persistence_->listAllCentroids()

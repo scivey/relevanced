@@ -57,6 +57,7 @@ var CLIENT_METHODS = [
     'deleteDocument',
     'getDocumentMetadata',
     'createCentroid',
+    'multiCreateCentroids',
     'listAllDocumentsForCentroid',
     'addDocumentToCentroid',
     'removeDocumentFromCentroid',
@@ -124,6 +125,42 @@ _.each(CLIENT_METHODS, function(methodName) {
             lang = genTypes.Language.EN;
         }
         return original.apply(this, [centroids, text , lang]);
+    };
+})();
+
+(function() {
+    var original = RelevancedClient.prototype.multiGetTextSimilarity;
+    RelevancedClient.prototype.multiGetTextSimilarity = function(centroids, text, lang) {
+        if (!_.isNumber(lang)) {
+            lang = genTypes.Language.EN;
+        }
+        return original.apply(this, [centroids, text , lang]);
+    };
+})();
+
+(function() {
+    var original = RelevancedClient.prototype.createCentroid;
+    RelevancedClient.prototype.createCentroid = function(id, ignoreExisting) {
+        if (!_.isBoolean(ignoreExisting)) {
+            ignoreExisting = false;
+        }
+        var request = new genTypes.CreateCentroidRequest;
+        request.id = id;
+        request.ignoreExisting = ignoreExisting;
+        return original.apply(this, [request]);
+    };
+})();
+
+(function() {
+    var original = RelevancedClient.prototype.multiCreateCentroids;
+    RelevancedClient.prototype.multiCreateCentroids = function(ids, ignoreExisting) {
+        if (!_.isBoolean(ignoreExisting)) {
+            ignoreExisting = false;
+        }
+        var request = new genTypes.CreateCentroidRequest;
+        request.ids = ids;
+        request.ignoreExisting = ignoreExisting;
+        return original.apply(this, [request]);
     };
 })();
 

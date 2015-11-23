@@ -71,10 +71,16 @@ class ThriftRelevanceServer : public thrift_protocol::RelevancedSvIf {
   future_deleteDocument(std::unique_ptr<std::string> id) override;
 
   folly::Future<std::unique_ptr<thrift_protocol::CreateCentroidResponse>>
-  future_createCentroid(std::unique_ptr<std::string> centroidId) override;
+  future_createCentroid(std::unique_ptr<thrift_protocol::CreateCentroidRequest> centroidId) override;
+
+  folly::Future<std::unique_ptr<thrift_protocol::MultiCreateCentroidsResponse>>
+  future_multiCreateCentroids(std::unique_ptr<thrift_protocol::MultiCreateCentroidsRequest> request) override;
 
   folly::Future<std::unique_ptr<thrift_protocol::DeleteCentroidResponse>>
-  future_deleteCentroid(std::unique_ptr<std::string> centroidId) override;
+  future_deleteCentroid(std::unique_ptr<thrift_protocol::DeleteCentroidRequest> request) override;
+
+  folly::Future<std::unique_ptr<thrift_protocol::MultiDeleteCentroidsResponse>>
+  future_multiDeleteCentroids(std::unique_ptr<thrift_protocol::MultiDeleteCentroidsRequest> request) override;
 
   folly::Future<std::unique_ptr<thrift_protocol::ListCentroidDocumentsResponse>>
   future_listAllDocumentsForCentroid(
@@ -97,7 +103,14 @@ class ThriftRelevanceServer : public thrift_protocol::RelevancedSvIf {
       std::unique_ptr<std::string> docId) override;
 
   folly::Future<std::unique_ptr<thrift_protocol::JoinCentroidResponse>>
-  future_joinCentroid(std::unique_ptr<std::string> centroidId) override;
+    future_joinCentroid(
+        std::unique_ptr<thrift_protocol::JoinCentroidRequest> request
+    ) override;
+
+  folly::Future<std::unique_ptr<thrift_protocol::MultiJoinCentroidsResponse>>
+    future_multiJoinCentroids(
+      std::unique_ptr<thrift_protocol::MultiJoinCentroidsRequest> request
+    ) override;
 
   folly::Future<std::unique_ptr<thrift_protocol::ListCentroidsResponse>>
   future_listAllCentroids() override;

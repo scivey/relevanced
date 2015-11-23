@@ -69,8 +69,11 @@ module RelevancedClient
             @thrift_client.deleteDocument(document_id)
         end
 
-        def create_centroid(centroid_id)
-            @thrift_client.createCentroid(centroid_id)
+        def create_centroid(centroid_id, ignore_existing=false)
+            request = CreateCentroidRequest.new
+            request.id = centroid_id
+            request.ignoreExisting = ignore_existing
+            @thrift_client.createCentroid(request)
         end
 
         def delete_centroid(centroid_id)
