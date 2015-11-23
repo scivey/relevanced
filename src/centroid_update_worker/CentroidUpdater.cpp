@@ -87,7 +87,10 @@ Try<bool> CentroidUpdater::run() {
       // get batch of documents in parallel
       for (size_t i = docNum; i <= lastDocIndex; i++) {
         documentFutures.push_back(
-            persistence_->loadDocumentOption(idSet.at(i)));
+          util::optionOfTry<shared_ptr<ProcessedDocument>>(
+            persistence_->loadDocument(idSet.at(i))
+          )
+        );
       }
 
       auto loadedDocuments = collect(documentFutures).get();

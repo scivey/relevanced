@@ -9,6 +9,9 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <folly/futures/Try.h>
+#include <folly/futures/Future.h>
+#include <folly/Optional.h>
 #include "gen-cpp2/RelevancedProtocol_types.h"
 
 namespace relevanced {
@@ -130,6 +133,41 @@ int64_t getChronoEpochTime();
 std::string sha1(const std::string &input);
 
 const char *countryCodeOfThriftLanguage(thrift_protocol::Language);
+
+template<typename T>
+folly::Optional<T> optionOfTry(folly::Try<T>& aTry) {
+  folly::Optional<T> output;
+  if (aTry.hasException()) {
+    return output;
+  }
+  output.assign(std::move(aTry.value()));
+  return output;
+}
+
+template<typename T>
+folly::Optional<T> optionOfTry(folly::Try<T>&& aTry) {
+  folly::Optional<T> output;
+  if (aTry.hasException()) {
+    return output;
+  }
+  output.assign(std::move(aTry.value()));
+  return output;
+}
+
+
+template<typename T>
+folly::Future<folly::Optional<T>> optionOfTry(folly::Future<folly::Try<T>>& tryFuture) {
+  return tryFuture.then([](folly::Try<T> result) {
+    return optionOfTry(result);
+  });
+}
+
+template<typename T>
+folly::Future<folly::Optional<T>> optionOfTry(folly::Future<folly::Try<T>>&& tryFuture) {
+  return tryFuture.then([](folly::Try<T> result) {
+    return optionOfTry(std::move(result));
+  });
+}
 
 } // util
 } // relevanced

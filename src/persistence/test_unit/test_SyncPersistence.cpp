@@ -102,41 +102,6 @@ TEST(SyncPersistence, SaveDocument) {
 }
 
 
-TEST(SyncPersistence, LoadDocumentOptionExists) {
-  InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
-  MockClock mockClock;
-  shared_ptr<ClockIf> clockPtr(&mockClock, NonDeleter<ClockIf>());
-  SyncPersistence dbHandle(clockPtr, std::move(rockHandle));
-
-  ProcessedDocument doc("doc-id",
-    vector<ScoredWord> { ScoredWord("dog", 3, 1.3), ScoredWord("cat", 3, 2.6) },
-    5.8
-  );
-  string serialized;
-  serialization::binarySerialize(serialized, doc);
-  EXPECT_FALSE(mockRock.exists("documents:doc-id"));
-  mockRock.put("documents:doc-id", serialized);
-  EXPECT_TRUE(mockRock.exists("documents:doc-id"));
-  auto result = dbHandle.loadDocumentOption("doc-id");
-  EXPECT_TRUE(result.hasValue());
-  auto docPtr = result.value();
-  EXPECT_EQ("doc-id", docPtr->id);
-  EXPECT_EQ(2, docPtr->scoredWords.size());
-}
-
-TEST(SyncPersistence, LoadDocumentOptionDoesNotExist) {
-  InMemoryRockHandle mockRock("/some-path");
-  UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
-  MockClock mockClock;
-  shared_ptr<ClockIf> clockPtr(&mockClock, NonDeleter<ClockIf>());
-  SyncPersistence dbHandle(clockPtr, std::move(rockHandle));
-
-  EXPECT_FALSE(mockRock.exists("documents:doc-id"));
-  auto result = dbHandle.loadDocumentOption("doc-id");
-  EXPECT_FALSE(result.hasValue());
-}
-
 TEST(SyncPersistence, LoadDocumentExists) {
   InMemoryRockHandle mockRock("/some-path");
   UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
@@ -152,7 +117,7 @@ TEST(SyncPersistence, LoadDocumentExists) {
   EXPECT_FALSE(mockRock.exists("documents:doc-id"));
   mockRock.put("documents:doc-id", serialized);
   EXPECT_TRUE(mockRock.exists("documents:doc-id"));
-  auto result = dbHandle.loadDocumentOption("doc-id");
+  auto result = dbHandle.loadDocument("doc-id");
   EXPECT_TRUE(result.hasValue());
   auto docPtr = result.value();
   EXPECT_EQ("doc-id", docPtr->id);
@@ -338,36 +303,36 @@ TEST(SyncPersistence, LoadCentroidExists) {
   EXPECT_EQ(2.21, centroidPtr->wordVector.scores["blarg"]);
 }
 
-TEST(SyncPersistence, LoadCentroidOptionExists) {
+TEST(SyncPersistence, LoadCentroidUniqueOptionHappy) {
   InMemoryRockHandle mockRock("/some-path");
   UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   MockClock mockClock;
   shared_ptr<ClockIf> clockPtr(&mockClock, NonDeleter<ClockIf>());
   SyncPersistence dbHandle(clockPtr, std::move(rockHandle));
-  Centroid toSerialize(
-      "centroid-id", unordered_map<string, double>{{"moose", 1.7}, {"blarg", 2.21}}, 5.8);
+  Centroid c1("c1", unordered_map<string, double>{}, 5.0);
+  string key = "centroids:c1";
   string data;
-  serialization::binarySerialize(data, toSerialize);
-  mockRock.put("centroids:centroid-id", data);
-  auto res = dbHandle.loadCentroidOption("centroid-id");
+  serialization::binarySerialize(data, c1);
+  mockRock.put(key, data);
+  auto res = dbHandle.loadCentroidUniqueOption("c1");
   EXPECT_TRUE(res.hasValue());
-  auto centroidPtr = res.value();
-  EXPECT_EQ("centroid-id", centroidPtr->id);
-  auto wordVec = centroidPtr->wordVector;
-  EXPECT_EQ(5.8, wordVec.magnitude);
-  EXPECT_EQ(2, wordVec.scores.size());
-  EXPECT_EQ(2.21, wordVec.scores["blarg"]);
 }
 
-TEST(SyncPersistence, LoadCentroidOptionDoesNotExist) {
+TEST(SyncPersistence, LoadCentroidUniqueOptionSad) {
   InMemoryRockHandle mockRock("/some-path");
   UniquePointer<RockHandleIf> rockHandle(&mockRock, NonDeleter<RockHandleIf>());
   MockClock mockClock;
   shared_ptr<ClockIf> clockPtr(&mockClock, NonDeleter<ClockIf>());
   SyncPersistence dbHandle(clockPtr, std::move(rockHandle));
-  auto res = dbHandle.loadCentroidOption("centroid-id");
+  Centroid c1("c1", unordered_map<string, double>{}, 5.0);
+  string key = "centroids:c1";
+  string data;
+  serialization::binarySerialize(data, c1);
+  mockRock.put(key, data);
+  auto res = dbHandle.loadCentroidUniqueOption("c2");
   EXPECT_FALSE(res.hasValue());
 }
+
 
 TEST(SyncPersistence, ListAllCentroids) {
   InMemoryRockHandle mockRock("/some-path");

@@ -58,14 +58,6 @@ class StubSyncPersistence : public persistence::SyncPersistenceIf {
     return Try<bool>(true);
   }
 
-  Optional<shared_ptr<ProcessedDocument>> loadDocumentOption(const string& id) {
-    Optional<shared_ptr<ProcessedDocument>> result;
-    if (documents.find(id) != documents.end()) {
-      auto docPtr = documents[id];
-      result.assign(shared_ptr<ProcessedDocument>(docPtr, NonDeleter<ProcessedDocument>()));
-    }
-    return result;
-  }
   Optional<vector<string>> listCentroidDocumentRangeFromOffsetOption(const string &id, size_t offset, size_t length) {
     Optional<vector<string>> result;
     if (existingCentroids.find(id) != existingCentroids.end()) {
@@ -109,8 +101,18 @@ class StubSyncPersistence : public persistence::SyncPersistenceIf {
   MOCK_METHOD2(listDocumentRangeFromId, vector<string>(const string&, size_t));
   MOCK_METHOD2(listDocumentRangeFromOffset, vector<string>(size_t, size_t));
   MOCK_METHOD1(listUnusedDocuments, vector<string>(size_t));
-  MOCK_METHOD1(loadDocument, Try<shared_ptr<ProcessedDocument>>(const string&));
-
+  Try<shared_ptr<ProcessedDocument>> loadDocument(const string& id) {
+    auto found = documents.find(id);
+    if (found == documents.end()) {
+      return Try<shared_ptr<ProcessedDocument>>(
+        make_exception_wrapper<ECentroidDoesNotExist>()
+      );
+    }
+    shared_ptr<ProcessedDocument> result(
+      found->second, NonDeleter<ProcessedDocument>()
+    );
+    return Try<shared_ptr<ProcessedDocument>>(result);
+  }
   MOCK_METHOD1(doesCentroidExist, bool(const string&));
   MOCK_METHOD1(createNewCentroid, Try<bool>(const string&));
   MOCK_METHOD1(deleteCentroid, Try<bool>(const string&));
@@ -119,8 +121,6 @@ class StubSyncPersistence : public persistence::SyncPersistenceIf {
     Optional<UniquePointer<Centroid>> result;
     return result;
   }
-  MOCK_METHOD1(loadCentroidOption,
-               Optional<shared_ptr<Centroid>>(const string&));
   MOCK_METHOD0(listAllCentroids, vector<string>(void));
   MOCK_METHOD2(listCentroidRangeFromOffset, vector<string>(size_t, size_t));
   MOCK_METHOD2(listCentroidRangeFromId, vector<string>(const string&, size_t));

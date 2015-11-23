@@ -167,6 +167,7 @@ set(UNIT_TEST_SOURCES
   "serialization/test_unit/test_DocumentSerialization.cpp"
   "serialization/test_unit/test_CentroidSerialization.cpp"
   "util/test_unit/test_ConcurrentMap.cpp"
+  "util/test_unit/test_util.cpp"
   "text_util/test_unit/test_WordAccumulator.cpp"
   "text_util/test_unit/test_StringView.cpp"
   "text_util/test_unit/test_ScoredWord.cpp"

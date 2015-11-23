@@ -94,8 +94,11 @@ TEST(SimilarityScoreWorker, SimpleReload) {
   auto nothing = ctx.worker->debugGetCentroid("centroid-id");
   EXPECT_FALSE(nothing.hasValue());
   ctx.persistence->saveCentroid("centroid-id", sharedCentroid).get();
+  LOG(INFO) << "here";
   ctx.worker->reloadCentroid("centroid-id").get();
+  LOG(INFO) << "here";
   auto reloaded = ctx.worker->debugGetCentroid("centroid-id");
+  LOG(INFO) << "here";
   EXPECT_TRUE(reloaded.hasValue());
   EXPECT_EQ("centroid-id", reloaded.value()->id);
 }

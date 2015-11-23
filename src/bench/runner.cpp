@@ -7,10 +7,13 @@
 #include "models/Document.h"
 #include "testing/TestHelpers.h"
 #include "document_processing_worker/DocumentProcessor.h"
-#include "stemmer/ThreadSafeUtf8Stemmer.h"
 #include "centroid_update_worker/DocumentAccumulator.h"
+#include "stemmer/StemmerManagerIf.h"
+#include "stemmer/ThreadSafeStemmerManager.h"
 #include "stopwords/StopwordFilter.h"
 #include "util/Clock.h"
+#include "gen-cpp2/RelevancedProtocol_types.h"
+
 using namespace std;
 using namespace relevanced;
 using namespace relevanced::models;
@@ -19,7 +22,7 @@ using namespace relevanced::centroid_update_worker;
 using namespace relevanced::stemmer;
 using namespace relevanced::stopwords;
 using namespace relevanced::util;
-
+using relevanced::thrift_protocol::Language;
 
 vector<string> FOOTBALL {
   "Mourners gathered on the track that rings the Alto High School Yellowjackets' ",
@@ -64,12 +67,12 @@ static void benchDocumentProcessing(benchmark::State &state) {
     oss << elem;
   }
   string text = oss.str();
-  shared_ptr<StemmerIf> stemPtr(new ThreadSafeUtf8Stemmer);
+  shared_ptr<StemmerManagerIf> stemPtr(new ThreadSafeStemmerManager);
   shared_ptr<StopwordFilterIf> stopwordPtr(new StopwordFilter);
   shared_ptr<ClockIf> clockPtr(new Clock);
   DocumentProcessor processor(stemPtr, stopwordPtr, clockPtr);
   while (state.KeepRunning()) {
-    Document doc("no-id", text);
+    Document doc("no-id", text, Language::EN);
     shared_ptr<Document> docPtr(&doc, NonDeleter<Document>());
     auto processed = processor.processNew(docPtr);
   }
@@ -83,11 +86,11 @@ static void benchDocumentAccumulator(benchmark::State &state) {
     oss << elem;
   }
   string text = oss.str();
-  shared_ptr<StemmerIf> stemPtr(new ThreadSafeUtf8Stemmer);
+  shared_ptr<StemmerManagerIf> stemPtr(new ThreadSafeStemmerManager);
   shared_ptr<StopwordFilterIf> stopwordPtr(new StopwordFilter);
   shared_ptr<ClockIf> clockPtr(new Clock);
   DocumentProcessor processor(stemPtr, stopwordPtr, clockPtr);
-  Document doc("no-id", text);
+  Document doc("no-id", text, Language::EN);
   shared_ptr<Document> docPtr(&doc, NonDeleter<Document>());
   auto processed = processor.processNew(docPtr);
   auto processedPtr = processed.get();

@@ -96,13 +96,6 @@ Future<Try<shared_ptr<ProcessedDocument>>> Persistence::loadDocument(
   });
 }
 
-Future<Optional<shared_ptr<ProcessedDocument>>> Persistence::loadDocumentOption(
-    const string &id) {
-  return threadPool_->addFuture([this, id]() {
-    return syncHandle_->loadDocumentOption(id);
-  });
-}
-
 Future<bool> Persistence::doesCentroidExist(const string &id) {
   return threadPool_->addFuture([this, id]() {
     return syncHandle_->doesCentroidExist(id);
@@ -132,13 +125,6 @@ Future<Try<shared_ptr<Centroid>>> Persistence::loadCentroid(
     const string &id) {
   return threadPool_->addFuture([this, id]() {
     return syncHandle_->loadCentroid(id);
-  });
-}
-
-Future<Optional<shared_ptr<Centroid>>> Persistence::loadCentroidOption(
-    const string &id) {
-  return threadPool_->addFuture([this, id]() {
-    return syncHandle_->loadCentroidOption(id);
   });
 }
 

@@ -46,9 +46,6 @@ class PersistenceIf {
   virtual folly::Future<folly::Try<std::shared_ptr<models::ProcessedDocument>>>
     loadDocument(const std::string &) = 0;
 
-  virtual folly::Future<folly::Optional<std::shared_ptr<models::ProcessedDocument>>>
-    loadDocumentOption(const std::string &) = 0;
-
   virtual folly::Future<bool>
     doesCentroidExist(const std::string &id) = 0;
 
@@ -63,9 +60,6 @@ class PersistenceIf {
 
   virtual folly::Future<folly::Try<std::shared_ptr<models::Centroid>>>
     loadCentroid(const std::string &id) = 0;
-
-  virtual folly::Future<folly::Optional<std::shared_ptr<models::Centroid>>>
-    loadCentroidOption(const std::string &id) = 0;
 
   virtual folly::Future<folly::Optional<util::UniquePointer<models::Centroid>>>
     loadCentroidUniqueOption(const std::string &id) = 0;
@@ -176,9 +170,6 @@ class Persistence : public PersistenceIf {
   folly::Future<folly::Try<std::shared_ptr<models::ProcessedDocument>>>
     loadDocument(const std::string &) override;
 
-  folly::Future<folly::Optional<std::shared_ptr<models::ProcessedDocument>>>
-    loadDocumentOption(const std::string &) override;
-
   folly::Future<bool>
     doesCentroidExist(const std::string &id) override;
 
@@ -193,9 +184,6 @@ class Persistence : public PersistenceIf {
 
   folly::Future<folly::Try<std::shared_ptr<models::Centroid>>>
     loadCentroid(const std::string &id) override;
-
-  folly::Future<folly::Optional<std::shared_ptr<models::Centroid>>>
-    loadCentroidOption(const std::string &id) override;
 
   folly::Future<folly::Optional<util::UniquePointer<models::Centroid>>>
     loadCentroidUniqueOption(const std::string &id) override;

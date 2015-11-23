@@ -416,7 +416,7 @@ TEST(RelevanceServer, TestCreateDocument) {
   ).get();
   EXPECT_TRUE(response.hasValue());
   string docId = *response.value();
-  auto persisted = ctx.persistence->loadDocumentOption(docId).get();
+  auto persisted = ctx.persistence->loadDocument(docId).get();
   EXPECT_TRUE(persisted.hasValue());
   EXPECT_EQ(docId, persisted.value()->id);
 }
@@ -430,7 +430,7 @@ TEST(RelevanceServer, TestCreateDocumentWithID) {
   ).get();
   EXPECT_TRUE(response.hasValue());
   EXPECT_EQ("doc-id", *response.value());
-  auto persisted = ctx.persistence->loadDocumentOption("doc-id").get();
+  auto persisted = ctx.persistence->loadDocument("doc-id").get();
   EXPECT_TRUE(persisted.hasValue());
   EXPECT_EQ("doc-id", persisted.value()->id);
 }
@@ -457,7 +457,7 @@ TEST(RelevanceServer, TestCreateCentroid) {
   auto response = ctx.server->createCentroid(std::move(id)).get();
   EXPECT_TRUE(response.hasValue());
   EXPECT_TRUE(response.value());
-  auto persisted = ctx.persistence->loadCentroidOption("some-centroid").get();
+  auto persisted = ctx.persistence->loadCentroid("some-centroid").get();
   EXPECT_TRUE(persisted.hasValue());
   EXPECT_EQ("some-centroid", persisted.value()->id);
 }

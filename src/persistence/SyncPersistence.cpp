@@ -334,46 +334,18 @@ vector<string> SyncPersistence::listDocumentRangeFromOffset(
   return docIds;
 }
 
-
-Optional<ProcessedDocument *> SyncPersistence::loadDocumentRaw(
-    const string &docId) {
-  Optional<ProcessedDocument *> result;
-  auto key = SyncPersistence::getDocumentKey(docId);
-  string serialized;
-  if (!rockHandle_->get(key, serialized)) {
-    return result;
-  }
-  auto processed = new ProcessedDocument("");
-  serialization::binaryDeserialize(serialized, processed);
-  result.assign(processed);
-  return result;
-}
-
-
 Try<shared_ptr<ProcessedDocument>> SyncPersistence::loadDocument(
     const string &docId) {
-  auto loadedOpt = loadDocumentRaw(docId);
-  if (loadedOpt.hasValue()) {
+  string key = SyncPersistence::getDocumentKey(docId);
+  string serialized;
+  if (!rockHandle_->get(key, serialized)) {
     return Try<shared_ptr<ProcessedDocument>>(
-      shared_ptr<ProcessedDocument>(loadedOpt.value())
+      make_exception_wrapper<EDocumentDoesNotExist>()
     );
   }
-  return Try<shared_ptr<ProcessedDocument>>(
-    make_exception_wrapper<EDocumentDoesNotExist>()
-  );
-}
-
-
-Optional<shared_ptr<ProcessedDocument>> SyncPersistence::loadDocumentOption(
-    const string &docId) {
-  Optional<shared_ptr<ProcessedDocument>> result;
-  auto loadedOpt = loadDocumentRaw(docId);
-  if (loadedOpt.hasValue()) {
-    result.assign(
-      shared_ptr<ProcessedDocument>(loadedOpt.value())
-    );
-  }
-  return result;
+  auto processed = std::make_shared<ProcessedDocument>();
+  serialization::binaryDeserialize(serialized, processed.get());
+  return Try<shared_ptr<ProcessedDocument>>(std::move(processed));
 }
 
 
@@ -435,55 +407,32 @@ Try<bool> SyncPersistence::saveCentroid(const string &id,
   return saveCentroid(id, centroid.get());
 }
 
-
-Optional<Centroid *> SyncPersistence::loadCentroidRaw(
-    const string &id) {
-  Optional<Centroid *> result;
-  string serialized;
-  auto key = SyncPersistence::getCentroidKey(id);
-  if (rockHandle_->get(key, serialized)) {
-    auto centroidRes = new Centroid;
-    serialization::binaryDeserialize(serialized, centroidRes);
-    result.assign(centroidRes);
-  }
-  return result;
-}
-
 Try<shared_ptr<Centroid>> SyncPersistence::loadCentroid(
     const string &id) {
-  auto loadedRaw = loadCentroidRaw(id);
-  if (!loadedRaw.hasValue()) {
+  string serialized;
+  string key = SyncPersistence::getCentroidKey(id);
+  if (!rockHandle_->get(key, serialized)) {
     return Try<shared_ptr<Centroid>>(
       make_exception_wrapper<ECentroidDoesNotExist>()
     );
   }
-  return Try<shared_ptr<Centroid>>(
-    shared_ptr<Centroid>(loadedRaw.value())
-  );
-}
-
-Optional<shared_ptr<Centroid>> SyncPersistence::loadCentroidOption(
-    const string &id) {
-  Optional<shared_ptr<Centroid>> result;
-  auto loadedRaw = loadCentroidRaw(id);
-  if (loadedRaw.hasValue()) {
-    result.assign(
-      shared_ptr<Centroid>(loadedRaw.value())
-    );
-  }
-  return result;
+  auto centroidRes = std::make_shared<Centroid>();
+  serialization::binaryDeserialize(serialized, centroidRes.get());
+  return Try<shared_ptr<Centroid>>(centroidRes);
 }
 
 Optional<util::UniquePointer<Centroid>> SyncPersistence::loadCentroidUniqueOption(
     const string &id) {
+  string serialized;
+  string key = SyncPersistence::getCentroidKey(id);
   Optional<util::UniquePointer<Centroid>> result;
-  auto loadedRaw = loadCentroidRaw(id);
-  if (loadedRaw.hasValue()) {
-    result.assign(
-      std::move(util::UniquePointer<Centroid>(loadedRaw.value()))
-    );
+  if (!rockHandle_->get(key, serialized)) {
+    return std::move(result);
   }
-  return result;
+  util::UniquePointer<Centroid> outPtr(new Centroid);
+  serialization::binaryDeserialize(serialized, outPtr.get());
+  result.assign(std::move(outPtr));
+  return std::move(result);
 }
 
 

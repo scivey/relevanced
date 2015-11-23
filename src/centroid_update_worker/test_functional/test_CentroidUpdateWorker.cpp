@@ -100,7 +100,7 @@ TEST(CentroidUpdateWorker, Simple) {
   ctx.persistence->addDocumentToCentroid("some-centroid", "doc2").get();
   ctx.updateWorker->update("some-centroid", chrono::milliseconds(1)).get();
 
-  auto persisted = ctx.persistence->loadCentroidOption("some-centroid").get();
+  auto persisted = ctx.persistence->loadCentroid("some-centroid").get();
   EXPECT_TRUE(persisted.hasValue());
   auto result = persisted.value();
   EXPECT_EQ("some-centroid", result->id);
@@ -132,7 +132,7 @@ TEST(CentroidUpdateWorker, JoinUpdateSimple) {
   ctx.persistence->addDocumentToCentroid("some-centroid", "doc2").get();
   ctx.updateWorker->joinUpdate("some-centroid").get();
 
-  auto persisted = ctx.persistence->loadCentroidOption("some-centroid").get();
+  auto persisted = ctx.persistence->loadCentroid("some-centroid").get();
   EXPECT_TRUE(persisted.hasValue());
   auto result = persisted.value();
   EXPECT_EQ("some-centroid", result->id);
@@ -168,7 +168,7 @@ TEST(CentroidUpdateWorker, JoinUpdateAlreadyInProgress) {
   EXPECT_TRUE(updateResult.hasValue());
   EXPECT_TRUE(joinResult.hasValue());
 
-  auto persisted = ctx.persistence->loadCentroidOption("some-centroid").get();
+  auto persisted = ctx.persistence->loadCentroid("some-centroid").get();
   EXPECT_TRUE(persisted.hasValue());
   auto result = persisted.value();
   EXPECT_EQ("some-centroid", result->id);

@@ -42,9 +42,6 @@ class SyncPersistenceIf {
   virtual folly::Try<std::shared_ptr<models::ProcessedDocument>>
     loadDocument(const std::string &) = 0;
 
-  virtual folly::Optional<std::shared_ptr<models::ProcessedDocument>>
-    loadDocumentOption(const std::string &) = 0;
-
   virtual bool
     doesCentroidExist(const std::string &id) = 0;
 
@@ -59,9 +56,6 @@ class SyncPersistenceIf {
 
   virtual folly::Try<std::shared_ptr<models::Centroid>>
     loadCentroid(const std::string &id) = 0;
-
-  virtual folly::Optional<std::shared_ptr<models::Centroid>>
-    loadCentroidOption(const std::string &id) = 0;
 
   virtual folly::Optional<util::UniquePointer<models::Centroid>>
     loadCentroidUniqueOption(const std::string &id) = 0;
@@ -136,12 +130,6 @@ class SyncPersistence : public SyncPersistenceIf {
  protected:
   std::shared_ptr<util::ClockIf> clock_;
   util::UniquePointer<RockHandleIf> rockHandle_;
-
-  folly::Optional<models::ProcessedDocument*>
-    loadDocumentRaw(const std::string &id);
-
-  folly::Optional<models::Centroid*>
-    loadCentroidRaw(const std::string &id);
 
   std::vector<std::string>
     listAllDocumentsForCentroidRaw(const std::string &);
@@ -247,9 +235,6 @@ class SyncPersistence : public SyncPersistenceIf {
   folly::Try<std::shared_ptr<models::ProcessedDocument>>
     loadDocument(const std::string&) override;
 
-  folly::Optional<std::shared_ptr<models::ProcessedDocument>>
-    loadDocumentOption(const std::string&) override;
-
   bool doesCentroidExist(const std::string &id) override;
 
   folly::Try<bool>
@@ -269,9 +254,6 @@ class SyncPersistence : public SyncPersistenceIf {
 
   folly::Try<std::shared_ptr<models::Centroid>>
     loadCentroid(const std::string &id) override;
-
-  folly::Optional<std::shared_ptr<models::Centroid>>
-    loadCentroidOption(const std::string &id) override;
 
   folly::Optional<util::UniquePointer<models::Centroid>>
     loadCentroidUniqueOption(const std::string &id) override;

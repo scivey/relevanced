@@ -4,7 +4,7 @@
 #include <vector>
 #include <folly/Format.h>
 #include "libstemmer.h"
-#include "stemmer/ThreadSafeUtf8Stemmer.h"
+#include "stemmer/ThreadSafeStemmerManager.h"
 #include "stopwords/StopwordFilter.h"
 #include "document_processing_worker/DocumentProcessor.h"
 #include "persistence/InMemoryRockHandle.h"
@@ -28,10 +28,13 @@ using namespace std;
 
 void check() {
   InMemoryRockHandle rockHandle {"foo"};
+  shared_ptr<ClockIf> clockPtr(
+    new Clock
+  );
   UniquePointer<RockHandleIf> rockPtr(
     &rockHandle, NonDeleter<RockHandleIf>()
   );
-  SyncPersistence syncDb(std::move(rockPtr));
+  SyncPersistence syncDb(clockPtr, std::move(rockPtr));
   for (size_t i = 0; i < 1000; i++) {
     auto id = folly::sformat("doc-{}", i);
     ProcessedDocument pdoc(
