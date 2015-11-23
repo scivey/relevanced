@@ -205,6 +205,10 @@ set(FUNC_TEST_SOURCES
     "centroid_update_worker/test_functional/test_CentroidUpdateWorker.cpp"
     "similarity_score_worker/test_functional/test_SimilarityScoreWorker.cpp"
     "server/test_functional/test_RelevanceServer.cpp"
+    "server/test_functional/test_RelevanceServer_centroid_document_actions.cpp"
+    "server/test_functional/test_RelevanceServer_get_similarity.cpp"
+    "server/test_functional/test_RelevanceServer_centroid_crud.cpp"
+    "server/test_functional/test_RelevanceServer_document_crud.cpp"
     "testing/runTests.cpp"
 )
 add_executable(func_test_runner ${FUNC_TEST_SOURCES})

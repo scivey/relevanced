@@ -68,6 +68,11 @@ struct GetCentroidMetadataResponse {
     1: required CentroidMetadataDTO metadata;
 }
 
+struct CentroidSimilarityMatrix {
+    1: required list<string> centroidIds;
+    2: required list<list<double>> scores;
+}
+
 struct MultiSimilarityResponse {
     1: required map<string, double> scores;
 }
@@ -232,7 +237,7 @@ service Relevanced {
     double getTextSimilarity(1: string centroidId, 2: string text, 3: Language lang) throws (1: ECentroidDoesNotExist err),
     MultiSimilarityResponse multiGetTextSimilarity(1: list<string> centroidIds, 2: string text, 3: Language lang) throws (1: ECentroidDoesNotExist err),
     double getCentroidSimilarity(1: string centroid1Id, 2: string centroid2Id) throws (1: ECentroidDoesNotExist err),
-
+    CentroidSimilarityMatrix getCentroidSimilarityMatrix(1: list<string> centroidIds) throws (1: ECentroidDoesNotExist err),
     CreateDocumentResponse createDocument(1: string text, 2: Language language),
     CreateDocumentResponse createDocumentWithID(1: string id, 2: string text, 3: Language language) throws (1: EDocumentAlreadyExists err),
     DeleteDocumentResponse deleteDocument(1: DeleteDocumentRequest request) throws (1: EDocumentDoesNotExist err),
