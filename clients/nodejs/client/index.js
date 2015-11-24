@@ -55,13 +55,17 @@ var CLIENT_METHODS = [
     'createDocument',
     'createDocumentWithID',
     'deleteDocument',
+    'multiDeleteDocuments',
     'getDocumentMetadata',
+    'deleteCentroid',
+    'multiDeleteCentroids',
     'createCentroid',
     'multiCreateCentroids',
     'listAllDocumentsForCentroid',
-    'addDocumentToCentroid',
-    'removeDocumentFromCentroid',
+    'addDocumentsToCentroid',
+    'removeDocumentsFromCentroid',
     'joinCentroid',
+    'multiJoinCentroids',
     'listAllCentroids',
     'listAllDocuments',
     'listUnusedDocuments'
@@ -100,7 +104,7 @@ _.each(CLIENT_METHODS, function(methodName) {
 
 (function() {
     var original = RelevancedClient.prototype.createDocumentWithID;
-    RelevancedClient.prototype.createDocumentWithId = function(id, text, lang) {
+    RelevancedClient.prototype.createDocumentWithID = function(id, text, lang) {
         if (!_.isNumber(lang)) {
             lang = genTypes.Language.EN;
         }
@@ -157,9 +161,115 @@ _.each(CLIENT_METHODS, function(methodName) {
         if (!_.isBoolean(ignoreExisting)) {
             ignoreExisting = false;
         }
-        var request = new genTypes.CreateCentroidRequest;
+        var request = new genTypes.MultiCreateCentroidsRequest;
         request.ids = ids;
         request.ignoreExisting = ignoreExisting;
+        return original.apply(this, [request]);
+    };
+})();
+
+(function() {
+    var original = RelevancedClient.prototype.deleteCentroid;
+    RelevancedClient.prototype.deleteCentroid = function(id, ignoreMissing) {
+        if (!_.isBoolean(ignoreMissing)) {
+            ignoreMissing = false;
+        }
+        var request = new genTypes.DeleteCentroidRequest;
+        request.id = id;
+        request.ignoreMissing = ignoreMissing;
+        return original.apply(this, [request]);
+    };
+})();
+
+(function() {
+    var original = RelevancedClient.prototype.multiDeleteCentroids;
+    RelevancedClient.prototype.multiDeleteCentroids = function(ids, ignoreMissing) {
+        if (!_.isBoolean(ignoreMissing)) {
+            ignoreMissing = false;
+        }
+        var request = new genTypes.MultiDeleteCentroidsRequest;
+        request.ids = ids;
+        request.ignoreMissing = ignoreMissing;
+        return original.apply(this, [request]);
+    };
+})();
+
+(function() {
+    var original = RelevancedClient.prototype.addDocumentsToCentroid;
+    RelevancedClient.prototype.addDocumentsToCentroid = function(centroidId, documentIds, ignoreAlreadyInCentroid) {
+        if (!_.isBoolean(ignoreAlreadyInCentroid)) {
+            ignoreAlreadyInCentroid = false;
+        }
+        var request = new genTypes.AddDocumentsToCentroidRequest;
+        request.centroidId = centroidId;
+        request.documentIds = documentIds;
+        request.ignoreAlreadyInCentroid = ignoreAlreadyInCentroid;
+        return original.apply(this, [request]);
+    };
+})();
+
+(function() {
+    var original = RelevancedClient.prototype.removeDocumentsFromCentroid;
+    RelevancedClient.prototype.removeDocumentsFromCentroid = function(centroidId, documentIds, ignoreNotInCentroid) {
+        if (!_.isBoolean(ignoreNotInCentroid)) {
+            ignoreNotInCentroid = false;
+        }
+        var request = new genTypes.RemoveDocumentsFromCentroidRequest;
+        request.centroidId = centroidId;
+        request.documentIds = documentIds;
+        request.ignoreNotInCentroid = ignoreNotInCentroid;
+        return original.apply(this, [request]);
+    };
+})();
+
+(function() {
+    var original = RelevancedClient.prototype.deleteDocument;
+    RelevancedClient.prototype.deleteDocument = function(documentId, ignoreMissing) {
+        if (!_.isBoolean(ignoreMissing)) {
+            ignoreMissing = false;
+        }
+        var request = new genTypes.DeleteDocumentRequest;
+        request.id = documentId;
+        request.ignoreMissing = ignoreMissing;
+        return original.apply(this, [request]);
+    };
+})();
+
+(function() {
+    var original = RelevancedClient.prototype.multiDeleteDocuments;
+    RelevancedClient.prototype.multiDeleteDocuments = function(documentIds, ignoreMissing) {
+        if (!_.isBoolean(ignoreMissing)) {
+            ignoreMissing = false;
+        }
+        var request = new genTypes.MultiDeleteDocumentsRequest;
+        request.ids = documentIds;
+        request.ignoreMissing = ignoreMissing;
+        return original.apply(this, [request]);
+    };
+})();
+
+(function() {
+    var original = RelevancedClient.prototype.joinCentroid;
+    RelevancedClient.prototype.joinCentroid = function(centroidId, ignoreMissing) {
+        if (!_.isBoolean(ignoreMissing)) {
+            ignoreMissing = false;
+        }
+        var request = new genTypes.JoinCentroidRequest;
+        request.id = centroidId;
+        request.ignoreMissing = ignoreMissing;
+        return original.apply(this, [request]);
+    };
+})();
+
+(function() {
+    var original = RelevancedClient.prototype.multiJoinCentroids;
+    RelevancedClient.prototype.multiJoinCentroids = function(centroidIds, ignoreMissing) {
+        if (!_.isBoolean(ignoreMissing)) {
+            ignoreMissing = false;
+        }
+        var request = new genTypes.MultiJoinCentroidsRequest;
+        request.ids = centroidIds;
+        request.ignoreMissing = ignoreMissing;
         return original.apply(this, [request]);
     };
 })();

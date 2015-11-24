@@ -17,5 +17,9 @@
     "bluebird": "^2.10.1",
     "lodash": "^3.10.1",
     "thrift": "^0.9.2"
+  },
+  "devDependencies": {
+    "chai": "^3.4.1",
+    "mocha": "^2.3.4"
   }
 }

@@ -86,59 +86,6 @@ Future<Try<double>> RelevanceServer::getDocumentSimilarity(
     });
 }
 
-Future<Try<unique_ptr<CentroidSimilarityMatrix>>> RelevanceServer::getCentroidSimilarityMatrix(
-  unique_ptr<vector<string>> centroidIds) {
-  auto cIds = std::make_shared<vector<string>>(*centroidIds);
-  auto scoreMap = std::make_shared<unordered_map<pair<size_t, size_t>, size_t>>;
-  vector<Future<Try<double>>> tasks;
-  for (size_t i = 0; i < centroidIds->size(); i++) {
-    for (size_t j = 0; j < centroidIds->size(); j++) {
-      if (i == j) {
-        continue;
-      }
-      auto asPair = make_pair(i, j);
-      auto existing = scoreMap->find(asPair);
-      if (existing == scoreMap->end()) {
-        auto index = tasks.size();
-        tasks.push_back(getCentroidSimilarity(
-          folly::make_unique<string>(centroidIds->at(i)),
-          folly::make_unique<string>(centroidIds->at(j))
-        ));
-        scoreMap->insert(make_pair(asPair, index));
-        auto altPair = make_pair(j, i);
-        scoreMap->insert(make_pair(altPair, index));
-      }
-    }
-  }
-  collect(tasks)
-    .then([cIds, scoreMap](vector<Try<double>> results) {
-      auto response = folly::make_unique<CentroidSimilarityMatrix>();
-      response->scores.reserve(cIds->size());
-      for (size_t i = 0; i < cIds->size(); i++) {
-        vector<double> row;
-        row.reserve(cIds->size());
-        for (size_t j = 0; j < cIds->size(); j++) {
-          if (i == j) {
-            row.push_back(0.0);
-          } else {
-            auto idx = scoreMap->find(make_pair(i, j))->second;
-            auto score = results.at(idx);
-            if (score.hasException()) {
-              return Try<unique_ptr<CentroidSimilarityMatrix>>(
-                score.exception()
-              );
-            }
-            row.push_back(score.value());
-          }
-        }
-        response->scores.push_back(row);
-      }
-      return Try<unique_ptr<CentroidSimilarityMatrix>>(
-        std::move(response)
-      );
-    });
-}
-
 Future<Try<double>> RelevanceServer::getCentroidSimilarity(
     unique_ptr<string> centroid1Id, unique_ptr<string> centroid2Id) {
   return scoreWorker_->getCentroidSimilarity(

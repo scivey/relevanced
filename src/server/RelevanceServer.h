@@ -271,11 +271,6 @@ class RelevanceServer : public RelevanceServerIf {
       std::unique_ptr<std::string> centroid2Id
     ) override;
 
-  folly::Future<folly::Try<std::unique_ptr<thrift_protocol::CentroidSimilarityMatrix>>>
-    getCentroidSimilarityMatrix(
-      std::unique_ptr<std::vector<std::string>> centroidIds
-    );
-
   folly::Future<folly::Try<std::unique_ptr<std::string>>>
     createDocument(
       std::unique_ptr<std::string> text,
