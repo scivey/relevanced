@@ -1,5 +1,5 @@
 namespace cpp2 relevanced.thrift_protocol
-namespace java org.relevanced.client.gen_thrift_protocol
+namespace java org.relevanced.client.protocol
 
 cpp_include "unordered_map"
 
@@ -183,7 +183,7 @@ struct MultiJoinCentroidsResponse {
 
 struct JoinCentroidRequest {
     1: required string id;
-    2: required bool ignoreMissing;
+    2: optional bool ignoreMissing;
 }
 
 struct JoinCentroidResponse {

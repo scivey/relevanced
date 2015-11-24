@@ -23,10 +23,10 @@ thrift-node:
 	mv ./build/thrift/gen-nodejs ./clients/nodejs/client/
 
 thrift-java:
-	rm -rf ./clients/java/client/src/main/java/org/relevanced/client/gen_thrift_protocol
+	rm -rf ./clients/java/client/src/main/java/org/relevanced/client/protocol
 	mkdir -p build/thrift && rm -rf build/thrift/gen-java
 	thrift-0.9 --gen java -o build/thrift src/RelevancedProtocol.thrift
-	mv ./build/thrift/gen-java/org/relevanced/client/gen_thrift_protocol ./clients/java/client/src/main/java/org/relevanced/client/
+	mv ./build/thrift/gen-java/org/relevanced/client/protocol ./clients/java/client/src/main/java/org/relevanced/client/
 
 thrift-all: thrift thrift-py thrift-node thrift-java
 
