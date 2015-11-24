@@ -1,7 +1,7 @@
 from __future__ import print_function
 
 from .common import IsolatedTestCase
-from relevanced_client import (
+from .. import (
     EDocumentDoesNotExist,
     ECentroidDoesNotExist,
     EDocumentAlreadyInCentroid,
@@ -26,8 +26,7 @@ class TestCentroidDocumentOperations(IsolatedTestCase):
 
         self.client.create_document_with_id('doc-2', 'doc 2 text')
         self.client.create_document_with_id('doc-3', 'doc 3 text')
-        self.client.add_document_to_centroid('centroid-1', 'doc-2')
-        self.client.add_document_to_centroid('centroid-1', 'doc-3')
+        self.client.add_documents_to_centroid('centroid-1', ['doc-2', 'doc-3'])
 
         documents = self.client.list_all_documents_for_centroid('centroid-1').documents
         self.assertEqual(set(['doc-1', 'doc-2', 'doc-3']), set(documents))
@@ -55,6 +54,14 @@ class TestCentroidDocumentOperations(IsolatedTestCase):
         with self.assertRaises(EDocumentAlreadyInCentroid):
             self.client.add_document_to_centroid('centroid-1', 'doc-1')
 
+    def test_add_document_already_in_centroid_ignore(self):
+        self.client.create_centroid('centroid-1')
+        self.client.create_document_with_id('doc-1', 'some text')
+        self.client.add_document_to_centroid('centroid-1', 'doc-1')
+        self.client.add_document_to_centroid('centroid-1', 'doc-1',
+            ignore_already_in_centroid=True
+        )
+
     def test_remove_document_not_in_centroid(self):
         self.client.create_centroid('centroid-1')
         self.client.create_document_with_id('doc-1', 'some text')
@@ -62,6 +69,15 @@ class TestCentroidDocumentOperations(IsolatedTestCase):
         self.client.add_document_to_centroid('centroid-1', 'doc-1')
         with self.assertRaises(EDocumentNotInCentroid):
             self.client.remove_document_from_centroid('centroid-1', 'doc-2')
+
+    def test_remove_document_not_in_centroid_ignore(self):
+        self.client.create_centroid('centroid-1')
+        self.client.create_document_with_id('doc-1', 'some text')
+        self.client.create_document_with_id('doc-2', 'more text')
+        self.client.add_document_to_centroid('centroid-1', 'doc-1')
+        self.client.remove_document_from_centroid('centroid-1', 'doc-2',
+            ignore_not_in_centroid=True
+        )
 
     def test_add_document_missing_document_and_centroid(self):
         with self.assertRaises(ECentroidDoesNotExist):

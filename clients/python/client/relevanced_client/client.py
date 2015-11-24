@@ -6,6 +6,9 @@ from relevanced_client.gen_py.RelevancedProtocol import Relevanced
 from relevanced_client.gen_py.RelevancedProtocol.ttypes import (
     CreateCentroidRequest,
     DeleteDocumentRequest,
+    DeleteCentroidRequest,
+    MultiDeleteCentroidsRequest,
+    MultiDeleteDocumentsRequest,
     MultiCreateCentroidsRequest,
     JoinCentroidRequest,
     MultiJoinCentroidsRequest,
@@ -256,7 +259,13 @@ class Client(object):
         request.id = document_id
         return self.thrift_client.deleteDocument(request)
 
-    def delete_centroid(self, centroid_id):
+    def multi_delete_documents(self, document_ids, ignore_missing=False):
+        request = MultiDeleteDocumentsRequest()
+        request.ids = document_ids
+        request.ignoreMissing = ignore_missing
+        return self.thrift_client.multiDeleteDocuments(request)
+
+    def delete_centroid(self, centroid_id, ignore_missing=False):
         """
         Delete the centroid with id = `centroid_id`.
         This is not reversible.
@@ -271,7 +280,17 @@ class Client(object):
         If no centroid exists with the given ID, raises
         `ECentroidDoesNotExist`.
         """
-        return self.thrift_client.deleteCentroid(centroid_id)
+        request = DeleteCentroidRequest()
+        request.id = centroid_id
+        request.ignoreMissing = ignore_missing
+
+        return self.thrift_client.deleteCentroid(request)
+
+    def multi_delete_centroids(self, centroid_ids, ignore_missing=False):
+        request = MultiDeleteCentroidsRequest()
+        request.ids = centroid_ids
+        request.ignoreMissing = ignore_missing
+        return self.thrift_client.multiDeleteCentroids(request)
 
     def join_centroid(self, centroid_id, ignore_missing=False):
         """

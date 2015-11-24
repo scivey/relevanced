@@ -1,7 +1,7 @@
 from __future__ import print_function
 
 from .common import IsolatedTestCase
-from relevanced_client import (
+from .. import (
     EDocumentDoesNotExist,
     EDocumentAlreadyExists
 )
