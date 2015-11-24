@@ -109,7 +109,7 @@ struct MultiDeleteDocumentsResponse {
 
 struct MultiDeleteCentroidsRequest {
     1: required list<string> ids;
-    2: required bool ignoreMissing;
+    2: optional bool ignoreMissing;
 }
 
 struct MultiDeleteCentroidsResponse {
@@ -122,12 +122,12 @@ struct CreateCentroidResponse {
 
 struct CreateCentroidRequest {
     1: required string id;
-    2: required bool ignoreExisting;
+    2: optional bool ignoreExisting;
 }
 
 struct MultiCreateCentroidsRequest {
     1: required list<string> ids;
-    2: required bool ignoreExisting;
+    2: optional bool ignoreExisting;
 }
 
 struct MultiCreateCentroidsResponse {
@@ -136,7 +136,7 @@ struct MultiCreateCentroidsResponse {
 
 struct DeleteCentroidRequest {
     1: required string id;
-    2: required bool ignoreMissing;
+    2: optional bool ignoreMissing;
 }
 
 struct DeleteCentroidResponse {
@@ -173,7 +173,7 @@ struct RemoveDocumentsFromCentroidResponse {
 
 struct MultiJoinCentroidsRequest {
     1: required list<string> ids;
-    2: required bool ignoreMissing;
+    2: optional bool ignoreMissing;
 }
 
 struct MultiJoinCentroidsResponse {
