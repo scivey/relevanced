@@ -11,13 +11,7 @@ You may need to run this command with `sudo`, depending on how and where you're 
 
 ## API
 
-The Python client API has the same commands described in the [language-agnostic command overview](../commands.md), but they are converted to snake-case to be more Pythonic.  For example:
-
-```
-    getTextSimilarity(centroid, text) -> get_text_similarity(centroid, text)
-    createCentroid(id)                -> create_centroid(id)
-    listAllCentroids()                -> list_all_centroids()
-```
+See the [detailed Python API documentation here](../api/python_api.md).
 
 Basic client use:
 ```python

@@ -22,9 +22,13 @@ pages:
   - Configuration: installation/configuration.md
   - Building from Source: installation/building-from-source.md
 - Commands: commands.md
+- API:
+  - Python: api/python_api.md
+  - Java: api/java_api.md
+  - Javascript: api/javascript_api.md
 - Clients:
-  - Javascript: clients/javascript.md
   - Python: clients/python.md
+  - Javascript: clients/javascript.md
   - Ruby: clients/ruby.md
   - JVM: clients/jvm.md
 

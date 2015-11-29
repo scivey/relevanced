@@ -274,6 +274,17 @@ _.each(CLIENT_METHODS, function(methodName) {
     };
 })();
 
+_.each([
+    'Language',
+    'ECentroidDoesNotExist',
+    'ECentroidAlreadyExists',
+    'EDocumentDoesNotExist',
+    'EDocumentAlreadyExists',
+    'EDocumentAlreadyInCentroid',
+    'EDocumentNotInCentroid'
+], function(prop) {
+    RelevancedClient[prop] = genTypes[prop];
+});
 
 module.exports = {
     RelevancedClient: RelevancedClient,
