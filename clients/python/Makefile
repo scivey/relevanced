@@ -1,4 +1,10 @@
 lint:
-	pyflakes client/relevanced_client/client.py client/relevanced_client/exceptions.py
+	pyflakes client/relevanced_client/client.py
 
-.PHONY: lint
+test:
+	cd client && nosetests relevanced_client/test
+
+publish:
+	cd client && python setup.py register -r pypi && python setup.py sdist upload -r pypi
+
+.PHONY: lint test publish

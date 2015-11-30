@@ -1,6 +1,3 @@
-clean:
-	rm -f src/*.o
-
 thrift:
 	python -m thrift_compiler.main --gen cpp2 -o src src/RelevancedProtocol.thrift
 
@@ -28,7 +25,7 @@ thrift-java:
 	thrift-0.9 --gen java -o build/thrift src/RelevancedProtocol.thrift
 	mv ./build/thrift/gen-java/org/relevanced/client/protocol ./clients/java/client/src/main/java/org/relevanced/client/
 
-thrift-all: thrift thrift-py thrift-node thrift-java
+thrift-all: thrift thrift-py thrift-node thrift-java thrift-rb
 
 build-docker-standalone:
 	rm -f scripts/packaging/containers/standalone_server/data/*
@@ -131,30 +128,8 @@ deb-package-remote:
 docker-sh:
 	sudo docker run --rm -t -i relevanced/relevanced /bin/bash
 
-smoketest-node:
-	node ./clients/nodejs/client/test/functionalSmoketest.js
-
 smoketest-java:
 	cd ./clients/java/client && sbt run
-
-publish-node:
-	cd ./clients/nodejs/client/ && npm publish
-
-publish-python:
-	cd ./clients/python/client && python setup.py register -r pypi && python setup.py sdist upload -r pypi
-
-publish-ruby:
-	rm -f ./clients/ruby/client/*.gem
-	cd ./clients/ruby/client && gem build relevanced_client.gemspec
-	mv ./clients/ruby/client/*.gem ./clients/ruby/client/relevanced_client.gem
-	gem push ./clients/ruby/client/relevanced_client.gem
-
-publish-jvm:
-	cd ./clients/java/client && sbt publishSigned
-
-publish-clients: publish-node publish-python publish-ruby publish-jvm
-
-.PHONY: publish-node publish-python publish-ruby publish-jvm publish-clients
 
 format-all:
 	find src  \( -name "*.h" -o -name "*.cpp" -o -name "*.mm" \) -exec clang-format -i {} +
@@ -162,3 +137,22 @@ format-all:
 deps:
 	cd external/libstemmer && make libstemmer.o -j4
 
+TEST_DATA_DIR=$(WORKDIR)/build/test_data
+
+run-server:
+	mkdir -p $(TEST_DATA_DIR) && rm -rf $(TEST_DATA_DIR)/*
+	cd build/bin && cmake ../../ && make relevanced -j4
+	cd build/bin && ./src/relevanced --data_dir=$(TEST_DATA_DIR)
+
+test-clients:
+	$(MAKE) -C clients/python test
+	$(MAKE) -C clients/nodejs test
+	$(MAKE) -C clients/ruby test
+
+publish-clients: test-clients
+	$(MAKE) -C clients/python publish
+	$(MAKE) -C clients/nodejs publish
+	$(MAKE) -C clients/ruby publish
+	$(MAKE) -C clients/java publish
+
+.PHONY: test-clients publish-clients
