@@ -10,7 +10,7 @@
 <h3><strong>relevanced</strong> can process text in English, Italian, German, French, Spanish and Russian.  It is unicode-aware and uses UTF-8 for all internal string representations.
 </h3>
 
-<h3>It can handle massive document collections with limited memory, due to an an out-of-core model retraining approach.</h3>
+<h3>It uses an out-of-core model retraining approach to handle massive document collections with limited memory.</h3>
 
 <h3>Clients are available for <a href="/clients/python">Python</a>, <a href="/clients/jvm">Java</a>, <a href="/clients/javascript">Javascript</a> and <a href="/clients/ruby">Ruby</a>.
 
