@@ -124,7 +124,7 @@ Raises `org.relevanced.client.protocol.EDocumentAlreadyExists` if a document wit
 ---
 ### `deleteDocument`
 
-`(String id)`
+`(String documentId)`
 
 `-> DeleteDocumentResponse(id: String)`
 
@@ -137,7 +137,7 @@ If the document is associated with any centroids, those associations are automat
 ---
 ### `createCentroid`
 
-`(String id)`
+`(String centroidId)`
 
 `-> CreateCentroidResponse(id: String)`
 
@@ -150,9 +150,9 @@ Raises `org.relevanced.client.protocol.ECentroidAlreadyExists` if a centroid wit
 ---
 ### `deleteCentroid`
 
-`(id)`
+`(String centroidId)`
 
-`-> DeleteCentroidResponse(id: string)`
+`-> DeleteCentroidResponse(id: String)`
 
 Deletes the centroid associated with the given ID.  The `id` property of the returned `DeleteCentroidResponse` contains the same ID.
 
@@ -162,14 +162,33 @@ If the centroid is associated with any documents, the related centroid->document
 
 Because documents are independent entities which can be added to many centroids, deleting a given centroid does *not* delete any of the documents it is associated with.  It only results in removal of any database entries linking them to the deleted centroid.
 
----
-### `addDocumentsToCentroid`
 
-`(String centroidId, List<String> documentIds, Boolean ignoreAlreadyInCentroid=False)`
+---
+### `addDocumentToCentroid`
+
+`(String centroidId, String documentId, Boolean ignoreAlreadyInCentroid=false)`
 
 `-> AddDocumentsToCentroidResponse`
 
-Associates documents with a centroid.
+Associates a single document with a centroid.
+
+Raises `org.relevanced.client.protocol.ECentroidDoesNotExist` if `centroidId` refers to a nonexistent centroid.
+
+Raises `org.relevanced.client.protocol.EDocumentDoesNotExist` if `documentId` refers to a nonexistent document.
+
+Raises `org.relevanced.client.protocol.EDocumentAlreadyInCentroid` if the document is already in the centroid, unless `ignoreAlreadyInCentroid` is `true`.
+
+If successful, the centroid is automatically recalculated after a cool-down interval.
+
+
+---
+### `addDocumentsToCentroid`
+
+`(String centroidId, List<String> documentIds, Boolean ignoreAlreadyInCentroid=false)`
+
+`-> AddDocumentsToCentroidResponse`
+
+Associates multiple documents with a centroid.
 
 Raises `org.relevanced.client.protocol.ECentroidDoesNotExist` if `centroidId` refers to a nonexistent centroid.
 
@@ -179,10 +198,30 @@ Raises `org.relevanced.client.protocol.EDocumentAlreadyInCentroid` if any of the
 
 If successful, the centroid is automatically recalculated after a cool-down interval.
 
+
+---
+### `removeDocumentFromCentroid`
+
+`(String centroidId, String documentId, Boolean ignoreNotInCentroid=false)`
+
+`-> RemoveDocumentsFromCentroidResponse`
+
+Unassociates a single document from a centroid.
+
+Raises `org.relevanced.client.protocol.ECentroidDoesNotExist` if `centroidId` refers to a nonexistent centroid.
+
+Raises `org.relevanced.client.protocol.EDocumentDoesNotExist` if `documentId` refers to a nonexistent document.
+
+Raises `org.relevanced.client.protocol.EDocumentNotInCentroid` if the document is not currently in the centroid, unless `ignoreNotInCentroid` is `true`.
+
+If successful, the centroid is automatically recalculated after a cool-down interval.
+
+
+
 ---
 ### `removeDocumentsFromCentroid`
 
-`(String centroidId, List<String> documentIds, Boolean ignoreNotInCentroid=False)`
+`(String centroidId, List<String> documentIds, Boolean ignoreNotInCentroid=false)`
 
 `-> RemoveDocumentsFromCentroidResponse`
 
