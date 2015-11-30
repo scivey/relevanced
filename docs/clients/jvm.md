@@ -26,7 +26,7 @@ resolvers +=
   "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 
 libraryDependencies ++= Seq(
-   "org.relevanced" % "client" % "0.9.5-SNAPSHOT"
+   "org.relevanced" % "client" % "0.9.7-SNAPSHOT"
 )
 
 ```
