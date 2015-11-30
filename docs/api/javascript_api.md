@@ -6,6 +6,8 @@ All of the Javascript client's methods return ES6-style promises.
 
 ---
 
+## Similarity Scoring
+
 ### `getTextSimilarity`
 
 `(centroidId, text, language = RelevancedClient.Language.EN)`
@@ -86,24 +88,8 @@ Returns a future resolving to the score as a double.
 Resolves to a `RelevancedClient.ECentroidDoesNotExist` exception if either centroid is missing.
 
 ---
-### `joinCentroid`
 
-`(centroidId)`
-
-`-> future[JoinCentroidResponse(id: string, recalculated: bool)]`
-
-Ensures a centroid is up to date before proceeding.
-The server automatically recalculates centroids as documents are added and removed.  `joinCentroid` provides a way to synchronize with that process.  The specific behavior is:
-
-- If the centroid is up to date, returns immediately.
-- If an update job is currently in progress, returns once that job has completed.
-- If the centroid is not up to date and no job is executing (because of the cool-off period), immediately starts the update and returns once it is complete.
-
-The `recalculated` property of the returned `JoinCentroidResponse` indicates whether a recalculation was actually performed.
-
-Raises `RelevancedClient.ECentroidDoesNotExist` if `centroidId` refers to a nonexistent centroid.
-
----
+## Document CRUD
 ### `createDocument`
 
 `(text, language = RelevancedClient.Language.EN)`
@@ -130,7 +116,7 @@ Resolves to a `RelevancedClient.EDocumentAlreadyExists` exception if a document 
 ---
 ### `deleteDocument`
 
-`(id)`
+`(documentId)`
 
 `-> future[DeleteDocumentResponse(id: string)]`
 
@@ -141,9 +127,36 @@ Resolves to a `RelevancedClient.EDocumentDoesNotExist` exception if the document
 If the document is associated with any centroids, those associations are automatically invalidated.  Most of this invalidation work happens lazily during centroid recomputations.
 
 ---
+### `multiDeleteDocuments`
+
+`(documentIds, ignoreMissing=false)`
+
+`-> MultiDeleteDocumentsResponse(ids: list<string>)`
+
+Deletes multiple documents on the server.  See the `deleteDocument` command for details of document deletion.
+
+Resolves to a `RelevancedClient.EDocumentDoesNotExist` exception if any of the documents does not exist, unless `ignoreMissing` is `true.
+
+The `ids` property of the returned response object lists the IDs of the documents that were deleted.  If `ignoreMissing=true` was passed, this list will only include the documents that were really deleted (not missing).
+
+
+---
+### `listAllDocuments`
+
+`()`
+
+`-> future[ListDocumentsResponse(documents: list<string>)]`
+
+Lists the IDs of all documents existing on the server.
+
+This command has no error conditions.
+
+---
+
+## Centroid CRUD
 ### `createCentroid`
 
-`(id)`
+`(centroidId)`
 
 `-> future[CreateCentroidResponse(id: string)]`
 
@@ -154,9 +167,23 @@ The `id` property of the returned `CreateCentroidResponse` contains the same ID.
 Resolves to a `RelevancedClient.ECentroidAlreadyExists` exception if a centroid with the given ID already exists.
 
 ---
+### `multiCreateCentroids`
+
+`(centroidIds, ignoreExisting=false)`
+
+`-> MultiCreateCentroidsResponse(created: list<string>)`
+
+Created multiple new centroids on the server.
+
+Resolves to a `RelevancedClient.ECentroidAlreadyExists` exception if any of the centroids already exists, unless `ignoreExisting=true` was passed.
+
+The `created` property of the returned `MultiCreateCentroidsResponse` contains a list of IDs of the created centroids.  If `ignoreExisting=True` was passed, this list will only include the centroids that were really created (didn't already exist).
+
+
+---
 ### `deleteCentroid`
 
-`(id)`
+`(centroidId)`
 
 `-> future[DeleteCentroidResponse(id: string)]`
 
@@ -169,6 +196,30 @@ If the centroid is associated with any documents, the related centroid->document
 Because documents are independent entities which can be added to many centroids, deleting a given centroid does *not* delete any of the documents it is associated with.  It only results in removal of any database entries linking them to the deleted centroid.
 
 ---
+### `multiDeleteCentroids`
+`(centroidIds, ignoreMissing=false)`
+
+`-> MultiDeleteCentroidsResponse(ids: list<string>)`
+
+Deletes multiple centroids on the server.  See the `deleteCentroid` command for details of centroid deletion.
+
+Resolves to a `RelevancedClient.ECentroidDoesNotExist` exception if any of the centroids does not exist, unless `ignoreMissing=true` was passed.
+
+The `ids` property of the returned response object lists the IDs of the centroids that were deleted.  If `ignoreMissing=true` was passed, this list will only include the centroids that were really deleted (not missing).
+
+---
+### `listAllCentroids`
+
+`()`
+
+`-> future[ListCentroidsResponse(centroids: list<string>)]`
+
+Lists the IDs of all centroids existing on the server.
+
+This command has no error conditions.
+
+---
+## Centroid-Document CRUD
 ### `addDocumentsToCentroid`
 
 `(centroidId, documentIds, ignoreAlreadyInCentroid=false)`
@@ -202,25 +253,34 @@ Resolves to a `RelevancedClient.EDocumentNotInCentroid` exception if any of the 
 
 If successful, the centroid is automatically recalculated after a cool-down interval.
 
----
-### `listAllCentroids`
-
-`()`
-
-`-> future[ListCentroidsResponse(centroids: list<string>)]`
-
-Lists the IDs of all centroids existing on the server.
-
-This command has no error conditions.
 
 ---
-### `listAllDocuments`
 
-`()`
+## Synchronization
+### `joinCentroid`
 
-`-> future[ListDocumentsResponse(documents: list<string>)]`
+`(centroidId)`
 
-Lists the IDs of all documents existing on the server.
+`-> future[JoinCentroidResponse(id: string, recalculated: bool)]`
 
-This command has no error conditions.
+Ensures a centroid is up to date before proceeding.
+The server automatically recalculates centroids as documents are added and removed.  `joinCentroid` provides a way to synchronize with that process.  The specific behavior is:
 
+- If the centroid is up to date, returns immediately.
+- If an update job is currently in progress, returns once that job has completed.
+- If the centroid is not up to date and no job is executing (because of the cool-off period), immediately starts the update and returns once it is complete.
+
+The `recalculated` property of the returned `JoinCentroidResponse` indicates whether a recalculation was actually performed.
+
+Raises `RelevancedClient.ECentroidDoesNotExist` if `centroidId` refers to a nonexistent centroid.
+
+---
+### `multiJoinCentroids`
+
+`(centroidIds)`
+
+`-> future[MultiJoinCentroidsResponse(ids: list<string>, recalculated: list<bool>)]`
+
+Like `joinCentroid`, but runs against multiple centroids in a single request.
+
+Resolves to a `RelevancedClient.ECentroidDoesNotExist` exception if any of the `centroidIds` refers to a nonexistent centroid.
