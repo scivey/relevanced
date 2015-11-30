@@ -17,13 +17,16 @@ crossPaths := false
 // This forbids including Scala related libraries into the dependency
 autoScalaLibrary := false
 sourceDirectories in Compile += file("src")
-// mainClass in (Compile, run) := Some("org.relevanced.client.Main")
 
 // library dependencies. (org name) % (project name) % (version)
 libraryDependencies ++= Seq(
    "org.apache.thrift" % "libthrift" % "0.9.2",
-   "org.slf4j"         % "slf4j-jdk14" % "1.7.12"
+   "org.slf4j"         % "slf4j-jdk14" % "1.7.12",
+   "junit"             % "junit" % "4.12" % "test",
+   "com.novocode"      % "junit-interface" % "0.11" % "test"
 )
+
+testOptions += Tests.Argument(TestFrameworks.JUnit, "-q", "-v")
 
 publishTo := {
   val nexus = "https://oss.sonatype.org/"

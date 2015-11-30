@@ -21,6 +21,10 @@ import org.relevanced.client.protocol.RemoveDocumentsFromCentroidResponse;
 import org.relevanced.client.protocol.CreateCentroidRequest;
 import org.relevanced.client.protocol.CreateCentroidResponse;
 import org.relevanced.client.protocol.CreateDocumentResponse;
+import org.relevanced.client.protocol.DeleteCentroidRequest;
+import org.relevanced.client.protocol.DeleteCentroidResponse;
+import org.relevanced.client.protocol.DeleteDocumentRequest;
+import org.relevanced.client.protocol.DeleteDocumentResponse;
 import org.relevanced.client.protocol.MultiDeleteDocumentsRequest;
 import org.relevanced.client.protocol.MultiDeleteDocumentsResponse;
 import org.relevanced.client.protocol.JoinCentroidRequest;
@@ -60,6 +64,16 @@ public class RelevancedBlockingClient extends Relevanced.Client {
         return addDocumentsToCentroid(centroidId, docIds, false);
     }
 
+    public AddDocumentsToCentroidResponse addDocumentToCentroid(String centroidId, String documentId, Boolean ignoreAlreadyInCentroid) throws TException {
+        List<String> documentIds = new ArrayList<String>();
+        documentIds.add(documentId);
+        return addDocumentsToCentroid(centroidId, documentIds, ignoreAlreadyInCentroid);
+    }
+
+    public AddDocumentsToCentroidResponse addDocumentToCentroid(String centroidId, String documentId) throws TException {
+        return addDocumentToCentroid(centroidId, documentId, false);
+    }
+
     public CreateCentroidResponse createCentroid(String id, Boolean ignoreExisting) throws TException {
         CreateCentroidRequest request = new CreateCentroidRequest();
         request.id = id;
@@ -77,6 +91,28 @@ public class RelevancedBlockingClient extends Relevanced.Client {
 
     public CreateDocumentResponse createDocumentWithID(String id, String text) throws TException {
         return createDocumentWithID(id, text, Language.EN);
+    }
+
+    public DeleteCentroidResponse deleteCentroid(String id, Boolean ignoreMissing) throws TException {
+        DeleteCentroidRequest request = new DeleteCentroidRequest();
+        request.id = id;
+        request.ignoreMissing = ignoreMissing;
+        return deleteCentroid(request);
+    }
+
+    public DeleteCentroidResponse deleteCentroid(String id) throws TException {
+        return deleteCentroid(id, false);
+    }
+
+    public DeleteDocumentResponse deleteDocument(String id, Boolean ignoreMissing) throws TException {
+        DeleteDocumentRequest request = new DeleteDocumentRequest();
+        request.id = id;
+        request.ignoreMissing = ignoreMissing;
+        return deleteDocument(request);
+    }
+
+    public DeleteDocumentResponse deleteDocument(String id) throws TException {
+        return deleteDocument(id, false);
     }
 
     public double getTextSimilarity(String centroidId, String text) throws TException {
@@ -152,6 +188,16 @@ public class RelevancedBlockingClient extends Relevanced.Client {
 
     public RemoveDocumentsFromCentroidResponse removeDocumentsFromCentroid(String centroidId, List<String> docIds) throws TException {
         return removeDocumentsFromCentroid(centroidId, docIds, false);
+    }
+
+    public RemoveDocumentsFromCentroidResponse removeDocumentFromCentroid(String centroidId, String documentId, Boolean ignoreNotInCentroid) throws TException {
+        List<String> documentIds = new ArrayList<String>();
+        documentIds.add(documentId);
+        return removeDocumentsFromCentroid(centroidId, documentIds, ignoreNotInCentroid);
+    }
+
+    public RemoveDocumentsFromCentroidResponse removeDocumentFromCentroid(String centroidId, String documentId) throws TException {
+        return removeDocumentFromCentroid(centroidId, documentId, false);
     }
 
     public static RelevancedBlockingClient connect(String host, int port) throws TException {

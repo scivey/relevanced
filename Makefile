@@ -148,6 +148,7 @@ test-clients:
 	$(MAKE) -C clients/python test
 	$(MAKE) -C clients/nodejs test
 	$(MAKE) -C clients/ruby test
+	$(MAKE) -C clients/java test
 
 publish-clients: test-clients
 	$(MAKE) -C clients/python publish
