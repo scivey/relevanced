@@ -1,4 +1,4 @@
-# The problems that relevanced addresses
+# Motivations
 
 ### Efficient similarity scoring against calculated centroids
 Given that we have already calculated a centroid representing a large collection of documents, we want an efficient way to score new documents against the model.
@@ -13,7 +13,7 @@ The solution to this is to load the centroid into memory when we first need it, 
 
 These problems can be acceptable for a simple application, but they scale with the number of models in use.  A larger application may need to score hundreds or thousands of separate document streams against a corresponding number of centroids.  Alternately, it may need to score one document stream against many centroids for [multi-label](https://en.wikipedia.org/wiki/Multi-label_classification) or [multi-class](https://en.wikipedia.org/wiki/Multiclass_classification) classification.  In these cases, the simpler approach's inefficiencies can reach unacceptable levels.
 
-**relevanced** addresses this by taking on the role of maintainer of the application's SVM models.  It keeps a single copy of each centroid loaded in memory, and knows to reload this copy whenever an update occurs.  Because it is written in C++, it can compute scores against these centroids much more efficiently than workers written in most other languages would be able to.
+**relevanced** addresses this by taking on the role of maintainer of the application's SVM models.  It keeps a single copy of each centroid loaded in memory, and knows to reload this copy whenever an update occurs.  Because it is written in well-profiled native code, it can compute scores against these centroids much more efficiently than workers written in most other languages would be able to.
 
 ### Serialization and persistence
 Given a calculated centroid representing a collection of documents, we need a way to serialize it and a place to store its serialized representation so that it can be used by other processes.

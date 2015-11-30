@@ -1,5 +1,11 @@
 # JVM Clients
 
+---
+
+See the [detailed Java API documentation here.](../api/java_api.md)
+
+---
+
 ## Installation
 
 Relevanced has a Java client which can also be used from any other JVM language.  It's hosted on Sonatype OSS.
@@ -24,11 +30,8 @@ libraryDependencies ++= Seq(
 )
 
 ```
-## API
 
-The Java client API has the same commands described in the [language-agnostic command overview](../commands.md), and follows the same `camelCase` naming convention.  In the case of the synchronous client (`RelevancedBlockingClient`), the semantics are exactly identical to the description in that document.
-
-Basic use of the blocking client:
+## Basic Use
 
 ```java
 package org.relevanced.example;
@@ -57,7 +60,9 @@ public class Main {
 }
 ```
 
+## Examples
 
-Also see the Java [binary classifier](../examples/java-binary-classifier.md) and [multi-class classifier](../examples/java-multiclass-classifier.md) examples for more practical use.
+* [Java binary classifier](../examples/java-binary-classifier.md)
+* [Java multi-class classifier](../examples/java-multiclass-classifier.md)
+* [Scala binary classifier](../examples/scala-binary-classifier.md)
 
-There is also a [Scala version](../examples/scala-binary-classifier.md) of the binary classifier example.

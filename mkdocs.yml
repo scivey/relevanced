@@ -1,13 +1,15 @@
 site_name: relevanced
-theme: yeti
+repo_url: https://github.com/scivey/relevanced
+google_analytics: ['UA-70810054-1', 'www.relevanced.org']
+theme: flatly
 
 docs_dir: docs
 site_dir: build/site
 pages:
 - Introduction:
-  - Welcome to relevanced: index.md
+  - Relevanced: index.md
+  - Text Similarity Model: introduction/model.md
   - Motivations: introduction/motivations.md
-  - Feature Overview: introduction/overview.md
 - Examples:
   - Binary Classifier (Python): examples/python-binary-classifier.md
   - Multiclass Classifier (Python): examples/python-multiclass-classifier.md
@@ -21,14 +23,13 @@ pages:
   - Docker Image: installation/docker.md
   - Configuration: installation/configuration.md
   - Building from Source: installation/building-from-source.md
-- Commands: commands.md
 - API:
   - Python: api/python_api.md
-  - Java: api/java_api.md
   - Javascript: api/javascript_api.md
+  - Ruby: api/ruby_api.md
+  - Java: api/java_api.md
 - Clients:
   - Python: clients/python.md
   - Javascript: clients/javascript.md
   - Ruby: clients/ruby.md
   - JVM: clients/jvm.md
-

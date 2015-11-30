@@ -1,11 +1,21 @@
-**relevanced** is a multithreaded C++ server providing efficient similarity scoring against named groups of text documents.  It is designed for production use against massive, changing sets of documents.  It is MIT-licensed and freely available, even for commercial purposes.
+<h3><strong>relevanced</strong> is a multithreaded C++ server providing efficient document similarity scoring and classification as a networked service.</h3>
 
-**relevanced** follows the established vector space model for text similarity: documents are represented as length-adjusted term frequency vectors, groups of documents are centroids of those vectors, and cosine similarity determines relatedness.
+<h3>Using the established <a href="/introduction/model">vector space model</a>, it helps you answer questions like:
+</h3>
 
-As documents are added and removed from centroids, worker threads periodically recalculate the underlying models to keep them up to date.  This combines the accuracy and well-understood behavior of classic offline SVM with the convenience of its online approximations.
+* How similar are these two documents?
+* How similar is this new document to a collection of other documents?
+* Which of several groups of documents is most like this new document?
 
-Processed centroids are kept in memory for fast comparison with new documents, while documents themselves are stored on disk in an embedded RocksDB database.  When a centroid is recalculated, its associated documents are streamed into the server in small batches.  This means that the number and size of documents which can be assigned to a single centroid is not constrained by memory, but only by disk space.  It also means that **relevanced** can maintain a relatively consistent memory footprint.
+<h3><strong>relevanced</strong> can process text in English, Italian, German, French, Spanish and Russian.  It is unicode-aware and uses UTF-8 for all internal string representations.
+</h3>
 
-While the math underlying SVM is established and well understood, there are [many practical considerations](introduction/motivations.md) to using such a model in a distributed production system that are not handled by existing open source software.  Any application dealing with text similarity ends up building its own home-grown solutions to these problems.
+<h3>It can handle massive document collections with limited memory, due to an an out-of-core model retraining approach.</h3>
 
-**relevanced** provides efficient, well-tested plumbing which addresses these issues.  It gives client applications access to the power of SVMs while shielding them from the complexity of updating, persisting and redeploying models.
+<h3>Clients are available for <a href="/clients/python">Python</a>, <a href="/clients/jvm">Java</a>, <a href="/clients/javascript">Javascript</a> and <a href="/clients/ruby">Ruby</a>.
+
+<h3>The server can be installed from a <a href="/installation/os-packages">DEB package</a> or run as a <a href="/installation/docker">Docker image</a>, or you can <a href="/installation/building-from-source">build it from source.</a></h3>
+
+
+<h3>Released under the commercial-friendly MIT license.</h3>
+

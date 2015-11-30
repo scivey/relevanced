@@ -1,5 +1,11 @@
 # Ruby Client
 
+---
+
+See the [detailed Ruby API documentation here.](../api/ruby_api.md)
+
+---
+
 ## Installation
 
 The Ruby client is available on RubyGems; you can install it by running:
@@ -12,17 +18,8 @@ You may need to run this command with `sudo`, depending on how and where you're 
 
 You can also install the `relevanced_client` gem with Bundler or any other Ruby dependency management tool.
 
-## API
+## Basic Use
 
-The Ruby client API has the same commands described in the [language-agnostic command overview](../commands.md), but they are converted to snake-case to be more Ruby-ish.  The mapping is identical to that used in the [Python client](./python.md), e.g.:
-
-```
-    getTextSimilarity(centroid, text) -> get_text_similarity(centroid, text)
-    createCentroid(id)                -> create_centroid(id)
-    listAllCentroids()                -> list_all_centroids()
-```
-
-Basic client use:
 ```ruby
 require 'relevanced_client'
 client = RelevancedClient::Client.new('localhost', 8097)
@@ -33,5 +30,5 @@ some_score = client.get_document_similarity(
 )
 
 ```
-
-Also see the Ruby [binary classifier](../examples/ruby-binary-classifier.md) example for more practical use.
+## Examples
+* [Ruby binary classifier](../examples/ruby-binary-classifier.md)

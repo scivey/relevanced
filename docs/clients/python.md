@@ -1,5 +1,12 @@
 # Python Client
 
+---
+
+See the [detailed Python API documentation here.](../api/python_api.md)
+
+---
+
+
 ## Installation
 
 The Python client is available on PyPI; you can install it with `pip` by running:
@@ -9,11 +16,8 @@ pip install relevanced-client
 ```
 You may need to run this command with `sudo`, depending on how and where you're installing it.
 
-## API
+## Basic Use
 
-See the [detailed Python API documentation here](../api/python_api.md).
-
-Basic client use:
 ```python
 from relevanced_client import Client
 client = Client('localhost', 8097)
@@ -25,4 +29,7 @@ some_score = client.get_document_similarity(
 
 ```
 
-Also see the Python [binary classifier](../examples/python-binary-classifier.md) and [multiclass classifier](../examples/python-multiclass-classifier.md) examples for more practical use.
+## Examples
+
+* [Python binary classifier](../examples/python-binary-classifier.md)
+* [Python multiclass classifier](../examples/python-multiclass-classifier.md)

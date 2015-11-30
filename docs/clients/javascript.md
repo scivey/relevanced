@@ -1,5 +1,11 @@
 # Javascript Client
 
+---
+
+See the [detailed Javascript API documentation here.](../api/javascript_api.md)
+
+---
+
 ## Installation
 
 The Javascript client for NodeJS is available on [NPM](https://www.npmjs.com/package/relevanced-client); you can install it in an NPM-managed project by running:
@@ -8,13 +14,7 @@ The Javascript client for NodeJS is available on [NPM](https://www.npmjs.com/pac
 npm install relevanced-client --save
 ```
 
-## API
-
-The Javascript client API has the same commands described in the [language-agnostic command overview](../commands.md), but they are asynchronous and return ES6-style promises.  The client also has promise-returning `connect` and `disconnect` methods for managing the connection lifecycle.
-
-See the [binary classifier](../examples/javascript-binary-classifier.md) example for more practical use.
-
-Simple example:
+## Basic Use
 
 ```javascript
 var RelevancedClient = require('relevanced-client').RelevancedClient;
@@ -37,3 +37,6 @@ RelevancedClient.connect('localhost', 8097).then(function(client) {
     });
 });
 ```
+
+## Examples
+* [Javascript binary classifier](../examples/javascript-binary-classifier)
