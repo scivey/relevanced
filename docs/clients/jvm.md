@@ -15,7 +15,7 @@ To add it to a Maven project, add the following dependency to your `pom.xml` fil
 <dependency>
   <groupId>org.relevanced</groupId>
   <artifactId>client</artifactId>
-  <version>0.9.5-SNAPSHOT</version>
+  <version>0.9.7-SNAPSHOT</version>
 </dependency>
 ```
 

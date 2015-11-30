@@ -4,10 +4,23 @@
 		{
 			"folder_exclude_patterns":
 			[
-				"build"
+				"build",
+				"clients/java/client/target",
+				"clients/java/client/project/target",
+				"clients/python/client/dist",
+				"clients/python/client/relevanced_client.egg-info",
+				"external/gmock-1.7.0",
+				"external/gtest-1.7.0-min",
+				"external/libstemmer",
+				"external/mirror_utf8cpp",
+				"tmp"
+			],
+			"file_exclude_patterns": [
+				"*.tar.gz",
+				"*.gem"
 			],
 			"follow_symlinks": true,
-			"path": "/home/scott/code/relevanced"
+			"path": "/home/scott/fbcode/relevanced"
 		}
 	]
 }
