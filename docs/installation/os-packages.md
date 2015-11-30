@@ -8,7 +8,7 @@ The latest `.deb` package can always be found on the [GitHub release page](https
 
 You can install the downloaded `.deb` file using `dpkg` and `apt` on the command line:
 ```bash
-VERSION=0.9.1
+VERSION=0.9.7
 sudo dpkg -i relevanced-$VERSION.deb
 
 # installs any missing packages
