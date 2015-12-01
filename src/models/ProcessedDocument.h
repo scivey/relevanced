@@ -17,10 +17,15 @@ class ProcessedDocument {
   double magnitude;
   uint64_t created{0};
   uint64_t updated{0};
+
   ProcessedDocument() {}
+
   ProcessedDocument(std::string id) : id(id) {}
-  ProcessedDocument(std::string id, std::vector<text_util::ScoredWord> scoredWords, double magnitude)
-      : id(id), scoredWords(scoredWords), magnitude(magnitude) {}
+
+  ProcessedDocument(std::string id,
+    std::vector<text_util::ScoredWord> scoredWords,
+    double magnitude
+  ) : id(id), scoredWords(scoredWords), magnitude(magnitude) {}
 
 };
 

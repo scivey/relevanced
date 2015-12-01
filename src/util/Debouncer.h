@@ -32,11 +32,17 @@ class Debouncer {
   Debouncer(std::chrono::milliseconds initialDelay,
             std::chrono::milliseconds interval,
             std::function<void(T)> onValue)
-      : initialDelay_(initialDelay), interval_(interval), onValueCb_(onValue) {
+      : initialDelay_(initialDelay),
+        interval_(interval),
+        onValueCb_(onValue) {
     std::chrono::milliseconds diff(10);
     requeueDelay_ = interval + diff;
   }
-  void stop() { stopping_ = true; }
+
+  void stop() {
+    stopping_ = true;
+  }
+
   void removeDebounced(T &t) {
     SYNCHRONIZED(inFlight_) {
       if (inFlight_.find(t) != inFlight_.end()) {
@@ -45,6 +51,7 @@ class Debouncer {
       }
     }
   }
+
   bool writeIfNotInFlight(T &t) {
     if (stopping_) {
       return false;
@@ -65,13 +72,16 @@ class Debouncer {
               onValueCb_(elem);
             }
           });
-      folly::makeFuture(t).delayed(interval_).then([this](T elem) {
-        removeDebounced(elem);
-      });
+      folly::makeFuture(t)
+          .delayed(interval_)
+          .then([this](T elem) {
+            removeDebounced(elem);
+          });
     }
     bool wrote = shouldWrite;
     return wrote;
   }
+
   void write(T t) {
     bool wrote = writeIfNotInFlight(t);
     if (!wrote) {
@@ -86,6 +96,7 @@ class Debouncer {
           });
     }
   }
+
   void join() {
     for (;;) {
       auto inProgress = numInFlight_.load();
@@ -95,11 +106,15 @@ class Debouncer {
       std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
   }
-  void debug_setTimeouts(std::chrono::milliseconds initialDelay, std::chrono::milliseconds interval, std::chrono::milliseconds requeueDelay) {
+
+  void debug_setTimeouts(std::chrono::milliseconds initialDelay,
+      std::chrono::milliseconds interval,
+      std::chrono::milliseconds requeueDelay) {
     initialDelay_ = initialDelay;
     interval_ = interval;
     requeueDelay_ = requeueDelay;
   }
+
   void debug_setShortTimeouts() {
     debug_setTimeouts(
       std::chrono::milliseconds(10),
@@ -107,6 +122,7 @@ class Debouncer {
       std::chrono::milliseconds(1)
     );
   }
+
   void debug_setVeryShortTimeouts() {
     debug_setTimeouts(
       std::chrono::milliseconds(0),
