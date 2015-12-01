@@ -9,33 +9,40 @@ namespace document_processing_worker {
 class DocumentProcessorIf {
  public:
   virtual models::ProcessedDocument process(models::Document &doc) = 0;
-  virtual std::shared_ptr<models::ProcessedDocument> processNew(
-      models::Document &doc) = 0;
-  virtual std::shared_ptr<models::ProcessedDocument> processNew(
-      std::shared_ptr<models::Document> doc) = 0;
+
+  virtual std::shared_ptr<models::ProcessedDocument>
+    processNew(models::Document &doc) = 0;
+
+  virtual std::shared_ptr<models::ProcessedDocument>
+    processNew(std::shared_ptr<models::Document> doc) = 0;
+
   virtual ~DocumentProcessorIf() = default;
 };
 
 class DocumentProcessor : public DocumentProcessorIf {
  protected:
-  void process_(models::Document &doc, models::ProcessedDocument *result);
-  void process_(models::Document &doc,
-                std::shared_ptr<models::ProcessedDocument> result);
   std::shared_ptr<stemmer::StemmerManagerIf> stemmerManager_;
   std::shared_ptr<stopwords::StopwordFilterIf> stopwordFilter_;
   std::shared_ptr<util::ClockIf> clock_;
+
+  void process_(models::Document&, models::ProcessedDocument*);
+
+  void process_(models::Document&, std::shared_ptr<models::ProcessedDocument>);
+
  public:
-  DocumentProcessor(std::shared_ptr<stemmer::StemmerManagerIf> stemmerManager,
-                    std::shared_ptr<stopwords::StopwordFilterIf> stopwordFilter,
-                    std::shared_ptr<util::ClockIf> clock)
-      : stemmerManager_(stemmerManager),
-        stopwordFilter_(stopwordFilter),
-        clock_(clock) {}
-  std::shared_ptr<models::ProcessedDocument> processNew(
-      models::Document &doc) override;
-  std::shared_ptr<models::ProcessedDocument> processNew(
-      std::shared_ptr<models::Document> doc) override;
-  models::ProcessedDocument process(models::Document &doc) override;
+  DocumentProcessor(
+    std::shared_ptr<stemmer::StemmerManagerIf>,
+    std::shared_ptr<stopwords::StopwordFilterIf>,
+    std::shared_ptr<util::ClockIf>
+  );
+
+  std::shared_ptr<models::ProcessedDocument>
+    processNew(models::Document&) override;
+
+  std::shared_ptr<models::ProcessedDocument>
+    processNew(std::shared_ptr<models::Document>) override;
+
+  models::ProcessedDocument process(models::Document&) override;
 };
 
 } // document_processing_worker

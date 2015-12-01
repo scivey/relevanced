@@ -23,7 +23,8 @@ CentroidUpdaterFactory::CentroidUpdaterFactory(
 shared_ptr<CentroidUpdaterIf> CentroidUpdaterFactory::makeForCentroidId(
     const string &centroidId) {
   return shared_ptr<CentroidUpdaterIf>(new CentroidUpdater(
-      persistence_, centroidMetadataDb_, clock_, accumulatorFactory_, centroidId));
+    persistence_, centroidMetadataDb_, clock_, accumulatorFactory_, centroidId
+  ));
 }
 
 } // centroid_update_worker

@@ -10,8 +10,9 @@ namespace centroid_update_worker {
 
 class CentroidUpdaterFactoryIf {
  public:
-  virtual std::shared_ptr<CentroidUpdaterIf> makeForCentroidId(
-      const std::string&) = 0;
+  virtual std::shared_ptr<CentroidUpdaterIf>
+    makeForCentroidId(const std::string&) = 0;
+
   virtual ~CentroidUpdaterFactoryIf() = default;
 };
 
@@ -27,8 +28,9 @@ class CentroidUpdaterFactory : public CentroidUpdaterFactoryIf {
                          std::shared_ptr<persistence::CentroidMetadataDbIf>,
                          std::shared_ptr<DocumentAccumulatorFactoryIf>,
                          std::shared_ptr<util::ClockIf>);
-  std::shared_ptr<CentroidUpdaterIf> makeForCentroidId(
-      const std::string&) override;
+
+  std::shared_ptr<CentroidUpdaterIf>
+    makeForCentroidId(const std::string&) override;
 };
 
 } // centroid_update_worker

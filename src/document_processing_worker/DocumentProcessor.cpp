@@ -25,9 +25,20 @@ namespace document_processing_worker {
 
 using models::Document;
 using models::ProcessedDocument;
+using stemmer::StemmerManagerIf;
 using namespace std;
 using util::UniquePointer;
+using util::ClockIf;
+using stopwords::StopwordFilterIf;
 using namespace relevanced::text_util;
+
+DocumentProcessor::DocumentProcessor(
+    shared_ptr<StemmerManagerIf> stemmerManager,
+    shared_ptr<StopwordFilterIf> stopwordFilter,
+    shared_ptr<ClockIf> clock
+  ): stemmerManager_(stemmerManager),
+     stopwordFilter_(stopwordFilter),
+     clock_(clock) {}
 
 void DocumentProcessor::process_(
     Document &doc, ProcessedDocument *result) {
