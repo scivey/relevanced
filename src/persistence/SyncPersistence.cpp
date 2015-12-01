@@ -624,9 +624,12 @@ SyncPersistence::listCentroidDocumentRangeFromOffsetOption(
     centroidId, offset, limit
   );
   if (!docs.size() && !doesCentroidExist(centroidId)) {
+    DLOG(INFO) << "no centroid documents";
     return result;
   }
+  DLOG(INFO) << "found centroid documents";
   result.assign(docs);
+  DLOG(INFO) << "assigned docs";
   return result;
 }
 
@@ -646,6 +649,8 @@ Try<vector<string>> SyncPersistence::listCentroidDocumentRangeFromOffset(
 
 vector<string> SyncPersistence::listCentroidDocumentRangeFromDocumentIdRaw(
     const string &centroidId, const string &startingDocumentId, size_t limit) {
+  DLOG(INFO) << "listCentroidDocumentRangeFromDocumentIdRaw: "
+             << centroidId << ", " << startingDocumentId << ", " << limit;
   vector<string> documentIds;
   rockHandle_->iterPrefixFromMember(
     SyncPersistence::getCentroidDocumentPrefix(centroidId),
@@ -669,9 +674,14 @@ SyncPersistence::listCentroidDocumentRangeFromDocumentIdOption(
     centroidId, documentId, limit
   );
   if (!docs.size() && !doesCentroidExist(centroidId)) {
+    DLOG(INFO) << "no docs";
     return result;
   }
+  DLOG(INFO) << "found docs";
+
   result.assign(docs);
+  DLOG(INFO) << "assigned docs";
+
   return result;
 }
 

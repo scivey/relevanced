@@ -13,9 +13,11 @@ using namespace std;
 using namespace relevanced;
 using namespace relevanced::server;
 
-int main(int argc, char **argv) {
+int main(int argc, char *argv[]) {
   google::SetUsageMessage("Usage");
   google::ParseCommandLineFlags(&argc, &argv, true);
+  google::InitGoogleLogging(argv[0]);
+  google::InstallFailureSignalHandler();
   thread t1([]() {
     auto options = buildOptions();
     auto server = buildNormalThriftServer(options);

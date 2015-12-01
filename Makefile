@@ -141,8 +141,9 @@ TEST_DATA_DIR=$(WORKDIR)/build/test_data
 
 run-server:
 	mkdir -p $(TEST_DATA_DIR) && rm -rf $(TEST_DATA_DIR)/*
-	cd build/bin && cmake ../../ && make relevanced -j4
-	cd build/bin && ./src/relevanced --data_dir=$(TEST_DATA_DIR)
+	mkdir -p build/debug && cd build/debug && cmake -DCMAKE_BUILD_TYPE=Debug ../../
+	cd build/debug && make relevanced -j4
+	cd build/debug && ./src/relevanced --data_dir=$(TEST_DATA_DIR) --logtostderr=1
 
 test-clients:
 	$(MAKE) -C clients/python test

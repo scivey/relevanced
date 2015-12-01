@@ -3,6 +3,7 @@
 #include <memory>
 #include <atomic>
 #include <type_traits>
+#include <glog/logging.h>
 namespace relevanced {
 namespace util {
 
