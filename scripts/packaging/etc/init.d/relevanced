@@ -35,62 +35,51 @@ if [ -e /etc/init.d/functions ]; then
   . /etc/init.d/functions
 fi
 
+set -e
+
 if [ ! -e $FLAGS_PATH ] && [ ! -e $REAL_CONFIG_PATH ]; then
   echo "No config file found at $REAL_CONFIG_PATH"
-  RETVAL=1
+  exit 1
 fi
 
-ensure_root() {
-  if [ $UID -ne 0 ] ; then
-    echo "User has insufficient privilege."
-    RETVAL=1
-  fi
-}
-
-start() {
-  ensure_root
-
-  ARGS=""
-
-  if [ -e $REAL_CONFIG_PATH ]; then ARGS="$ARGS --config_file=$REAL_CONFIG_PATH"; fi
-
-  daemon $PROG --name relevanced -- $ARGS
-  RETVAL=$?
-}
-
-stop() {
-  ensure_root
-  daemon --stop --name relevanced
-}
-
-restart() {
-  stop
-  $(sleep 3)
-  start
-}
-
-status() {
-  ensure_root
-  if daemon --running --name relevanced; then
-    echo "$PROG is running."
-    RETVAL=0
-  else
-    echo "$PROG is not running."
-    RETVAL=7
-  fi
-}
-
-usage() {
-  echo "Usage: $0 {start|stop|status|restart}"
-  RETVAL=2
-}
-
 case "$1" in
-    start) start ;;
-    stop) stop ;;
-    restart) restart ;;
-    status) status ;;
-    *) usage ;;
+  start)
+    echo -n "Starting $PROG: "
+    ARGS=""
+
+    if [ -e $REAL_CONFIG_PATH ]; then ARGS="$ARGS --config_file=$REAL_CONFIG_PATH"; fi
+
+    daemon $PROG --name relevanced -u relevanced:relevanced -- $ARGS
+    exit $?
+    ;;
+
+  stop)
+    echo -n "Stopping $PROG: "
+    daemon --stop --name relevanced -u relevanced:relevanced -- $ARGS
+    RETVAL=$?
+    sleep 1
+    exit $RETVAL
+    ;;
+
+  restart)
+    ${0} stop
+    ${0} start
+    ;;
+
+  status)
+    echo -n "$PROG is "
+    if daemon --running --name relevanced -u relevanced:relevanced; then
+      echo "running"
+    else
+      echo "not running."
+      exit 1
+    fi
+    ;;
+
+  *)
+    echo "Usage: $0 {start|stop|restart|status}" >&2
+    exit 1
+    ;;
 esac
 
-exit ${RETVAL}
+exit 0
