@@ -1,0 +1,8 @@
+/var/log/relevanced/*.log {
+        daily
+        missingok
+    copytruncate
+        rotate 12
+        compress
+        notifempty
+}

@@ -158,4 +158,14 @@ publish-clients:
 	$(MAKE) -C clients/ruby publish
 	$(MAKE) -C clients/java publish
 
-.PHONY: test-clients publish-clients
+.PHONY: test-clients publish-clients unwrap-deb
+
+unwrap-deb:
+	mkdir -p unwrap_deb && rm -rf unwrap_deb/*
+	cp build/deb/*.deb unwrap_deb/relevanced.deb
+	cd unwrap_deb && ar -vx relevanced.deb
+	mkdir -p unwrap_deb/control unwrap_deb/data
+	mv unwrap_deb/control.tar.gz unwrap_deb/control
+	mv unwrap_deb/data.tar.gz unwrap_deb/data
+	cd unwrap_deb/data && tar -xaf data.tar.gz
+	cd unwrap_deb/control && tar -xaf control.tar.gz

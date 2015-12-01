@@ -30,8 +30,10 @@ fi
 OUTPUT_PKG_PATH="$BUILD_DIR/$PACKAGE_NAME-$PACKAGE_VERSION."
 
 # Config files
-INITD_SRC="$SCRIPT_DIR/relevanced.initd"
+INITD_SRC="${SCRIPT_DIR}/etc/init.d/relevanced"
 INITD_DST="/etc/init.d/relevanced"
+JSON_CONFIG_SRC=${SCRIPT_DIR}/etc/relevanced/relevanced.json
+LOGROTATE_CONFIG_SRC=${SCRIPT_DIR}/etc/logrotate.d/relevanced
 RELEVANCED_LOG_DIR="/var/log/relevanced/"
 RELEVANCED_VAR_DIR="/var/lib/relevanced"
 RELEVANCED_ETC_DIR="/etc/relevanced"
@@ -100,14 +102,18 @@ function main() {
   mkdir -p $INSTALL_PREFIX/$RELEVANCED_VAR_DIR/data
   mkdir -p $INSTALL_PREFIX/$RELEVANCED_LOG_DIR
   mkdir -p $INSTALL_PREFIX/$RELEVANCED_ETC_DIR
+  mkdir -p $INSTALL_PREFIX/etc/logrotate.d
 
   mkdir -p `dirname $INSTALL_PREFIX$INITD_DST`
-  cp $SCRIPT_DIR/relevanced.json $INSTALL_PREFIX/$RELEVANCED_ETC_DIR/relevanced.json
-  cp $INITD_SRC $INSTALL_PREFIX$INITD_DST
+  cp $JSON_CONFIG_SRC $INSTALL_PREFIX/$RELEVANCED_ETC_DIR/relevanced.json
 
+  cp $INITD_SRC $INSTALL_PREFIX$INITD_DST
   chmod g-w $INSTALL_PREFIX$INITD_DST
   chmod a+x $INSTALL_PREFIX$INITD_DST
 
+  LOGROTATE_DEST=$INSTALL_PREFIX/etc/logrotate.d/relevanced
+  cp $LOGROTATE_CONFIG_SRC $LOGROTATE_DEST
+  chmod 644 $LOGROTATE_DEST
   log "creating package"
   IFS=',' read -a deps <<< "$PACKAGE_DEPENDENCIES"
   PACKAGE_DEPENDENCIES=
@@ -128,11 +134,18 @@ function main() {
     $PACKAGE_DEPENDENCIES                 \
     -p $OUTPUT_PKG_PATH                   \
     --config-files etc/relevanced/relevanced.json \
+    --config-files etc/init.d/relevanced \
+    --config-files etc/logrotate.d/relevanced \
+    --before-install ${SCRIPT_DIR}/deb/preinst \
+    --after-install ${SCRIPT_DIR}/deb/postinst \
+    --before-remove ${SCRIPT_DIR}/deb/prerm \
+    --after-remove ${SCRIPT_DIR}/deb/postrm \
     --url http://www.relevanced.org       \
     -m scott.ivey@gmail.com               \
     --license MIT                         \
     --description \"$DESCRIPTION\"        \
     \"$INSTALL_PREFIX/=/\""
+  echo "running: $CMD"
   eval "$CMD"
   log "package created at $OUTPUT_PKG_PATH"
 }
