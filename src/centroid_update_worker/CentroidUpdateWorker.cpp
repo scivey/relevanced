@@ -34,7 +34,7 @@ CentroidUpdateWorker::CentroidUpdateWorker(
 
 void CentroidUpdateWorker::initialize() {
   chrono::milliseconds initialDelay(5000);
-  chrono::milliseconds debounceInterval(30000);
+  chrono::milliseconds debounceInterval(15000);
   updateQueue_ = make_shared<Debouncer<string>>(
     initialDelay, debounceInterval,
     [this](string centroidId) {

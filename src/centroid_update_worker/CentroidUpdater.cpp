@@ -50,6 +50,7 @@ CentroidUpdater::CentroidUpdater(
       centroidId_(centroidId) {}
 
 Try<bool> CentroidUpdater::run() {
+  DLOG(INFO) << "CentroidUpdater: running for " << centroidId_;
   if (!persistence_->doesCentroidExist(centroidId_).get()) {
     LOG(INFO) << format("centroid '{}' does not exist!", centroidId_);
     return Try<bool>(make_exception_wrapper<ECentroidDoesNotExist>());
@@ -70,61 +71,66 @@ Try<bool> CentroidUpdater::run() {
     return Try<bool>(make_exception_wrapper<ECentroidDoesNotExist>());
   }
   auto accumulator = accumulatorFactory_->get();
-
   vector<string> idSet = std::move(firstIdSet.value());
-  do {
-    // start the next set of IDs loading here so they'll be done
-    // at the end of the current loop.
-    auto nextIdSetFuture =
-        persistence_->listCentroidDocumentRangeFromDocumentIdOption(
-            centroidId_, idSet.back(), idListBatchSize);
 
-    for (size_t docNum = 0; docNum < idSet.size();
-         docNum += documentBatchSize) {
-      size_t lastDocIndex = min(idSet.size() - 1, docNum + documentBatchSize);
-      vector<Future<Optional<shared_ptr<ProcessedDocument>>>> documentFutures;
+  if (idSet.size() > 0) {
+    do {
+      // start the next set of IDs loading here so they'll be done
+      // at the end of the current loop.
+      auto nextIdSetFuture =
+          persistence_->listCentroidDocumentRangeFromDocumentIdOption(
+              centroidId_, idSet.back(), idListBatchSize);
 
-      // get batch of documents in parallel
-      for (size_t i = docNum; i <= lastDocIndex; i++) {
-        documentFutures.push_back(
-          util::optionOfTry<shared_ptr<ProcessedDocument>>(
-            persistence_->loadDocument(idSet.at(i))
-          )
-        );
-      }
+      for (size_t docNum = 0; docNum < idSet.size();
+           docNum += documentBatchSize) {
+        size_t lastDocIndex = min(idSet.size() - 1, docNum + documentBatchSize);
+        vector<Future<Optional<shared_ptr<ProcessedDocument>>>> documentFutures;
 
-      auto loadedDocuments = collect(documentFutures).get();
-
-      // add non-falsy documents to the centroid
-      for (size_t i = 0; i < loadedDocuments.size(); i++) {
-        auto doc = loadedDocuments.at(i);
-        if (!doc.hasValue()) {
-          auto docId = idSet.at(i);
-          LOG(INFO) << format("missing document '{}' from centroid '{}'", docId,
-                              centroidId_);
-          persistence_->removeDocumentFromCentroid(centroidId_, docId);
-          continue;
+        // get batch of documents in parallel
+        for (size_t i = docNum; i <= lastDocIndex; i++) {
+          documentFutures.push_back(
+            util::optionOfTry<shared_ptr<ProcessedDocument>>(
+              persistence_->loadDocument(idSet.at(i))
+            )
+          );
         }
-        accumulator->addDocument(doc.value().get());
+
+        auto loadedDocuments = collect(documentFutures).get();
+
+        // add non-falsy documents to the centroid
+        for (size_t i = 0; i < loadedDocuments.size(); i++) {
+          auto doc = loadedDocuments.at(i);
+          if (!doc.hasValue()) {
+            auto docId = idSet.at(i);
+            LOG(INFO) << format("missing document '{}' from centroid '{}'", docId,
+                                centroidId_);
+            persistence_->removeDocumentFromCentroid(centroidId_, docId);
+            continue;
+          }
+          accumulator->addDocument(doc.value().get());
+        }
       }
-    }
 
-    auto nextIdSet = nextIdSetFuture.get();
-    if (!nextIdSet.hasValue()) {
-      LOG(INFO) << format(
-          "received falsy document list for centroid '{}'; it must have been "
-          "deleted. aborting.",
-          centroidId_);
-      return Try<bool>(make_exception_wrapper<ECentroidDoesNotExist>());
-    }
-    idSet = std::move(nextIdSet.value());
+      auto nextIdSet = nextIdSetFuture.get();
+      if (!nextIdSet.hasValue()) {
+        LOG(INFO) << format(
+            "received falsy document list for centroid '{}'; it must have been "
+            "deleted. aborting.",
+            centroidId_);
+        return Try<bool>(make_exception_wrapper<ECentroidDoesNotExist>());
+      }
+      idSet = std::move(nextIdSet.value());
 
-  } while (idSet.size() >= idListBatchSize);
-
+    } while (idSet.size() >= idListBatchSize);
+  }
   auto centroid = make_shared<Centroid>(centroidId_);
   centroid->wordVector.magnitude = accumulator->getMagnitude();
   centroid->wordVector.documentWeight = accumulator->getCount();
   centroid->wordVector.scores = std::move(accumulator->getScores());
+  if (!persistence_->doesCentroidExist(centroidId_).get()) {
+    LOG(INFO) << "Centroid missing after update; must have been deleted.";
+    return Try<bool>(make_exception_wrapper<ECentroidDoesNotExist>());
+  }
   persistence_->saveCentroid(centroidId_, centroid).get();
   centroidMetadataDb_->setLastCalculatedTimestamp(centroidId_, startTimestamp);
   return Try<bool>(true);
