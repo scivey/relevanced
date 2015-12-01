@@ -114,9 +114,10 @@ run:
 	rm -rf build/bin/data && mkdir -p build/bin/data
 	cd build/bin && cmake ../../ && make relevanced -j4 && ./src/relevanced
 
-build-server-static:
+build-server-static-release:
 	mkdir -p build/bin
-	cd build/bin && cmake ../../ && make relevanced_static -j4
+	cd build/bin && cmake -DCMAKE_BUILD_TYPE=Release ../../
+	cd build/bin && make relevanced_static -j4
 
 deb-package-local:
 	rm -rf build/deb/* && mkdir -p build/deb
